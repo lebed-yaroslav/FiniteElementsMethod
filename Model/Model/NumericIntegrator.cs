@@ -1,0 +1,110 @@
+﻿using Model.Core.Matrix;
+using Telma;
+
+namespace Model.Model;
+
+public static class NumericIntegrator
+{
+    public static LocalMatrix CalculateLocalStiffness(
+        IFiniteElement element,
+        Func<Vector2D, double> lambda
+    )
+    {
+        int n = element.Dof.Length;
+        var stiffness = new LocalMatrix(n);
+
+        var masterCs = element.MasterElementCoordinateSystem;
+        var meshCs = element.Mesh.CoordinateSystem;
+
+        var masterInvJ = masterCs.InverseJacoby();
+        var meshInvJ = meshCs.InverseJacoby();
+
+        for (int i = 0; i < n; i++) {
+            for (int j = 0; j <= i; j++)
+            {
+                var value = 0.0;
+                foreach (var q in element.Quadratures)
+                {
+                    var ep = q.Node; // master element-space point
+                    var mp = masterCs.ToGlobal(ep); // mesh-space point
+                    var invJ = masterInvJ.MulAt(ep, meshInvJ, mp); // Jacoby from master to physical
+                    var gradPhiI = element.Basis[i].Derivatives(ep);
+                    var gradPhiJ = element.Basis[j].Derivatives(ep);
+
+                    // product = grad(phi_i)^T * J^(-T) * J(-1) * grad(phi_j)
+                    var product = (
+                        (invJ[0, 0] * invJ[0, 0] + invJ[1, 0] * invJ[1, 0]) * gradPhiI.X +
+                        (invJ[0, 0] * invJ[0, 1] + invJ[1, 0] * invJ[1, 1]) * gradPhiI.Y
+                    ) * gradPhiJ.X + (
+                        (invJ[0, 1] * invJ[0, 1] + invJ[1, 1] * invJ[1, 1]) * gradPhiI.Y +
+                        (invJ[0, 0] * invJ[0, 1] + invJ[1, 0] * invJ[1, 1]) * gradPhiI.X
+                    ) * gradPhiJ.Y;
+
+                    var jacobian = Math.Abs(1 / invJ.Det(Vector2D.Zero)); 
+
+                    value += lambda(mp) * product * jacobian * q.Weight;
+                }
+                stiffness[i, j] = value;
+                stiffness[j, i] = value;
+            }
+        }
+        return stiffness;
+    }
+
+    public static LocalMatrix CalculateLocalMass(
+        IFiniteElement element,
+        Func<Vector2D, double> gamma
+    )
+    {
+        int n = element.Dof.Length;
+        var mass = new LocalMatrix(n);
+        
+        var masterCs = element.MasterElementCoordinateSystem;
+        var meshCs = element.Mesh.CoordinateSystem;
+
+        for (int i = 0; i < n; i++)
+        {
+            for (int j = 0; j <= i; j++)
+            {
+                var value = 0.0;
+                foreach (var q in element.Quadratures)
+                {
+                    var ep = q.Node; // master element-space point
+                    var mp = masterCs.ToGlobal(ep); // mesh-space point
+                    var phiI = element.Basis[i].Value(ep);
+                    var phiJ = element.Basis[j].Value(ep);
+                    var jacobian = Math.Abs(masterCs.Jacobian(ep) * meshCs.Jacobian(mp)); // FIXME: may be optimized (by IsConstant)
+                    value += gamma(mp) * phiI * phiJ * jacobian * q.Weight;
+                }
+                mass[i, j] = value;
+                mass[j, i] = value;
+            }
+        }
+        return mass;
+    }
+
+    public static void CalculateLocalLoad(
+        IFiniteElement element,
+        Func<Vector2D, double> source,
+        Span<double> load
+    )
+    {
+        int n = element.Dof.Length;
+        var masterCs = element.MasterElementCoordinateSystem;
+        var meshCs = element.Mesh.CoordinateSystem;
+
+        for (int j = 0; j < n; j++)
+        {
+            var value = 0.0;
+            foreach (var q in element.Quadratures)
+            {
+                var ep = q.Node; // master element-space point
+                var mp = masterCs.ToGlobal(q.Node); // mesh-space point
+                var psiJ = element.Basis[j].Value(ep);
+                var jacobian = Math.Abs(masterCs.Jacobian(ep) * meshCs.Jacobian(mp));
+                value += source(mp) * psiJ * q.Weight * jacobian;
+            }
+            load[j] = value;
+        }
+    }
+}
