@@ -1,4 +1,7 @@
 <Solution>
+  <Folder Name="/Docs/">
+    <File Path="TODO.md" />
+  </Folder>
   <Project Path="Model/Model.csproj" />
   <Project Path="Telma/Telma.csproj" />
 </Solution>
