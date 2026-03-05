@@ -830,7 +830,7 @@ public static class Quadratures
 
     #region Polygon quadrature
 
-    public private static IEnumerable<QuadratureNode3D> MapTriangle(Vector3D v0, Vector3D v1, Vector3D v2, IEnumerable<QuadratureNode2D> quadrature)
+    public static IEnumerable<QuadratureNode3D> MapTriangle(Vector3D v0, Vector3D v1, Vector3D v2, IEnumerable<QuadratureNode2D> quadrature)
     {
         var jacobian = Vector3D.Cross(v1 - v0, v2 - v0).Norm;
         foreach (var node in quadrature)
