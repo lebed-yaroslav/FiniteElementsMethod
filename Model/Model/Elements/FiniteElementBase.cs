@@ -81,3 +81,15 @@ public readonly struct BasisSet(
     private readonly IBasisFunction[] _basis = basis;
     public ReadOnlySpan<IBasisFunction> Basis => _basis;
 }
+
+public sealed class MutableBasisSet(
+    Func<IEnumerable<Quadratures.QuadratureNode2D>> quadratures,
+    params IBasisFunction[] basis
+) : IBasisSet
+{
+    public IEnumerable<Quadratures.QuadratureNode2D> Quadratures => quadratures();
+    private readonly IBasisFunction[] _basis = basis;
+
+    public ReadOnlySpan<IBasisFunction> Basis => _basis;
+    public Span<IBasisFunction> MutableBasis => _basis;
+}
