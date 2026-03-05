@@ -1,7 +1,6 @@
 using Model.Core.CoordinateSystems;
 
 namespace Model.Model.Elements.Rectangle;
-
 public sealed class RectangleGeometry(int[] vertexIndices) : FiniteElementGeometry(vertexIndices)
 {
     public override IEnumerable<Edge> Edges
@@ -16,6 +15,7 @@ public sealed class RectangleGeometry(int[] vertexIndices) : FiniteElementGeomet
     }
     public override int EdgeCount => 4;
 
-    // TODO: Coordinate system
-    public override BarycentricCoordinateSystem MasterElementCoordinateSystem => throw new NotImplementedException();
+    public override CartesianCoordinateSystem MasterElementCoordinateSystem => new(
+        Mesh[Vertices[0]], Mesh[Vertices[1]], Mesh[Vertices[2]], Mesh[Vertices[3]]
+    );
 }
