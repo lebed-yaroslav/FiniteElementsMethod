@@ -15,4 +15,8 @@ public sealed class RectangleGeometry(int[] vertexIndices) : ElementGeometry<Vec
         }
     }
     public override int EdgeCount => 4;
+
+    public override CartesianCoordinateSystem MasterElementCoordinateSystem => new(
+        Mesh[Vertices[0]], Mesh[Vertices[1]], Mesh[Vertices[2]], Mesh[Vertices[3]]
+    );
 }
