@@ -10,7 +10,9 @@ public interface IFiniteElement :
     IFiniteElementGeometry,
     IDofManager,
     IBasisSet
-{}
+{
+	int MaterialIndex { get; }
+}
 
 public interface IFiniteElementGeometry
 {
@@ -54,7 +56,7 @@ public struct Edge
 }
 
 public interface IFiniteElementFactory {
-    IFiniteElement Create(IMesh2D mesh, int[] vertices);
+    IFiniteElement Create(IMesh2D mesh, int[] vertices, int materialIndex);
 }
 
 public static class FiniteElements

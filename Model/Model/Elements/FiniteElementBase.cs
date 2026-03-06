@@ -5,10 +5,11 @@ using Telma;
 namespace Model.Model.Elements;
 
 
-public record class FiniteElement(
+public sealed record class FiniteElement(
     IFiniteElementGeometry Geometry,
     IDofManager DOF,
-    IBasisSet BasisSet
+    IBasisSet BasisSet,
+    int MaterialIndex
 ) : IFiniteElement
 {
     public IMesh2D Mesh => Geometry.Mesh;

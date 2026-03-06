@@ -5,11 +5,12 @@ namespace Model.Model.Elements.Triangle;
 
 public sealed class HierarchicalQuadraticTriangleFactory : IFiniteElementFactory
 {
-    public IFiniteElement Create(IMesh2D mesh, int[] vertices) =>
+    public IFiniteElement Create(IMesh2D mesh, int[] vertices, int materialIndex) =>
         new FiniteElement(
             Geometry: new TriangleGeometry(vertices) { Mesh = mesh },
             DOF: new Dof(),
-            BasisSet: Basis
+            BasisSet: Basis,
+            MaterialIndex: materialIndex
      );
 
     public static readonly IBasisSet Basis = new BasisSet(

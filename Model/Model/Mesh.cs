@@ -21,6 +21,6 @@ public sealed class Mesh2D(ICoordinateSystem2D coordinateSystem) : IMesh2D
 
 
     public void AddVertex(Vector2D vertex) => _vertices.Add(vertex);
-    public void AddElement(IFiniteElementFactory factory, int[] vertices) =>
-        _finiteElements.Add(factory.Create(this, vertices));
+    public void AddElement(IFiniteElementFactory factory, int[] vertices, int materialIndex) =>
+        _finiteElements.Add(factory.Create(this, vertices, materialIndex));
 }
