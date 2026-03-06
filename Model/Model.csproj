@@ -10,9 +10,4 @@
   <ItemGroup>
     <ProjectReference Include="..\Telma\Telma.csproj" />
   </ItemGroup>
-
-  <ItemGroup>
-    <Folder Include="Core\Assembler\" />
-    <Folder Include="Core\Quadratures\" />
-  </ItemGroup>
 </Project>
