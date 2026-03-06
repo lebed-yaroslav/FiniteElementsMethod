@@ -1,5 +1,5 @@
 ﻿using Model.Model.Basis;
-using Model.Model.Elements.Rectangle;
+using Model.Model.Elements.Quadrangle;
 using Telma;
 
 namespace Model.Model.Elements.Quadrangle;
@@ -8,7 +8,7 @@ public sealed class HermiteQuadraticFactory : IFiniteElementFactory
 {
     public IFiniteElement Create(IMesh2D mesh, int[] vertices) =>
         new FiniteElement(
-            Geometry: new RectangleGeometry(vertices) { Mesh = mesh },
+            Geometry: new QuadrangleGeometry(vertices) { Mesh = mesh },
             DOF: new Dof(),
             BasisSet: Basis
      );
