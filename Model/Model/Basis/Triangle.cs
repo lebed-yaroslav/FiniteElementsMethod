@@ -1,4 +1,5 @@
-﻿using Telma;
+﻿using System.Runtime.CompilerServices;
+using Telma;
 
 namespace Model.Model.Basis;
 
@@ -26,6 +27,9 @@ public static class TriangleBasis
 
     /// <summary>L1L2L3(xi, eta) = xi * eta * (1 - xi - eta)</summary>
     public static readonly IBasisFunction L1L2L3 = new TriangleL1L2L3();
+    public static readonly IBasisFunction L3L1L3DivL1 = new TriangleL3L1L3DivL1();
+    public static readonly IBasisFunction L3L2L3DivL2 = new TriangleL3L2L3DivL2();
+    public static readonly IBasisFunction L1L2L1DivL2 = new TriangleL1L2L1DivL2();
 
 
     private readonly struct TriangleL1 : IBasisFunction
@@ -95,6 +99,68 @@ public static class TriangleBasis
         {
             (var xi, var eta) = localCoords;
             return new(eta * (1 - 2 * xi - eta), xi * (1 - xi - 2 * eta)); // [d/dxi, d/deta]
+        }
+    }
+    private struct TriangleL3L1L3DivL1 : IBasisFunction
+    {   
+        bool preorder;
+
+        public TriangleL3L1L3DivL1()
+        {
+            preorder = true;
+        }
+
+        public double Value(Vector2D localCoords)
+        {
+            (var xi, var eta) = localCoords;
+            return xi * (1 - xi - eta) * (1 - xi - eta - xi) * (preorder ? 1 : -1);
+        }
+        public Vector2D Derivatives(Vector2D localCoords)
+        {
+            (var xi, var eta) = localCoords;
+            return new( (xi * (6 * xi + 6 * eta - 6) + eta * (eta - 2) + 1) * (preorder ? 1 : -1),
+                        xi * (3 * xi + 2 * eta - 2)* (preorder ? 1 : -1));
+        }
+    }
+    private struct TriangleL1L2L1DivL2 : IBasisFunction
+    {   
+        bool preorder;
+
+        public TriangleL1L2L1DivL2()
+        {
+            preorder = true;
+        }
+
+        public double Value(Vector2D localCoords)
+        {
+            (var xi, var eta) = localCoords;
+            return xi * eta * (xi - eta) * (preorder ? 1 : -1);
+        }
+        public Vector2D Derivatives(Vector2D localCoords)
+        {
+            (var xi, var eta) = localCoords;
+            return new( eta * (2 * xi - eta) * (preorder ? 1 : -1),
+                        xi * (xi - 2 * eta) * (preorder ? 1 : -1));
+        }
+    }
+    private struct TriangleL3L2L3DivL2 : IBasisFunction
+    {
+        bool preorder;
+
+        public TriangleL3L2L3DivL2()
+        {
+            preorder = true;
+        }
+        public double Value(Vector2D localCoords)
+        {
+            (var xi, var eta) = localCoords;
+            return eta * (1 - xi - eta) * (1 - xi - eta - eta) * (preorder ? 1 : -1);
+        }
+        public Vector2D Derivatives(Vector2D localCoords)
+        {
+            (var xi, var eta) = localCoords;
+            return new( eta * (2 * xi + 3 * eta - 2) * (preorder ? 1 : -1), 
+                        (eta * (6 * xi + 6 * eta - 6) + xi * (xi - 2) + 1) * (preorder ? 1 : -1));
         }
     }
 }
