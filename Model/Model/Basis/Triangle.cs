@@ -24,14 +24,14 @@ public static class TriangleBasis
     /// <summary>L3L1(ξ, η) = ξ * (1 - ξ - η)</summary>
     public static readonly IBasisFunction L3L1 = new TriangleL3L1();
 
-	// Cubic:
+    // Cubic:
 
-	/// <summary>L1L3L1SubL3(ξ, η) = ξ * η * (η - ξ)</summary>
-	public static readonly IBasisFunction L1L2L2SubL1 = new TriangleL1L2L2SubL1();
-	/// <summary>L1L3L1SubL3(ξ, η) = ξ * (1 - ξ - η) * (2ξ + η - 1)</summary>
-	public static readonly IBasisFunction L1L3L1SubL3 = new TriangleL1L3L1SubL3();
-	/// <summary>L1L3L1SubL3(ξ, η) = η * (1 - ξ - η) * (ξ + 2η - 1)</summary>
-	public static readonly IBasisFunction L2L3L2SubL3 = new TriangleL2L3L2SubL3();
+    /// <summary>L1L3L1SubL3(ξ, η) = ξ * η * (η - ξ)</summary>
+    public static readonly IBasisFunction L1L2L2SubL1 = new TriangleL1L2L2SubL1();
+    /// <summary>L1L3L1SubL3(ξ, η) = ξ * (1 - ξ - η) * (2ξ + η - 1)</summary>
+    public static readonly IBasisFunction L1L3L1SubL3 = new TriangleL1L3L1SubL3();
+    /// <summary>L1L3L1SubL3(ξ, η) = η * (1 - ξ - η) * (ξ + 2η - 1)</summary>
+    public static readonly IBasisFunction L2L3L2SubL3 = new TriangleL2L3L2SubL3();
     /// <summary>L1L2L3(ξ, η) = ξ * η * (1 - ξ - η)</summary>
     public static readonly IBasisFunction L1L2L3 = new TriangleL1L2L3();
 

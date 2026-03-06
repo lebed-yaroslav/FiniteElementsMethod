@@ -15,12 +15,12 @@ public sealed class HierarchicalQuadraticTriangleFactory : IFiniteElementFactory
 
     public static readonly IBasisSet Basis = new BasisSet(
         Quadratures.TriangleOrder6,
+        TriangleBasis.L3,
         TriangleBasis.L1,
         TriangleBasis.L2,
-        TriangleBasis.L3,
+        TriangleBasis.L3L1,
         TriangleBasis.L1L2,
-        TriangleBasis.L2L3,
-        TriangleBasis.L3L1
+        TriangleBasis.L2L3
     );
 
     public sealed class Dof() : DofManager(dofCount: 6)
