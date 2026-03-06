@@ -35,8 +35,30 @@ public static class TriangleBasis
     /// <summary>L1L2L3(ξ, η) = ξ * η * (1 - ξ - η)</summary>
     public static readonly IBasisFunction L1L2L3 = new TriangleL1L2L3();
 
+   //Lagrange:
 
-    private readonly struct TriangleL1 : IBasisFunction
+   /// <summary>L1L1L1 = 1.0 / 2.0 * (L1) * (3 * L1 - 1) * (3 * L1 - 2)</summary>
+   public static readonly IBasisFunction LagrangeL1L1L1 = new TriangleLagrangeL1L1L1();
+   /// <summary>L2L2L2 = 1.0 / 2.0 * (L2) * (3 * L2 - 1) * (3 * L2 - 2)</summary>
+   public static readonly IBasisFunction LagrangeL2L2L2 = new TriangleLagrangeL2L2L2();
+   /// <summary>L3L3L3 = 1.0 / 2.0 * (L3) * (3 * L3 - 1) * (3 * L3 - 2)</summary>
+   public static readonly IBasisFunction LagrangeL3L3L3 = new TriangleLagrangeL3L3L3();
+   /// <summary>L1L2L1 = 9.0 / 2.0 * (L1) * (L2) * (3 * L1 - 1)</summary>
+   public static readonly IBasisFunction LagrangeL1L2L1 = new TriangleLagrangeL1L2L1();
+   /// <summary>L1L2L2 = 9.0 / 2.0 * (L1) * (L2) * (3 * L2 - 1)</summary>
+   public static readonly IBasisFunction LagrangeL1L2L2 = new TriangleLagrangeL1L2L2();
+   /// <summary>L2L3L2 = 9.0 / 2.0 * (L2) * (L3) * (3 * L2 - 1)</summary>
+   public static readonly IBasisFunction LagrangeL2L3L2 = new TriangleLagrangeL2L3L2();
+   /// <summary>L2L3L3 = 9.0 / 2.0 * (L2) * (L3) * (3 * L3 - 1)</summary>
+   public static readonly IBasisFunction LagrangeL2L3L3 = new TriangleLagrangeL2L3L3();
+   /// <summary>L3L1L3 = 9.0 / 2.0 * (L3) * (L1) * (3 * L3 - 1)</summary>
+   public static readonly IBasisFunction LagrangeL3L1L3 = new TriangleLagrangeL3L1L3();
+   /// <summary>L3L1L1 = 9.0 / 2.0 * (L3) * (L1) * (3 * L1 - 1)</summary>
+   public static readonly IBasisFunction LagrangeL3L1L1 = new TriangleLagrangeL3L1L1();
+   /// <summary>L1L2L3 = 27.0 * (L1) * (L2) * (L3)</summary>
+   public static readonly IBasisFunction LagrangeL1L2L3 = new TriangleLagrangeL1L2L3();
+
+   private readonly struct TriangleL1 : IBasisFunction
     {
         public double Value(Vector2D localCoords) => localCoords.X; // ξ
         public Vector2D Derivatives(Vector2D localCoords) => Vector2D.XAxis; // [d/dξ, d/dη]
@@ -162,4 +184,140 @@ public static class TriangleBasis
             );
         }
     }
+
+
+   // Lagrange 
+   private readonly struct TriangleLagrangeL1L1L1 : IBasisFunction
+   {
+      public double Value(Vector2D localCoords) => 1.0 / 2.0 * (localCoords.Y) * (3 * localCoords.Y - 1) * (3 * localCoords.Y - 2);
+      public Vector2D Derivatives(Vector2D localCoords) => new(0.5 * (27 * localCoords.Y * localCoords.Y - 18 * localCoords.Y + 2), 0.0);
+   }
+
+   private readonly struct TriangleLagrangeL2L2L2 : IBasisFunction
+   {
+      public double Value(Vector2D localCoords) => 1.0 / 2.0 * (localCoords.Y) * (3 * localCoords.Y - 1) * (3 * localCoords.Y - 2);
+      public Vector2D Derivatives(Vector2D localCoords) => new(0.0, 0.5 * (27 * localCoords.Y * localCoords.Y - 18 * localCoords.Y + 2));
+   }
+
+   private readonly struct TriangleLagrangeL3L3L3 : IBasisFunction
+   {
+      public double Value(Vector2D localCoords)
+      {
+         (var xi, var eta) = localCoords;
+         return 1.0 / 2.0 * (1 - xi - eta) * (3 * (1 - xi - eta) - 1) * (3 * (1 - xi - eta) - 2);
+      }
+      public Vector2D Derivatives(Vector2D localCoords)
+      {
+         (var xi, var eta) = localCoords;
+         return new(0.5 * (-27 * xi * xi - 54 * xi * eta + 36 * xi - 27 * eta * eta + 36 * eta - 11),
+                    0.5 * (-27 * xi * xi - 54 * xi * eta + 36 * xi - 27 * eta * eta + 36 * eta - 11)); // [d/dxi, d/deta]
+      }
+   }
+
+   private readonly struct TriangleLagrangeL1L2L1 : IBasisFunction
+   {
+      public double Value(Vector2D localCoords)
+      {
+         (var xi, var eta) = localCoords;
+         return 9.0 / 2.0 * (xi) * (eta) * (3 * xi - 1);
+      }
+      public Vector2D Derivatives(Vector2D localCoords)
+      {
+         (var xi, var eta) = localCoords;
+         return new(9.0 / 2.0 * (6 * xi * eta - eta),
+                    9.0 / 2.0 * (3 * xi * xi - xi)); // [d/dxi, d/deta]
+      }
+   }
+
+   private readonly struct TriangleLagrangeL1L2L2 : IBasisFunction
+   {
+      public double Value(Vector2D localCoords)
+      {
+         (var xi, var eta) = localCoords;
+         return 9.0 / 2.0 * (xi) * (eta) * (3 * eta - 1);
+      }
+      public Vector2D Derivatives(Vector2D localCoords)
+      {
+         (var xi, var eta) = localCoords;
+         return new(9.0 / 2.0 * (3 * eta * eta - eta),
+                    9.0 / 2.0 * (6 * xi * eta - xi)); // [d/dxi, d/deta]
+      }
+   }
+
+   private readonly struct TriangleLagrangeL2L3L2 : IBasisFunction
+   {
+      public double Value(Vector2D localCoords)
+      {
+         (var xi, var eta) = localCoords;
+         return 9.0 / 2.0 * (eta) * (1 - xi - eta) * (3 * eta - 1);
+      }
+      public Vector2D Derivatives(Vector2D localCoords)
+      {
+         (var xi, var eta) = localCoords;
+         return new(9.0 / 2.0 * (-3 * eta * eta + eta),
+                    9.0 / 2.0 * (-6 * xi * eta + xi - 9 * eta * eta + 8 * eta - 1)); // [d/dxi, d/deta]
+      }
+   }
+
+   private readonly struct TriangleLagrangeL2L3L3 : IBasisFunction
+   {
+      public double Value(Vector2D localCoords)
+      {
+         (var xi, var eta) = localCoords;
+         return 9.0 / 2.0 * (eta) * (1 - xi - eta) * (3 * (1 - xi - eta) - 1);
+      }
+      public Vector2D Derivatives(Vector2D localCoords)
+      {
+         (var xi, var eta) = localCoords;
+         return new(9.0 / 2.0 * (6 * eta * eta + 6 * xi * eta - 5 * eta),
+                    9.0 / 2.0 * (3 * xi * xi + 12 * xi * eta - 5 * xi + 9 * eta * eta - 10 * eta + 2)); // [d/dxi, d/deta]
+      }
+   }
+
+   private readonly struct TriangleLagrangeL3L1L3 : IBasisFunction
+   {
+      public double Value(Vector2D localCoords)
+      {
+         (var xi, var eta) = localCoords;
+         return 9.0 / 2.0 * (1 - xi - eta) * (xi) * (3 * (1 - xi - eta) - 1);
+      }
+      public Vector2D Derivatives(Vector2D localCoords)
+      {
+         (var xi, var eta) = localCoords;
+         return new(9.0 / 2.0 * (9 * xi * xi + 12 * xi * eta - 10 * xi + 3 * eta * eta - 5 * eta + 2),
+                    9.0 / 2.0 * (6 * xi * xi + 6 * xi * eta - 5 * xi)); // [d/dxi, d/deta]
+      }
+   }
+
+   private readonly struct TriangleLagrangeL3L1L1 : IBasisFunction
+   {
+      public double Value(Vector2D localCoords)
+      {
+         (var xi, var eta) = localCoords;
+         return 9.0 / 2.0 * (1 - xi - eta) * (xi) * (3 * xi - 1);
+      }
+      public Vector2D Derivatives(Vector2D localCoords)
+      {
+         (var xi, var eta) = localCoords;
+         return new(9.0 / 2.0 * (-9 * xi * xi - 6 * xi * eta + 8 * xi + 1 * eta - 1),
+                    9.0 / 2.0 * (-3 * xi * xi + xi)); // [d/dxi, d/deta]
+      }
+   }
+
+   private readonly struct TriangleLagrangeL1L2L3 : IBasisFunction
+   {
+      public double Value(Vector2D localCoords)
+      {
+         (var xi, var eta) = localCoords;
+         return 27.0 * (xi) * (eta) * (1 - xi - eta);
+      }
+      public Vector2D Derivatives(Vector2D localCoords)
+      {
+         (var xi, var eta) = localCoords;
+         return new(27.0 * (-2 * xi * eta - eta * eta + eta),
+                    27.0 * (-2 * xi * eta - xi * xi + xi)); // [d/dxi, d/deta]
+      }
+   }
 }
+
+
