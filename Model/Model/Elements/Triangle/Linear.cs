@@ -32,7 +32,7 @@ public sealed class LinearTriangleFactory : IFiniteElementFactory
             _dof[localVertexIndex] = dofIndex;
         }
 
-        public override void SetEdgeDof(int localEdgeIndex, int n, int dofIndex) =>
+        public override void SetEdgeDof(int localEdgeIndex, bool isOrientationFlipped, int n, int dofIndex) =>
             throw new NotSupportedException();
 
         public override void SetElementDof(int n, int dofIndex) =>

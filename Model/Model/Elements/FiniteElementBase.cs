@@ -29,8 +29,8 @@ public record class FiniteElement(
     public void SetVertexDof(int localVertexIndex, int n, int dofIndex)
         => DOF.SetVertexDof(localVertexIndex, n, dofIndex);
 
-    public void SetEdgeDof(int localEdgeIndex, int n, int dofIndex)
-        => DOF.SetEdgeDof(localEdgeIndex, n, dofIndex);
+    public void SetEdgeDof(int localEdgeIndex, bool isOrientationFlipped, int n, int dofIndex)
+        => DOF.SetEdgeDof(localEdgeIndex, isOrientationFlipped, n, dofIndex);
 
     public void SetElementDof(int n, int dofIndex)
         => DOF.SetElementDof(n, dofIndex);
@@ -57,7 +57,7 @@ public abstract class DofManager(
     }
 
     public abstract void SetVertexDof(int localVertexIndex, int n, int dofIndex);
-    public abstract void SetEdgeDof(int localEdgeIndex, int n, int dofIndex);
+    public abstract void SetEdgeDof(int localEdgeIndex, bool isOrientationFlipped, int n, int dofIndex);
     public abstract void SetElementDof(int n, int dofIndex);
 }
 

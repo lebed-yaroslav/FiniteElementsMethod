@@ -31,7 +31,7 @@ public interface IDofManager
     int NumberOfDofOnElement { get; }
     public void Renumber(Func<int, int> renumberFunction);
     public void SetVertexDof(int localVertexIndex, int n, int dofIndex);
-    public void SetEdgeDof(int localEdgeIndex, int n, int dofIndex);
+    public void SetEdgeDof(int localEdgeIndex, bool isOrientationFlipped, int n, int dofIndex);
     public void SetElementDof(int n, int dofIndex);
 }
 

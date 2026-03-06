@@ -29,7 +29,7 @@ public sealed class HierarchicalQuadraticTriangleFactory : IFiniteElementFactory
         public override int NumberOfDofOnElement => 0;
 
 
-        public override void SetEdgeDof(int localEdgeIndex, int n, int dofIndex)
+        public override void SetEdgeDof(int localEdgeIndex, bool isOrientationFlipped, int n, int dofIndex)
         {
             if (n != 0) throw new NotSupportedException();
             if (localEdgeIndex >= 3) throw new NotSupportedException();
