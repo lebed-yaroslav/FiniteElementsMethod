@@ -1,7 +1,7 @@
 using Model.Core.CoordinateSystems;
 
-namespace Model.Model.Elements.Rectangle;
-public sealed class RectangleGeometry(int[] vertexIndices) : FiniteElementGeometry(vertexIndices)
+namespace Model.Model.Elements.Quadrangle;
+public sealed class QuadrangleGeometry(int[] vertexIndices) : FiniteElementGeometry(vertexIndices)
 {
     public override IEnumerable<Edge> Edges
     {
