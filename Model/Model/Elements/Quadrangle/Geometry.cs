@@ -1,8 +1,9 @@
 using Telma;
 
-namespace Model.Model.Elements.Rectangle;
+namespace Model.Model.Elements.Quadrangle;
 
-public sealed class RectangleGeometry(int[] vertexIndices) : ElementGeometry<Vector2D>(vertexIndices)
+
+public sealed class QuadrangleGeometry(int[] vertexIndices) : ElementGeometry<Vector2D>(vertexIndices)
 {
     public override IEnumerable<Edge> Edges
     {
