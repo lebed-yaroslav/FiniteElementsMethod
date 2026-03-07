@@ -41,6 +41,8 @@ public readonly struct Vector1D(double x) : IVectorBase<Vector1D>
     public static Vector1D operator /(Vector1D a, double v) => a.X / v;
     public static bool operator ==(Vector1D a, Vector1D b) => a.X == b.X;
     public static bool operator !=(Vector1D a, Vector1D b) => a.X != b.X;
+    public static Vector1D Min(Vector1D a, Vector1D b) => Math.Min(a.X, b.X);
+    public static Vector1D Max(Vector1D a, Vector1D b) => Math.Max(a.X, b.X);
     #endregion
 
 }
@@ -123,13 +125,14 @@ public readonly struct Vector2D(double x, double y) : IVectorBase<Vector2D>
     public static double operator *(Vector2D a, Vector2D b) => a.X * b.X + a.Y * b.Y;
     public static bool operator ==(Vector2D a, Vector2D b) => a.X == b.X && a.Y == b.Y;
     public static bool operator !=(Vector2D a, Vector2D b) => a.X != b.X || a.Y != b.Y;
-    public static Vector2D Sum(Vector2D a, Vector2D b) => a + b;
+    public static Vector2D Min(Vector2D a, Vector2D b) => new(Math.Min(a.X, b.X), Math.Min(a.Y, b.Y));
+    public static Vector2D Max(Vector2D a, Vector2D b) => new(Math.Max(a.X, b.X), Math.Max(a.Y, b.Y));
     public static Vector2D Cross(Vector2D a) => new(a.Y, -a.X);
     public static double Mixed(Vector2D a, Vector2D b) => a.Y * b.X - a.X * b.Y;
     #endregion
 }
 
-public readonly struct Vector3D(double x, double y, double z) : IVectorBase<Vector3D>, INumberBase<Vector3D>, IMultiplyOperators<Vector3D, double, Vector3D>
+public readonly struct Vector3D(double x, double y, double z) : IVectorBase<Vector3D>
 {
     public static int Dimensions => 3;
     public static Vector3D Zero { get; } = new(0, 0, 0);
@@ -246,9 +249,6 @@ public readonly struct Vector3D(double x, double y, double z) : IVectorBase<Vect
         (v1.Y * v2.Z - v2.Y * v1.Z) * v3.X + (v1.Z * v2.X - v1.X * v2.Z) * v3.Y + (v1.X * v2.Y - v1.Y * v2.X) * v3.Z;
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static Vector3D Sum(Vector3D a, Vector3D b) => a + b;
-
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static Vector3D Min(Vector3D a, Vector3D b) =>
         new(Math.Min(a.X, b.X), Math.Min(a.Y, b.Y), Math.Min(a.Z, b.Z));
 
@@ -256,256 +256,4 @@ public readonly struct Vector3D(double x, double y, double z) : IVectorBase<Vect
     public static Vector3D Max(Vector3D a, Vector3D b) =>
         new(Math.Max(a.X, b.X), Math.Max(a.Y, b.Y), Math.Max(a.Z, b.Z));
     #endregion
-
-    public static Vector3D Abs(Vector3D value) => throw new NotSupportedException();
-    public static bool IsCanonical(Vector3D value) => true;
-    public static bool IsComplexNumber(Vector3D value) => false;
-    public static bool IsEvenInteger(Vector3D value) => false;
-    public static bool IsFinite(Vector3D value) => double.IsFinite(value.X) && double.IsFinite(value.Y) && double.IsFinite(value.Z);
-    public static bool IsImaginaryNumber(Vector3D value) => false;
-    public static bool IsInfinity(Vector3D value) => double.IsInfinity(value.X) || double.IsInfinity(value.Y) || double.IsInfinity(value.Z);
-    public static bool IsInteger(Vector3D value) => false;
-    public static bool IsNaN(Vector3D value) => double.IsNaN(value.X) || double.IsNaN(value.Y) || double.IsNaN(value.Z);
-    public static bool IsNegative(Vector3D value) => false;
-    public static bool IsNegativeInfinity(Vector3D value) => false;
-    public static bool IsNormal(Vector3D value) => value.Norm == 1.0;
-    public static bool IsOddInteger(Vector3D value) => false;
-    public static bool IsPositive(Vector3D value) => false;
-    public static bool IsPositiveInfinity(Vector3D value) => false;
-    public static bool IsRealNumber(Vector3D value) => false;
-    public static bool IsSubnormal(Vector3D value) => false;
-    public static bool IsZero(Vector3D value) => value == default;
-    public static Vector3D MaxMagnitude(Vector3D x, Vector3D y) => MaxMagnitudeNumber(x, y);
-    public static Vector3D MaxMagnitudeNumber(Vector3D x, Vector3D y) => x.X > y.X || (x.X == y.X && x.Y > y.Y) || (x.X == y.X && x.Y == y.Y && x.Z > y.Z) ? x : y;
-    public static Vector3D MinMagnitude(Vector3D x, Vector3D y) => MinMagnitudeNumber(x, y);
-    public static Vector3D MinMagnitudeNumber(Vector3D x, Vector3D y) => x.X < y.X || (x.X == y.X && x.Y < y.Y) || (x.X == y.X && x.Y == y.Y && x.Z < y.Z) ? x : y;
-    public static Vector3D Parse(ReadOnlySpan<char> s, NumberStyles style, IFormatProvider? provider) => Parse(s.ToString(), style, provider);
-    public static Vector3D Parse(string s, NumberStyles style, IFormatProvider? provider) => Parse(s);
-    public static bool TryParse(ReadOnlySpan<char> s, NumberStyles style, IFormatProvider? provider, [MaybeNullWhen(false)] out Vector3D result) => TryParse(s.ToString(), style, provider, out result);
-    public static bool TryParse([NotNullWhen(true)] string? s, NumberStyles style, IFormatProvider? provider, [MaybeNullWhen(false)] out Vector3D result) => TryParse(s!, out result);
-
-    public static Vector3D One => throw new NotSupportedException();
-    public static int Radix => throw new NotSupportedException();
-
-    public bool TryFormat(Span<char> destination, out int charsWritten, ReadOnlySpan<char> format, IFormatProvider? provider)
-    {
-        var s = ToString();
-        charsWritten = s.Length;
-        return s.AsSpan().TryCopyTo(destination);
-    }
-    public string ToString(string? format, IFormatProvider? formatProvider) => ToString();
-    public static Vector3D Parse(ReadOnlySpan<char> s, IFormatProvider? provider) => Parse(s.ToString());
-    public static bool TryParse(ReadOnlySpan<char> s, IFormatProvider? provider, [MaybeNullWhen(false)] out Vector3D result) => TryParse(s.ToString(), out result);
-    public static Vector3D Parse(string s, IFormatProvider? provider) => Parse(s);
-    public static bool TryParse([NotNullWhen(true)] string? s, IFormatProvider? provider, [MaybeNullWhen(false)] out Vector3D result) => TryParse(s!, out result);
-    public static Vector3D AdditiveIdentity => Zero;
-    public static Vector3D operator --(Vector3D value) => throw new NotSupportedException();
-    public static Vector3D operator /(Vector3D left, Vector3D right) => throw new NotSupportedException();
-    public static Vector3D operator ++(Vector3D value) => throw new NotSupportedException();
-
-    public static Vector3D MultiplicativeIdentity => throw new NotSupportedException();
-
-    static Vector3D IMultiplyOperators<Vector3D, Vector3D, Vector3D>.operator *(Vector3D left, Vector3D right) => throw new NotSupportedException();
-
-    static bool INumberBase<Vector3D>.TryConvertFromChecked<TOther>(TOther value, out Vector3D result)
-    {
-        if (value is Vector3D other)
-        {
-            result = other;
-            return true;
-        }
-        result = default;
-        return false;
-    }
-    static bool INumberBase<Vector3D>.TryConvertFromTruncating<TOther>(TOther value, out Vector3D result)
-    {
-        if (value is Vector3D other)
-        {
-            result = other;
-            return true;
-        }
-        result = Vector3D.Zero;
-        return false;
-
-    }
-    static bool INumberBase<Vector3D>.TryConvertToChecked<TOther>(Vector3D value, out TOther result)
-    {
-        if (typeof(TOther) == typeof(Vector3D))
-        {
-            result = (TOther)(object)value;
-            return true;
-        }
-        result = TOther.Zero;
-        return false;
-    }
-    static bool INumberBase<Vector3D>.TryConvertToTruncating<TOther>(Vector3D value, out TOther result)
-    {
-        if (typeof(TOther) == typeof(Vector3D))
-        {
-            result = (TOther)(object)value;
-            return true;
-        }
-        result = TOther.Zero;
-        return false;
-
-    }
-    public static bool TryConvertFromSaturating<TOther>(TOther value, [MaybeNullWhen(false)] out Vector3D result) where TOther : INumberBase<TOther>
-    {
-        switch (value)
-        {
-            case Vector3D v3d:
-                result = v3d;
-                return true;
-            case Vector2D v2d:
-                result = v2d.As3D();
-                return true;
-            case double v1d:
-                result = new(v1d, 0, 0);
-                return true;
-            default:
-                result = default;
-                return false;
-        }
-    }
-    public static bool TryConvertToSaturating<TOther>(Vector3D value, [MaybeNullWhen(false)] out TOther result) where TOther : INumberBase<TOther>
-    {
-        switch (TOther.Zero)
-        {
-            case Vector3D:
-                result = (TOther)(object)value;
-                return true;
-            case Vector2D:
-                result = (TOther)(object)value.As2D();
-                return true;
-            case double:
-                result = (TOther)(object)value.X;
-                return true;
-            default:
-                result = TOther.Zero;
-                return false;
-        }
-    }
-
-}
-public readonly struct ComplexVector3D : IEquatable<ComplexVector3D>
-{
-    public static readonly ComplexVector3D Zero = new ComplexVector3D(0, 0, 0);
-
-    public Complex X { get; }
-    public Complex Y { get; }
-    public Complex Z { get; }
-
-    public Vector3D Real => new Vector3D(X.Real, Y.Real, Z.Real);
-    public Vector3D Imaginary => new Vector3D(X.Imaginary, Y.Imaginary, Z.Imaginary);
-
-
-    public ComplexVector3D(Complex x, Complex y, Complex z)
-        => (X, Y, Z) = (x, y, z);
-
-    public static implicit operator ComplexVector3D(in Vector3D v) => new ComplexVector3D(v.X, v.Y, v.Z);
-
-    public override string ToString() => $"({X}, {Y}, {Z})";
-
-    public override bool Equals(object? obj) => obj is ComplexVector3D v && Equals(v);
-
-    public override int GetHashCode() => HashCode.Combine(X, Y, Z);
-
-    public bool Equals(ComplexVector3D a) => a.X == X && a.Y == Y && a.Z == Z;
-
-    #region Static operators
-
-    public static ComplexVector3D operator -(in ComplexVector3D a) => new ComplexVector3D(-a.X, -a.Y, -a.Z);
-
-    public static ComplexVector3D operator +(in ComplexVector3D a) => a;
-
-    public static ComplexVector3D operator *(Complex a, in ComplexVector3D b) => new ComplexVector3D(a * b.X, a * b.Y, a * b.Z);
-
-    public static ComplexVector3D operator *(in ComplexVector3D b, Complex a) => new ComplexVector3D(a * b.X, a * b.Y, a * b.Z);
-
-    public static ComplexVector3D operator /(in ComplexVector3D a, Complex v) => new ComplexVector3D(a.X / v, a.Y / v, a.Z / v);
-
-    public static ComplexVector3D operator +(in ComplexVector3D a, in ComplexVector3D b) => new ComplexVector3D(a.X + b.X, a.Y + b.Y, a.Z + b.Z);
-
-    public static ComplexVector3D operator -(in ComplexVector3D a, in ComplexVector3D b) => new ComplexVector3D(a.X - b.X, a.Y - b.Y, a.Z - b.Z);
-
-    public static Complex operator *(in ComplexVector3D a, in ComplexVector3D b)
-        => a.X * Complex.Conjugate(b.X) + a.Y * Complex.Conjugate(b.Y) + a.Z * Complex.Conjugate(b.Z);
-
-    public static ComplexVector3D Cross(Vector3D v1, Vector3D v2) =>
-        new ComplexVector3D(v1.Y * v2.Z - v2.Y * v1.Z, v1.Z * v2.X - v1.X * v2.Z, v1.X * v2.Y - v1.Y * v2.X);
-
-    public static ComplexVector3D Cross(ComplexVector3D v1, Vector3D v2) =>
-        new ComplexVector3D(v1.Y * v2.Z - v2.Y * v1.Z, v1.Z * v2.X - v1.X * v2.Z, v1.X * v2.Y - v1.Y * v2.X);
-
-    public static ComplexVector3D Cross(Vector3D v1, ComplexVector3D v2) =>
-        new ComplexVector3D(v1.Y * v2.Z - v2.Y * v1.Z, v1.Z * v2.X - v1.X * v2.Z, v1.X * v2.Y - v1.Y * v2.X);
-
-    public static ComplexVector3D Cross(ComplexVector3D v1, ComplexVector3D v2) =>
-        new ComplexVector3D(v1.Y * v2.Z - v2.Y * v1.Z, v1.Z * v2.X - v1.X * v2.Z, v1.X * v2.Y - v1.Y * v2.X);
-
-
-    #endregion
-}
-public static class VectorExtensions
-{
-    public static Vector3D Sum(this IEnumerable<Vector3D> vectors)
-    {
-        try
-        {
-            return vectors.Aggregate(Vector3D.Sum);
-        }
-        catch (InvalidOperationException)
-        {
-            return default;
-        }
-    }
-    public static Vector3D WeightedEnumerableSum(this IEnumerable<Vector3D> vectors, IEnumerable<double> weights)
-    {
-        return vectors.Zip(weights, (a, b) => a * b).Aggregate(Vector3D.Sum);
-    }
-    public static Vector3D WeightedSpanSum(this ReadOnlySpan<Vector3D> vectors, ReadOnlySpan<double> weights)
-    {
-        var v = Vector3D.Zero;
-        for (int i = 0; i < weights.Length; i++)
-            v += vectors[i] * weights[i];
-        return v;
-    }
-    public static Vector3D WeightedSpanSum(this Span<Vector3D> vectors, ReadOnlySpan<double> weights)
-    {
-        var v = Vector3D.Zero;
-        for (int i = 0; i < weights.Length; i++)
-            v += vectors[i] * weights[i];
-        return v;
-    }
-    public static Vector3D CenterMass(this IEnumerable<Vector3D> vectors)
-    {
-        return vectors.Aggregate(Vector3D.Sum) / vectors.Count();
-    }
-    public static Vector2D Center(this IEnumerable<Vector2D> vectors)
-    {
-        return (vectors.Aggregate(Vector2D.Sum) / vectors.Count());
-    }
-    public static Vector3D CenterBox(this IEnumerable<Vector3D> vectors)
-    {
-        var min = vectors.Aggregate(vectors.First(), Vector3D.Min);
-        var max = vectors.Aggregate(vectors.First(), Vector3D.Max);
-        return (min + max) / 2;
-    }
-
-    public static Vector3D Center(this IEnumerable<Vector3D> vectors) => vectors.CenterMass();
-    public static double Radius(this IEnumerable<Vector3D> vectors)
-    {
-        var c = vectors.Center();
-        return Math.Sqrt(vectors.Max(v => (v - c).NormSqr));
-    }
-
-    public static Func<Vector3D, int> SplitBox(this IEnumerable<Vector3D> vectors)
-    {
-        var min = vectors.Aggregate(Vector3D.Min);
-        var max = vectors.Aggregate(Vector3D.Max);
-        var center = (min + max) / 2;
-        double diameter = Vector3D.Axes.Max(a => (max - min) * a);
-        var v = Vector3D.Axes.Where(a => (max - min) * a > diameter / 2).ToArray();
-        return p => v.Select((x, i) => (p - center) * x >= 0 ? 1 << i : 0).Sum();
-    }
 }
