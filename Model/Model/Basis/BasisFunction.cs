@@ -2,19 +2,23 @@ using Telma;
 
 namespace Model.Model.Basis;
 
-public interface IBasisFunction
+public interface IBasisFunction<TVector> where TVector : struct
 {
-    double Value(Vector2D point);
-    Vector2D Derivatives(Vector2D point);
+    double Value(TVector point);
+    TVector Derivatives(TVector point);
 }
 
-public sealed class OrientedBasisFunction(IBasisFunction basis) : IBasisFunction
+public interface IBasisFunction : IBasisFunction<Vector2D>;
+
+public sealed class OrientedBasisFunction<TVector>(IBasisFunction<TVector> basis) :
+    IBasisFunction<TVector>
+    where TVector : struct, IMultiplyOperators<TVector, double, TVector>
 {
     private int _sign = 1;
-    private readonly IBasisFunction _basis = basis;
+    private readonly IBasisFunction<TVector> _basis = basis;
 
     public bool IsOrientationFlipped { get => _sign == -1; set => _sign = value ? -1 : 1; }
 
-    public double Value(Vector2D point) => _sign * _basis.Value(point);
-    public Vector2D Derivatives(Vector2D point) => _sign * _basis.Derivatives(point);
+    public double Value(TVector point) => _basis.Value(point) * _sign;
+    public TVector Derivatives(TVector point) => _basis.Derivatives(point) * _sign;
 }
