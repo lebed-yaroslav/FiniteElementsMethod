@@ -1,12 +1,9 @@
 ﻿namespace Telma.Extensions;
 
-public interface IVector<TDim> where TDim : IDimensions
+
+public interface IVectorTraits<TSelf>
+    where TSelf : IVectorTraits<TSelf>
 {
-    static int Dimensions => TDim.Count;
-    static abstract IVector<TDim> Zero { get; }
-
-    double Norm { get; }
-    double NormSqr { get; }
-
-    ReadOnlySpan<double> AsSpan();
+    static abstract int Dimensions { get; }
+    static abstract TSelf Zero { get; }
 }

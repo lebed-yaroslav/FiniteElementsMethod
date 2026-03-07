@@ -1,20 +1,20 @@
-
 using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.Numerics;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using Telma.Extensions;
-using static Telma.Extensions.IDimensions;
 
 namespace Telma;
 
 public enum AngleMeasureUnits { amuRadians = 0, amuDegrees = 1 };
 
-public readonly struct Vector1D(double x) : IVector<D1>
+public readonly struct Vector1D(double x) : IVectorTraits<Vector1D>
 {
-    static IVector<D1> IVector<D1>.Zero => Zero;
-    public static readonly Vector1D Zero = new(0);
+    public static int Dimensions => 1;
+    public static Vector1D Zero { get; } = new(0);
+    public static Vector1D XAxis { get; } = new(1);
+    public static Vector1D[] Axes { get; } = [XAxis];
 
     public double X { get; } = x;
 
@@ -29,13 +29,13 @@ public readonly struct Vector1D(double x) : IVector<D1>
 
 }
 
-public readonly struct Vector2D : IVector<D2>, IEquatable<Vector2D>
+public readonly struct Vector2D : IVectorTraits<Vector2D>, IEquatable<Vector2D>
 {
-    static IVector<D2> IVector<D2>.Zero => Zero;
-
-    public static readonly Vector2D Zero = new(0, 0);
-    public static readonly Vector2D XAxis = new(1, 0);
-    public static readonly Vector2D YAxis = new(0, 1);
+    public static int Dimensions => 2;
+    public static Vector2D Zero { get; } = new(0, 0);
+    public static Vector2D XAxis { get; } = new(1, 0);
+    public static Vector2D YAxis { get; } = new(0, 1);
+    public static Vector2D[] Axes { get; } = [XAxis, YAxis];
 
     public double X { get; }
     public double Y { get; }
@@ -174,10 +174,9 @@ public readonly struct Vector2D : IVector<D2>, IEquatable<Vector2D>
     #endregion
 }
 
-// [JsonConverter(typeof(Vector3DJsonConverter))]
-public readonly struct Vector3D : IVector<D3>, INumberBase<Vector3D>, IMultiplyOperators<Vector3D, double, Vector3D>
+public readonly struct Vector3D : IVectorTraits<Vector3D>, INumberBase<Vector3D>, IMultiplyOperators<Vector3D, double, Vector3D>
 {
-    static IVector<D3> IVector<D3>.Zero => Zero;
+    public static int Dimensions => 3;
     public static Vector3D Zero { get; } = new(0, 0, 0);
     public static Vector3D XAxis { get; } = new(1, 0, 0);
     public static Vector3D YAxis { get; } = new(0, 1, 0);
