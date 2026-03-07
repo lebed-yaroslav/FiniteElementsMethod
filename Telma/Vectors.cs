@@ -2,12 +2,11 @@ using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.Numerics;
 using System.Runtime.CompilerServices;
-using System.Runtime.InteropServices;
 using Telma.Extensions;
 
 namespace Telma;
 
-public enum AngleMeasureUnits { amuRadians = 0, amuDegrees = 1 };
+public enum AngleMeasureUnits { Radians = 0, Degrees = 1 };
 
 public readonly struct Vector1D(double x) : IVectorBase<Vector1D>
 {
@@ -20,9 +19,16 @@ public readonly struct Vector1D(double x) : IVectorBase<Vector1D>
 
     public double Norm => X;
     public double NormSqr => X * X;
+    public double MaxNorm => X;
+    public Vector1D Round(int digits) => Math.Round(X, digits);
 
-    public ReadOnlySpan<double> AsSpan() =>
-         MemoryMarshal.Cast<Vector1D, double>(MemoryMarshal.CreateReadOnlySpan(in this, 1));
+    public Vector1D As1D() => this;
+    public Vector2D As2D() => new(X, 0);
+    public Vector3D As3D() => new(X, 0, 0);
+
+    public bool Equals(Vector1D b) => X == b.X;
+    public override bool Equals(object? obj) => obj is Vector1D vec && Equals(vec);
+    public override int GetHashCode() => X.GetHashCode();
 
     #region Static operators
     public static implicit operator Vector1D(double v) => new(v);
@@ -31,12 +37,15 @@ public readonly struct Vector1D(double x) : IVectorBase<Vector1D>
     public static Vector1D operator +(Vector1D a, Vector1D b) => a.X + b.X;
     public static Vector1D operator -(Vector1D a, Vector1D b) => a.X - b.X;
     public static Vector1D operator *(Vector1D a, double v) => a.X * v;
+    public static double operator *(Vector1D a, Vector1D b) => a.X * b.X;
     public static Vector1D operator /(Vector1D a, double v) => a.X / v;
+    public static bool operator ==(Vector1D a, Vector1D b) => a.X == b.X;
+    public static bool operator !=(Vector1D a, Vector1D b) => a.X != b.X;
     #endregion
 
 }
 
-public readonly struct Vector2D : IVectorBase<Vector2D>, IEquatable<Vector2D>
+public readonly struct Vector2D(double x, double y) : IVectorBase<Vector2D>
 {
     public static int Dimensions => 2;
     public static Vector2D Zero { get; } = new(0, 0);
@@ -44,63 +53,37 @@ public readonly struct Vector2D : IVectorBase<Vector2D>, IEquatable<Vector2D>
     public static Vector2D YAxis { get; } = new(0, 1);
     public static Vector2D[] Axes { get; } = [XAxis, YAxis];
 
-    public double X { get; }
-    public double Y { get; }
-    public ReadOnlySpan<double> AsSpan() => MemoryMarshal.Cast<Vector2D, double>(MemoryMarshal.CreateReadOnlySpan(in this, 1));
-
-    public Vector2D(double x, double y)
-    {
-        X = x;
-        Y = y;
-    }
-
-    public void Deconstruct(out double x, out double y) => (x, y) = (X, Y);
-
-    /// <summary>
-    ///  из полярных координат в декартовы
-    /// </summary>
-    public Vector2D(double a, double b, AngleMeasureUnits measure) : this()
-    {
-        if (measure == AngleMeasureUnits.amuRadians)
-        {
-            X = a * Math.Cos(b);
-            Y = a * Math.Sin(b);
-        }
-        else
-        {
-            double c = b * Math.PI / 180;
-            X = a * Math.Cos(c);
-            Y = a * Math.Sin(c);
-        }
-    }
-    public Vector2D(ReadOnlySpan<double> arr)
-    {
-        X = arr[0];
-        Y = arr[1];
-    }
-    public static double Distance(Vector2D a, Vector2D b) => (a - b).Norm;
-
-    public static double SqrDistance(Vector2D a, Vector2D b)
-    {
-        Vector2D diff = a - b;
-        return diff * diff;
-    }
-    public double Distance(Vector2D b) => Distance(this, b);
-
-    public double SqrDistance(Vector2D b) => SqrDistance(this, b);
+    public double X { get; } = x;
+    public double Y { get; } = y;
 
     public double Norm => Math.Sqrt(NormSqr);
     public double NormSqr => X * X + Y * Y;
+    public double MaxNorm => Math.Max(Math.Abs(X), Math.Abs(Y));
+    public Vector2D Round(int digits) => new(Math.Round(X, digits), Math.Round(Y, digits));
 
-    public Vector2D Normalize() => this / Norm;
+    public Vector1D As1D() => X;
+    public Vector2D As2D() => this;
+    public Vector3D As3D() => new(X, Y, 0);
 
-    public override string ToString() => $"Vec({X}, {Y})";
-
-    public override bool Equals(object? obj) => obj is Vector2D v && Equals(v);
-
+    public bool Equals(Vector2D b) => X == b.X && Y == b.Y;
+    public override bool Equals(object? obj) => obj is Vector2D vec && Equals(vec);
     public override int GetHashCode() => HashCode.Combine(X, Y);
 
-    public bool Equals(Vector2D a) => a.X == X && a.Y == Y;
+    public void Deconstruct(out double x, out double y) => (x, y) = (X, Y);
+
+    #region Constructors
+    public Vector2D(ReadOnlySpan<double> span) : this(span[0], span[1])
+    {
+#if DEBUG
+        if (span.Length != Dimensions)
+            throw new ArgumentException($"Unable to create {nameof(Vector2D)} from span of length {span.Length}");
+#endif
+    }
+    #endregion
+
+    #region Parsing
+    public override string ToString() => $"Vec({X}, {Y})";
+
     public static bool TryParse(string line, out Vector2D res)
     {
         double x, y;
@@ -128,10 +111,7 @@ public readonly struct Vector2D : IVectorBase<Vector2D>, IEquatable<Vector2D>
             throw new FormatException($"Can't parse Vector2D from {line}");
         return res;
     }
-    private Vector2D Round(int digits) => new Vector2D(Math.Round(X, digits), Math.Round(Y, digits));
-
-    public static Vector2D Vec(double x, double y) => new Vector2D(x, y);
-    public Vector3D As3D() => new Vector3D(X, Y, 0);
+    #endregion
 
     #region Static operators
     public static Vector2D operator -(Vector2D a) => new(-a.X, -a.Y);
@@ -144,33 +124,12 @@ public readonly struct Vector2D : IVectorBase<Vector2D>, IEquatable<Vector2D>
     public static bool operator ==(Vector2D a, Vector2D b) => a.X == b.X && a.Y == b.Y;
     public static bool operator !=(Vector2D a, Vector2D b) => a.X != b.X || a.Y != b.Y;
     public static Vector2D Sum(Vector2D a, Vector2D b) => a + b;
-    public static Vector2D Cross(Vector2D v1) => new(v1.Y, -v1.X);
-    public static double Mixed(Vector2D v1, Vector2D v2) => v1.Y * v2.X - v1.X * v2.Y;
-    #endregion
-
-    #region EqualityComparer
-
-    private class EqualityComparer : IEqualityComparer<Vector2D>
-    {
-        public int Digits { get; set; }
-
-        public bool Equals(Vector2D v1, Vector2D v2)
-        {
-            return v1.Round(Digits) == v2.Round(Digits);
-        }
-
-        public int GetHashCode(Vector2D obj)
-        {
-            return obj.Round(Digits).GetHashCode();
-        }
-    }
-
-    public static IEqualityComparer<Vector2D> CreateComparer(int digits = 7) => new EqualityComparer { Digits = digits };
-
+    public static Vector2D Cross(Vector2D a) => new(a.Y, -a.X);
+    public static double Mixed(Vector2D a, Vector2D b) => a.Y * b.X - a.X * b.Y;
     #endregion
 }
 
-public readonly struct Vector3D : IVectorBase<Vector3D>, INumberBase<Vector3D>, IMultiplyOperators<Vector3D, double, Vector3D>
+public readonly struct Vector3D(double x, double y, double z) : IVectorBase<Vector3D>, INumberBase<Vector3D>, IMultiplyOperators<Vector3D, double, Vector3D>
 {
     public static int Dimensions => 3;
     public static Vector3D Zero { get; } = new(0, 0, 0);
@@ -179,73 +138,39 @@ public readonly struct Vector3D : IVectorBase<Vector3D>, INumberBase<Vector3D>, 
     public static Vector3D ZAxis { get; } = new(0, 0, 1);
     public static Vector3D[] Axes { get; } = [XAxis, YAxis, ZAxis];
 
-    public double X { get; }
-    public double Y { get; }
-    public double Z { get; }
-
-    public Vector3D(double x, double y, double z)
-    {
-        X = x;
-        Y = y;
-        Z = z;
-    }
-    public Vector3D(Vector2D vec, double z)
-    {
-        X = vec.X;
-        Y = vec.Y;
-        Z = z;
-    }
-    public Vector3D(ReadOnlySpan<double> arr)
-    {
-#if DEBUG
-        if (arr.Length != 3) throw new ArgumentException();
-#endif
-        X = arr[0];
-        Y = arr[1];
-        Z = arr[2];
-    }
-    public double Distance(Vector3D b) => Distance(this, b);
-
-    public double SqrDistance(Vector3D b) => SqrDistance(this, b);
-    public void Deconstruct(out double x, out double y, out double z)
-        => (x, y, z) = (X, Y, Z);
-
-    public double this[int k]
-    {
-        get
-        {
-            return k switch
-            {
-                0 => X,
-                1 => Y,
-                2 => Z,
-                _ => throw new Exception("get: Vector3D out of range"),
-            };
-        }
-    }
-    public ReadOnlySpan<double> AsSpan() => MemoryMarshal.Cast<Vector3D, double>(MemoryMarshal.CreateReadOnlySpan(in this, 1));
-
-    public Vector2D As2D() => new(X, Y);
-    public Vector3D As3D() => this;
+    public double X { get; } = x;
+    public double Y { get; } = y;
+    public double Z { get; } = z;
 
     public double Norm => Math.Sqrt(NormSqr);
     public double NormSqr => X * X + Y * Y + Z * Z;
-
     public double MaxNorm => Math.Max(Math.Abs(X), Math.Max(Math.Abs(Y), Math.Abs(Z)));
+    public Vector3D Round(int digits) => new(Math.Round(X, digits), Math.Round(Y, digits), Math.Round(Z, digits));
 
-    public Vector3D Projection(Vector3D p) => (this * p) * p;
+    public Vector1D As1D() => X;
+    public Vector2D As2D() => new(X, Y);
+    public Vector3D As3D() => this;
 
-    public Vector3D Normalize() => this / Norm;
-
-    public Vector3D Round(int digits) => new Vector3D(Math.Round(X, digits), Math.Round(Y, digits), Math.Round(Z, digits));
-
-    public override string ToString() => $"Vec({X}, {Y}, {Z})";
-
+    public bool Equals(Vector3D b) => b.X == X && b.Y == Y && b.Z == Z;
     public override bool Equals(object? obj) => obj is Vector3D v && Equals(v);
-
     public override int GetHashCode() => HashCode.Combine(X, Y, Z);
 
-    public bool Equals(Vector3D a) => a.X == X && a.Y == Y && a.Z == Z;
+    public void Deconstruct(out double x, out double y, out double z)
+        => (x, y, z) = (X, Y, Z);
+
+    #region Constructors
+    public Vector3D(Vector2D vec, double z) : this(vec.X, vec.Y, z) {}
+    public Vector3D(ReadOnlySpan<double> span) : this(span[0], span[1], span[2])
+    {
+#if DEBUG
+        if (span.Length != 3)
+            throw new ArgumentException($"Unable to create {nameof(Vector3D)} from span of length {span.Length}");
+#endif
+    }
+    #endregion
+
+    #region Parsing
+    public override string ToString() => $"Vec({X}, {Y}, {Z})";
 
     public static bool TryParse(string line, out Vector3D res)
     {
@@ -272,18 +197,16 @@ public readonly struct Vector3D : IVectorBase<Vector3D>, INumberBase<Vector3D>, 
         res = new Vector3D(x, y, z);
         return true;
     }
-    public static Vector3D Vec(double x, double y, double z) => new Vector3D(x, y, z);
 
     public static Vector3D Parse(string line)
     {
-        Vector3D res;
-        if (!TryParse(line, out res))
-            throw new FormatException($"Can't parse Vector3D from {line}");
+        if (!TryParse(line, out var res))
+            throw new FormatException($"Can't parse {nameof(Vector3D)} from {line}");
         return res;
     }
+    #endregion
 
     #region Static operators
-
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static Vector3D operator -(Vector3D a) => new(-a.X, -a.Y, -a.Z);
 
@@ -316,7 +239,7 @@ public readonly struct Vector3D : IVectorBase<Vector3D>, INumberBase<Vector3D>, 
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static Vector3D Cross(Vector3D v1, Vector3D v2) =>
-        new Vector3D(v1.Y * v2.Z - v2.Y * v1.Z, v1.Z * v2.X - v1.X * v2.Z, v1.X * v2.Y - v1.Y * v2.X);
+        new(v1.Y * v2.Z - v2.Y * v1.Z, v1.Z * v2.X - v1.X * v2.Z, v1.X * v2.Y - v1.Y * v2.X);
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static double Mixed(Vector3D v1, Vector3D v2, Vector3D v3) =>
@@ -332,39 +255,6 @@ public readonly struct Vector3D : IVectorBase<Vector3D>, INumberBase<Vector3D>, 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static Vector3D Max(Vector3D a, Vector3D b) =>
         new(Math.Max(a.X, b.X), Math.Max(a.Y, b.Y), Math.Max(a.Z, b.Z));
-
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static double Distance(Vector3D a, Vector3D b) => (a - b).Norm;
-
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static double SqrDistance(Vector3D a, Vector3D b)
-    {
-        var diff = a - b;
-        return diff * diff;
-    }
-    #endregion
-
-    #region EqualityComparer
-
-    private class EqualityComparer : IEqualityComparer<Vector3D>
-    {
-        public int Digits { get; set; }
-
-        public bool Equals(Vector3D v1, Vector3D v2)
-        {
-            return v1.Round(Digits) == v2.Round(Digits);
-        }
-
-        public int GetHashCode(Vector3D obj)
-        {
-            return obj.Round(Digits).GetHashCode();
-        }
-    }
-
-    public static IEqualityComparer<Vector3D> CreateComparer(int digits = 7)
-    {
-        return new EqualityComparer { Digits = digits };
-    }
     #endregion
 
     public static Vector3D Abs(Vector3D value) => throw new NotSupportedException();
