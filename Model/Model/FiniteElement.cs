@@ -9,7 +9,7 @@ namespace Model.Model;
 public interface IFiniteElement :
     IFiniteElementGeometry,
     IDofManager,
-    IBasisSet2D
+    IBasisSet<Vector2D>
 {
     int MaterialIndex { get; }
 }
