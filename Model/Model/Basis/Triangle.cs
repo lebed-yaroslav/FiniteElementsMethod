@@ -19,7 +19,7 @@ public static class TriangleBasis
 
     /// <summary>L1L2(ξ, η) = ξ * η</summary>
     public static readonly IBasisFunction L1L2 = new TriangleL1L2();
-    /// <summary>L2L2(ξ, η) = η * (1 - ξ - η)</summary>
+    /// <summary>L2L3(ξ, η) = η * (1 - ξ - η)</summary>
     public static readonly IBasisFunction L2L3 = new TriangleL2L3();
     /// <summary>L3L1(ξ, η) = ξ * (1 - ξ - η)</summary>
     public static readonly IBasisFunction L3L1 = new TriangleL3L1();
