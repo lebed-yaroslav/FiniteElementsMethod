@@ -9,7 +9,7 @@ namespace Model.Model;
 public interface IFiniteElement :
     IFiniteElementGeometry,
     IDofManager,
-    IBasisSet
+    IBasisSet2D
 {
     int MaterialIndex { get; }
 }
@@ -37,13 +37,15 @@ public interface IDofManager
     public void SetElementDof(int n, int dofIndex);
 }
 
-public interface IBasisSet
+public interface IBasisSet<TVector> where TVector : struct
 {
-    IEnumerable<Quadratures.QuadratureNode2D> Quadratures { get; }
-    ReadOnlySpan<IBasisFunction2D> Basis { get; }
+    IEnumerable<Quadratures.Node<TVector>> Quadratures { get; }
+    ReadOnlySpan<IBasisFunction<TVector>> Basis { get; }
 }
 
 public readonly record struct Edge(int I, int J);
+
+public interface IBasisSet2D : IBasisSet<Vector2D>;
 
 public interface IFiniteElementFactory
 {

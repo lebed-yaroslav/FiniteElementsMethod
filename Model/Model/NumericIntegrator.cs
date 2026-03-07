@@ -26,7 +26,7 @@ public static class NumericIntegrator
                 var value = 0.0;
                 foreach (var q in element.Quadratures)
                 {
-                    var ep = q.Node; // master element-space point
+                    var ep = q.Point; // master element-space point
                     var mp = masterCs.ToGlobal(ep); // mesh-space point
                     var invJ = masterInvJ.MulAt(ep, meshInvJ, mp); // Jacoby from master to physical
                     var gradPhiI = element.Basis[i].Derivatives(ep);
@@ -70,7 +70,7 @@ public static class NumericIntegrator
                 var value = 0.0;
                 foreach (var q in element.Quadratures)
                 {
-                    var ep = q.Node; // master element-space point
+                    var ep = q.Point; // master element-space point
                     var mp = masterCs.ToGlobal(ep); // mesh-space point
                     var phiI = element.Basis[i].Value(ep);
                     var phiJ = element.Basis[j].Value(ep);
@@ -99,8 +99,8 @@ public static class NumericIntegrator
             var value = 0.0;
             foreach (var q in element.Quadratures)
             {
-                var ep = q.Node; // master element-space point
-                var mp = masterCs.ToGlobal(q.Node); // mesh-space point
+                var ep = q.Point; // master element-space point
+                var mp = masterCs.ToGlobal(q.Point); // mesh-space point
                 var psiJ = element.Basis[j].Value(ep);
                 var jacobian = Math.Abs(masterCs.Jacobian(ep) * meshCs.Jacobian(mp));
                 value += source(mp) * psiJ * q.Weight * jacobian;

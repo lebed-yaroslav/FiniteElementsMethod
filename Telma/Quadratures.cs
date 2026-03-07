@@ -4,80 +4,78 @@ namespace Telma;
 
 public static class Quadratures
 {
-    public record QuadratureNode1D(Vector1D Node, double Weight);
-    public record QuadratureNode2D(Vector2D Node, double Weight);
-    public record QuadratureNode3D(Vector3D Node, double Weight);
+    public record Node<TVector>(TVector Point, double Weight);
 
     #region Segment Gauss–Legendre
     /// <summary>
     /// Gauss–Legendre 1
     /// </summary>
-    static IEnumerable<QuadratureNode1D> SegmentGaussOrder1()
+    public static IEnumerable<Node<Vector1D>> SegmentGaussOrder1()
     {
         const int n = 1;
         double[] x = { 0 };
         double[] w = { 2 };
 
         for (int i = 0; i < n; i++)
-            yield return new QuadratureNode1D((x[i] + 1) / 2, 0.5 * w[i]);
+            yield return new((x[i] + 1) / 2, 0.5 * w[i]);
     }
 
     /// <summary>
     /// Gauss–Legendre 2
     /// </summary>
-    static IEnumerable<QuadratureNode1D> SegmentGaussOrder3()
+    public static IEnumerable<Node<Vector1D>> SegmentGaussOrder3()
     {
         const int n = 2;
         double[] x = { -Math.Sqrt(3) / 3, +Math.Sqrt(3) / 3 };
         double[] w = { 1, 1 };
 
         for (int i = 0; i < n; i++)
-            yield return new QuadratureNode1D((x[i] + 1) / 2, 0.5 * w[i]);
+            yield return new((x[i] + 1) / 2, 0.5 * w[i]);
     }
 
     /// <summary>
     /// Gauss–Legendre 3
     /// </summary>
-    static IEnumerable<QuadratureNode1D> SegmentGaussOrder5()
+    public static IEnumerable<Node<Vector1D>> SegmentGaussOrder5()
     {
         const int n = 3;
         double[] x = { -Math.Sqrt(3.0 / 5.0), 0, +Math.Sqrt(3.0 / 5.0) };
         double[] w = { 5.0 / 9.0, 8.0 / 9.0, 5.0 / 9.0 };
 
         for (int i = 0; i < n; i++)
-            yield return new QuadratureNode1D((x[i] + 1) / 2, 0.5 * w[i]);
+            yield return new((x[i] + 1) / 2, 0.5 * w[i]);
     }
 
     /// <summary>
     /// Gauss–Legendre 4
     /// </summary>
-    public static IEnumerable<QuadratureNode1D> SegmentGaussOrder7()
+    public static IEnumerable<Node<Vector1D>> SegmentGaussOrder7()
     {
         const int n = 4;
         double[] x = { -Math.Sqrt((3 + 2 * Math.Sqrt(6.0 / 5)) / 7.0), -Math.Sqrt((3 - 2 * Math.Sqrt(6.0 / 5)) / 7.0), Math.Sqrt((3 - 2 * Math.Sqrt(6.0 / 5)) / 7.0), Math.Sqrt((3 + 2 * Math.Sqrt(6.0 / 5)) / 7.0) };
         double[] w = { (18 - Math.Sqrt(30.0)) / 36, (18 + Math.Sqrt(30.0)) / 36, (18 + Math.Sqrt(30.0)) / 36, (18 - Math.Sqrt(30.0)) / 36 };
 
         for (int i = 0; i < n; i++)
-            yield return new QuadratureNode1D((x[i] + 1) / 2, 0.5 * w[i]);
+            yield return new((x[i] + 1) / 2, 0.5 * w[i]);
     }
 
     /// <summary>
     /// Gauss–Legendre 5
     /// </summary>
-    public static IEnumerable<QuadratureNode1D> SegmentGaussOrder9()
+    public static IEnumerable<Node<Vector1D>> SegmentGaussOrder9()
     {
         const int n = 5;
         double[] x = { -0.9061798459386640, -0.5384693101056831, 0.0, 0.5384693101056831, 0.9061798459386640, };
         double[] w = { 0.2369268850561891, 0.4786286704993665, 0.5688888888888889, 0.4786286704993665, 0.2369268850561891 };
 
         for (int i = 0; i < n; i++)
-            yield return new QuadratureNode1D((x[i] + 1) / 2, 0.5 * w[i]);
+            yield return new((x[i] + 1) / 2, 0.5 * w[i]);
     }
 
     /// <summary>
     /// Gauss–Legendre 10
     /// </summary>
-    public static IEnumerable<QuadratureNode1D> SegmentGaussOrder19()
+    public static IEnumerable<Node<Vector1D>> SegmentGaussOrder19()
     {
         const int n = 10;
         double[] x = {-0.9739065285171717, -0.8650633666889845, -0.6794095682990244, -0.4333953941292472, -0.1488743389816312,
@@ -87,13 +85,13 @@ public static class Quadratures
             0.6667134430868814e-1};
 
         for (int i = 0; i < n; i++)
-            yield return new QuadratureNode1D((x[i] + 1) / 2, 0.5 * w[i]);
+            yield return new((x[i] + 1) / 2, 0.5 * w[i]);
     }
 
     /// <summary>
     /// Gauss–Legendre 11
     /// </summary>
-    static IEnumerable<QuadratureNode1D> SegmentGaussOrder21()
+    public static IEnumerable<Node<Vector1D>> SegmentGaussOrder21()
     {
         const int n = 11;
         double[] x = {-0.978228658146057, -0.8870625997680953, -0.7301520055740493, -0.5190961292068118, -0.2695431559523449,
@@ -103,13 +101,13 @@ public static class Quadratures
             0.5566856711617367e-1};
 
         for (int i = 0; i < n; i++)
-            yield return new QuadratureNode1D((x[i] + 1) / 2, 0.5 * w[i]);
+            yield return new((x[i] + 1) / 2, 0.5 * w[i]);
     }
 
     /// <summary>
     /// Gauss–Legendre 12
     /// </summary>
-    static IEnumerable<QuadratureNode1D> SegmentGaussOrder23()
+    public static IEnumerable<Node<Vector1D>> SegmentGaussOrder23()
     {
         const int n = 12;
         double[] x = { -0.981560634246719, -0.904117256370475, -0.769902674194305, -0.587317954286617,
@@ -120,7 +118,7 @@ public static class Quadratures
             0.203167426723066, 0.160078328543346, 0.106939325995318, 0.047175336386512 };
 
         for (int i = 0; i < n; i++)
-            yield return new QuadratureNode1D((x[i] + 1) / 2, 0.5 * w[i]);
+            yield return new((x[i] + 1) / 2, 0.5 * w[i]);
     }
 
     #endregion
@@ -130,17 +128,15 @@ public static class Quadratures
     /// <summary>
     /// Closed Newton-Cotes 5 (Boole's rule)
     /// </summary>
-    public static IEnumerable<QuadratureNode1D> SegmentNewtonCotes5()
+    public static IEnumerable<Node<Vector1D>> SegmentNewtonCotes5()
     {
         const int n = 5;
         double[] x = { 0, 0.25, 0.5, 0.75, 1 };
         double[] w = { 7.0 / 90, 32.0 / 90, 12.0 / 90, 32.0 / 90, 7.0 / 90 };
 
         for (int i = 0; i < n; i++)
-            yield return new QuadratureNode1D(x[i], w[i]);
+            yield return new(x[i], w[i]);
     }
-
-
     #endregion
 
     #region Triangle quadratures
@@ -149,46 +145,46 @@ public static class Quadratures
     /// Triangle 3
     /// Triangle Gaussian symmetic quadrature (closed)
     /// </summary>
-    public static IEnumerable<QuadratureNode2D> TriangleOrder2()
+    public static IEnumerable<Node<Vector2D>> TriangleOrder2()
     {
         double[] p1 = { 0.5, 0.5, 0 };
         double[] p2 = { 0.5, 0, 0.5 };
         double[] w = { 1.0 / 3.0, 1.0 / 3.0, 1.0 / 3.0 };
         for (int i = 0; i < w.Length; i++)
-            yield return new QuadratureNode2D(new Vector2D(p1[i], p2[i]), w[i] / 2.0);
+            yield return new(new Vector2D(p1[i], p2[i]), w[i] / 2.0);
     }
 
     /// <summary>
     /// Triangle 3
     /// Triangle Gaussian symmetic quadrature (open)
     /// </summary>
-    public static IEnumerable<QuadratureNode2D> TriangleOrder2a()
+    public static IEnumerable<Node<Vector2D>> TriangleOrder2a()
     {
         double[] p1 = { 2.0 / 3.0, 1.0 / 6.0, 1.0 / 6.0 };
         double[] p2 = { 1.0 / 6.0, 2.0 / 3.0, 1.0 / 6.0 };
         double[] w = { 1.0 / 3.0, 1.0 / 3.0, 1.0 / 3.0 };
         for (int i = 0; i < w.Length; i++)
-            yield return new QuadratureNode2D(new Vector2D(p1[i], p2[i]), w[i] / 2.0);
+            yield return new(new Vector2D(p1[i], p2[i]), w[i] / 2.0);
     }
 
     /// <summary>
     /// Triangle 4
     /// Triangle Gaussian symmetic quadrature (open)
     /// </summary>
-    public static IEnumerable<QuadratureNode2D> TriangleOrder3()
+    public static IEnumerable<Node<Vector2D>> TriangleOrder3()
     {
         double[] p1 = { 1.0 / 3.0, 0.6, 0.2, 0.2 };
         double[] p2 = { 1.0 / 3.0, 0.2, 0.6, 0.2 };
         double[] w = { -27.0 / 48.0, 25.0 / 48.0, 25.0 / 48.0, 25.0 / 48.0 };
         for (int i = 0; i < w.Length; i++)
-            yield return new QuadratureNode2D(new Vector2D(p1[i], p2[i]), w[i] / 2.0);
+            yield return new(new Vector2D(p1[i], p2[i]), w[i] / 2.0);
     }
 
     /// <summary>
     /// Triangle 6
     /// Triangle Gaussian symmetic quadrature (open)
     /// </summary>
-    public static IEnumerable<QuadratureNode2D> TriangleOrder4()
+    public static IEnumerable<Node<Vector2D>> TriangleOrder4()
     {
         const double a = 0.816847572980459;
         const double b = 0.108103018168070;
@@ -200,14 +196,14 @@ public static class Quadratures
         double[] p2 = { c, a, c, d, b, d };
         double[] w = { w1, w1, w1, w2, w2, w2 };
         for (int i = 0; i < w.Length; i++)
-            yield return new QuadratureNode2D(new Vector2D(p1[i], p2[i]), w[i] / 2.0);
+            yield return new(new Vector2D(p1[i], p2[i]), w[i] / 2.0);
     }
 
     /// <summary>
     /// Triangle 7
     /// Triangle Gaussian symmetic quadrature (open)
     /// </summary>
-    public static IEnumerable<QuadratureNode2D> TriangleOrder5()
+    public static IEnumerable<Node<Vector2D>> TriangleOrder5()
     {
         const double a = 0.059715871789770;
         const double b = 0.797426985353087;
@@ -219,14 +215,14 @@ public static class Quadratures
         double[] p2 = { 1.0 / 3.0, d, a, d, c, b, c };
         double[] w = { 0.225, w1, w1, w1, w2, w2, w2 };
         for (int i = 0; i < w.Length; i++)
-            yield return new QuadratureNode2D(new Vector2D(p1[i], p2[i]), w[i] / 2.0);
+            yield return new(new Vector2D(p1[i], p2[i]), w[i] / 2.0);
     }
 
     /// <summary>
     /// Triangle 12
     /// Triangle Gaussian symmetic quadrature (open)
     /// </summary>
-    public static IEnumerable<QuadratureNode2D> TriangleOrder6()
+    public static IEnumerable<Node<Vector2D>> TriangleOrder6()
     {
         const double x1a = 0.873821971016996;
         const double x1b = 0.063089014491502;
@@ -242,10 +238,10 @@ public static class Quadratures
         double[] p2 = { x1b, x1a, x1b, x2b, x2a, x2b, x3b, x3a, x3c, x3a, x3c, x3b };
         double[] w = { w1, w1, w1, w2, w2, w2, w3, w3, w3, w3, w3, w3 };
         for (int i = 0; i < w.Length; i++)
-            yield return new QuadratureNode2D(new Vector2D(p1[i], p2[i]), w[i] / 2.0);
+            yield return new(new Vector2D(p1[i], p2[i]), w[i] / 2.0);
     }
 
-    public static IEnumerable<QuadratureNode2D> TriangleOrder9()
+    public static IEnumerable<Node<Vector2D>> TriangleOrder9()
     {
         const int n = 21;
         double[] p1 = {0.0451890097844, 0.0451890097844, 0.9096219804312, 0.7475124727339, 0.2220631655373, 0.7475124727339,
@@ -262,10 +258,10 @@ public static class Quadratures
             0.1881601469167};
 
         for (int i = 0; i < n; i++)
-            yield return new QuadratureNode2D(new Vector2D(p1[i], p2[i]), 0.25 * w[i]);
+            yield return new(new Vector2D(p1[i], p2[i]), 0.25 * w[i]);
     }
 
-    public static IEnumerable<QuadratureNode2D> TriangleOrder18()
+    public static IEnumerable<Node<Vector2D>> TriangleOrder18()
     {
         const int n = 66;
         double[] p1 = {0.0116731059668, 0.9810030858388, 0.0106966317092, 0.9382476983551, 0.0126627518417,
@@ -311,14 +307,14 @@ public static class Quadratures
             0.0547100548639, 0.0557288345913, 0.0577734264233, 0.0585393781623, 0.0609039250680,
             0.0637273964449};
         for (int i = 0; i < n; i++)
-            yield return new QuadratureNode2D(new Vector2D(p1[i], p2[i]), 0.25 * w[i]);
+            yield return new(new Vector2D(p1[i], p2[i]), 0.25 * w[i]);
     }
 
     #endregion
 
     #region Quadrangle quadratures
 
-    public static IEnumerable<QuadratureNode2D> QuadrangleOrder5()
+    public static IEnumerable<Node<Vector2D>> QuadrangleOrder5()
     {
         const int n = 8;
         const double w1 = 40.0 / 49.0;
@@ -335,7 +331,7 @@ public static class Quadratures
             yield return new(new((p1[i] + 1.0) * 0.5, (p2[i] + 1.0) * 0.5), w[i] / 4.0);
     }
 
-    public static IEnumerable<QuadratureNode2D> QuadrangleOrder7()
+    public static IEnumerable<Node<Vector2D>> QuadrangleOrder7()
     {
         const int n = 12;
         const double wc = 98.0 / 405.0;
@@ -355,7 +351,7 @@ public static class Quadratures
             yield return new(new((p1[i] + 1.0) * 0.5, (p2[i] + 1.0) * 0.5), w[i] / 4.0);
     }
 
-    public static IEnumerable<QuadratureNode2D> QuadrangleOrder9()
+    public static IEnumerable<Node<Vector2D>> QuadrangleOrder9()
     {
         const int n = 17;
         const double a1 = 0.96884996636197772072;
@@ -388,21 +384,21 @@ public static class Quadratures
     /// Tetrahedron 5
     /// Tetrahedron Gaussian symmetic quadrature
     /// </summary>
-    public static IEnumerable<QuadratureNode3D> TetrahedronOrder3()
+    public static IEnumerable<Node<Vector3D>> TetrahedronOrder3()
     {
         double[] p1 = { 1.0 / 4.0, 1.0 / 2.0, 1.0 / 6.0, 1.0 / 6.0, 1.0 / 6.0 };
         double[] p2 = { 1.0 / 4.0, 1.0 / 6.0, 1.0 / 2.0, 1.0 / 6.0, 1.0 / 6.0 };
         double[] p3 = { 1.0 / 4.0, 1.0 / 6.0, 1.0 / 6.0, 1.0 / 2.0, 1.0 / 6.0 };
         double[] w = { -4.0 / 5.0, 9.0 / 20.0, 9.0 / 20.0, 9.0 / 20.0, 9.0 / 20.0 };
         for (int i = 0; i < w.Length; i++)
-            yield return new QuadratureNode3D(new Vector3D(p1[i], p2[i], p3[i]), w[i] / 6.0);
+            yield return new(new Vector3D(p1[i], p2[i], p3[i]), w[i] / 6.0);
     }
 
     /// <summary>
     /// Tetrahedron 15
     /// Tetrahedron Gaussian symmetic quadrature
     /// </summary>
-    public static IEnumerable<QuadratureNode3D> TetrahedronOrder5()
+    public static IEnumerable<Node<Vector3D>> TetrahedronOrder5()
     {
         double[] p1 = { 0.25, 0, 0.333333333333, 0.333333333333, 0.333333333333, 0.727272727272727, 0.090909090909091, 0.090909090909091, 0.090909090909091, 0.066550153573664, 0.066550153573664, 0.433449846426336, 0.433449846426336, 0.066550153573664, 0.433449846426336 };
         double[] p2 = { 0.25, 0.333333333333, 0, 0.333333333333, 0.333333333333, 0.090909090909091, 0.727272727272727, 0.090909090909091, 0.090909090909091, 0.066550153573664, 0.433449846426336, 0.433449846426336, 0.066550153573664, 0.433449846426336, 0.066550153573664 };
@@ -416,14 +412,14 @@ public static class Quadratures
                          0.010949141561386, 0.010949141561386, 0.010949141561386, 0.010949141561386, 0.010949141561386, 0.010949141561386 };
         //*1/6 - Объем?
         for (int i = 0; i < w.Length; i++)
-            yield return new QuadratureNode3D(new Vector3D(p1[i], p2[i], p3[i]), w[i]);
+            yield return new(new Vector3D(p1[i], p2[i], p3[i]), w[i]);
     }
 
     /// <summary>
     /// Tetrahedron 24
     /// Tetrahedron Gaussian symmetic quadrature
     /// </summary>
-    public static IEnumerable<QuadratureNode3D> TetrahedronOrder6()
+    public static IEnumerable<Node<Vector3D>> TetrahedronOrder6()
     {
         const double w1 = 0.665379170969464506e-2;
         const double w2 = 0.167953517588677620e-2;
@@ -448,10 +444,10 @@ public static class Quadratures
         double[] p3 = { x1a, x1b, x1a, x1a, x2a, x2b, x2a, x2a, x3a, x3b, x3a, x3a, x4b, x4c, x4a, x4a, x4a, x4a, x4c, x4b, x4c, x4a, x4b, x4a };
         double[] w = { w1, w1, w1, w1, w2, w2, w2, w2, w3, w3, w3, w3, w4, w4, w4, w4, w4, w4, w4, w4, w4, w4, w4, w4 };
         for (int i = 0; i < w.Length; i++)
-            yield return new QuadratureNode3D(new Vector3D(p1[i], p2[i], p3[i]), w[i]);
+            yield return new(new Vector3D(p1[i], p2[i], p3[i]), w[i]);
     }
 
-    public static IEnumerable<QuadratureNode3D> TetrahedronOrder7()
+    public static IEnumerable<Node<Vector3D>> TetrahedronOrder7()
     {
         const int n = 35;
 
@@ -631,7 +627,7 @@ public static class Quadratures
 
     #region Cube quadratures
 
-    public static IEnumerable<QuadratureNode3D> CubeOrder5()
+    public static IEnumerable<Node<Vector3D>> CubeOrder5()
     {
         const int n = 14;
         const double w1 = 320.0 / 361.0;
@@ -655,7 +651,7 @@ public static class Quadratures
         }
     }
 
-    public static IEnumerable<QuadratureNode3D> CubeOrder7()
+    public static IEnumerable<Node<Vector3D>> CubeOrder7()
     {
         const int n = 34;
         const double w1 = 1078.0 / 3645.0;
@@ -830,14 +826,14 @@ public static class Quadratures
 
     #region Polygon quadrature
 
-    public static IEnumerable<QuadratureNode3D> MapTriangle(Vector3D v0, Vector3D v1, Vector3D v2, IEnumerable<QuadratureNode2D> quadrature)
+    public static IEnumerable<Node<Vector3D>> MapTriangle(Vector3D v0, Vector3D v1, Vector3D v2, IEnumerable<Node<Vector2D>> quadrature)
     {
         var jacobian = Vector3D.Cross(v1 - v0, v2 - v0).Norm;
         foreach (var node in quadrature)
         {
-            var x = node.Node.X;
-            var y = node.Node.Y;
-            yield return new QuadratureNode3D(v0 * (1 - x - y) + v1 * x + v2 * y, node.Weight * jacobian);
+            var x = node.Point.X;
+            var y = node.Point.Y;
+            yield return new(v0 * (1 - x - y) + v1 * x + v2 * y, node.Weight * jacobian);
         }
     }
 
@@ -850,7 +846,7 @@ public static class Quadratures
     /// Sphere 14
     /// Sphere Lebedev quadrature
     /// </summary>
-    public static IEnumerable<QuadratureNode3D> SphereOrder5()
+    public static IEnumerable<Node<Vector3D>> SphereOrder5()
     {
         double[] theta = { 0, 180, 90, -90, 90, 90, 45, 45, -45, -45, 135, 135, -135, -135 };
         double[] phi = { 90, 90, 90, 90, 0, 180,
@@ -860,7 +856,7 @@ public static class Quadratures
             0.075, 0.075, 0.075, 0.075, 0.075, 0.075, 0.075, 0.075 };
         double c = Math.PI / 180;
         for (int i = 0; i < w.Length; i++)
-            yield return new QuadratureNode3D(
+            yield return new(
             new Vector3D(Math.Cos(c * theta[i]) * Math.Sin(c * phi[i]), Math.Sin(c * theta[i]) * Math.Sin(c * phi[i]), Math.Cos(c * phi[i])),
             w[i] * 4 * Math.PI);
     }
@@ -871,7 +867,7 @@ public static class Quadratures
     /// <summary>
     /// Gauss-Kronrod 5
     /// </summary>
-    public static IEnumerable<QuadratureNode1D> SegmentGaussKronrod7()
+    public static IEnumerable<Node<Vector1D>> SegmentGaussKronrod7()
     {
         const int n = 5;
         double[] x = { -0.92582009977255146156656677658399952252931490100834,
@@ -887,13 +883,13 @@ public static class Quadratures
                        0.1979797979797979797979797979797979797979797979798 };
 
         for (int i = 0; i < n; i++)
-            yield return new QuadratureNode1D((x[i] + 1) / 2, 0.5 * w[i]);
+            yield return new((x[i] + 1) / 2, 0.5 * w[i]);
     }
 
     /// <summary>
     /// Gauss-Kronrod 7
     /// </summary>
-    public static IEnumerable<QuadratureNode1D> SegmentGaussKronrod11()
+    public static IEnumerable<Node<Vector1D>> SegmentGaussKronrod11()
     {
         const int n = 7;
         double[] x = { -0.96049126870802028342350709262907996266978223636529,
@@ -913,13 +909,13 @@ public static class Quadratures
                        0.1046562260264672651938238571920730382422021606251 };
 
         for (int i = 0; i < n; i++)
-            yield return new QuadratureNode1D((x[i] + 1) / 2, 0.5 * w[i]);
+            yield return new((x[i] + 1) / 2, 0.5 * w[i]);
     }
 
     /// <summary>
     /// Gauss-Kronrod 9
     /// </summary>
-    public static IEnumerable<QuadratureNode1D> SegmentGaussKronrod13()
+    public static IEnumerable<Node<Vector1D>> SegmentGaussKronrod13()
     {
         const int n = 9;
         double[] x = { -0.97656025073757311153450535936991962683375905330236,
@@ -943,13 +939,13 @@ public static class Quadratures
                        0.06297737366547301476549248855281867632941703873821 };
 
         for (int i = 0; i < n; i++)
-            yield return new QuadratureNode1D((x[i] + 1) / 2, 0.5 * w[i]);
+            yield return new((x[i] + 1) / 2, 0.5 * w[i]);
     }
 
     /// <summary>
     /// Gauss-Kronrod 11
     /// </summary>
-    public static IEnumerable<QuadratureNode1D> SegmentGaussKronrodOrder17()
+    public static IEnumerable<Node<Vector1D>> SegmentGaussKronrodOrder17()
     {
         const int n = 11;
         double[] x = { -0.98408536009484246449617293463613949958055282418847,
@@ -977,13 +973,13 @@ public static class Quadratures
                         0.04258203675108183286450945084767009187528571052993 };
 
         for (int i = 0; i < n; i++)
-            yield return new QuadratureNode1D((x[i] + 1) / 2, 0.5 * w[i]);
+            yield return new((x[i] + 1) / 2, 0.5 * w[i]);
     }
 
     /// <summary>
     /// Gauss-Kronrod 21
     /// </summary>
-    public static IEnumerable<QuadratureNode1D> SegmentGaussKronrod40()
+    public static IEnumerable<Node<Vector1D>> SegmentGaussKronrod40()
     {
         const int n = 21;
         double[] x = { -0.99565716302580808073552728068900284792126058721948,
@@ -1031,9 +1027,8 @@ public static class Quadratures
                        0.01169463886737187427806439606219204839621733248193 };
 
         for (int i = 0; i < n; i++)
-            yield return new QuadratureNode1D((x[i] + 1) / 2, 0.5 * w[i]);
+            yield return new((x[i] + 1) / 2, 0.5 * w[i]);
     }
-
     #endregion
 }
 

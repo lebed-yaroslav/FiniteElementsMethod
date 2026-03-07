@@ -13,11 +13,11 @@ public sealed class LinearTriangleFactory : IFiniteElementFactory
             MaterialIndex: materialIndex
     );
 
-    public static readonly IBasisSet Basis = new BasisSet(
-       Quadratures.TriangleOrder3,
-       TriangleBasis.L1,
-       TriangleBasis.L2,
-       TriangleBasis.L3
+    public static readonly IBasisSet<Vector2D> Basis = new BasisSet<Vector2D>(
+        Quadratures.TriangleOrder3,
+        TriangleBasis.L1,
+        TriangleBasis.L2,
+        TriangleBasis.L3
    );
 
     public sealed class Dof() : DofManager(dofCount: 3)

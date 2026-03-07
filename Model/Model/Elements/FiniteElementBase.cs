@@ -8,7 +8,7 @@ namespace Model.Model.Elements;
 public sealed record class FiniteElement(
     IFiniteElementGeometry Geometry,
     IDofManager DOF,
-    IBasisSet BasisSet,
+    IBasisSet<Vector2D> BasisSet,
     int MaterialIndex
 ) : IFiniteElement
 {
@@ -36,8 +36,8 @@ public sealed record class FiniteElement(
     public void SetElementDof(int n, int dofIndex)
         => DOF.SetElementDof(n, dofIndex);
 
-    public ReadOnlySpan<IBasisFunction2D> Basis => BasisSet.Basis;
-    public IEnumerable<Quadratures.QuadratureNode2D> Quadratures => BasisSet.Quadratures;
+    public ReadOnlySpan<IBasisFunction<Vector2D>> Basis => BasisSet.Basis;
+    public IEnumerable<Quadratures.Node<Vector2D>> Quadratures => BasisSet.Quadratures;
 }
 
 public abstract class DofManager(
@@ -73,14 +73,14 @@ public abstract class FiniteElementGeometry(int[] vertexIndices) : IFiniteElemen
     public abstract ICoordinateSystem2D MasterElementCoordinateSystem { get; }
 }
 
-public readonly struct BasisSet(
-    Func<IEnumerable<Quadratures.QuadratureNode2D>> quadratures,
-    params IBasisFunction2D[] basis
-) : IBasisSet
+public readonly struct BasisSet<TVector>(
+    Func<IEnumerable<Quadratures.Node<TVector>>> quadratures,
+    params IBasisFunction<TVector>[] basis
+) : IBasisSet<TVector> where TVector : struct
 {
-    public IEnumerable<Quadratures.QuadratureNode2D> Quadratures => quadratures();
-    private readonly IBasisFunction2D[] _basis = basis;
-    public ReadOnlySpan<IBasisFunction2D> Basis => _basis;
+    public IEnumerable<Quadratures.Node<TVector>> Quadratures => quadratures();
+    private readonly IBasisFunction<TVector>[] _basis = basis;
+    public ReadOnlySpan<IBasisFunction<TVector>> Basis => _basis;
 }
 
 public sealed class MutableBasisSet(
