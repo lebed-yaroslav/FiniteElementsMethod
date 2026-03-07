@@ -36,7 +36,7 @@ public sealed record class FiniteElement(
     public void SetElementDof(int n, int dofIndex)
         => DOF.SetElementDof(n, dofIndex);
 
-    public ReadOnlySpan<IBasisFunction> Basis => BasisSet.Basis;
+    public ReadOnlySpan<IBasisFunction2D> Basis => BasisSet.Basis;
     public IEnumerable<Quadratures.QuadratureNode2D> Quadratures => BasisSet.Quadratures;
 }
 
@@ -75,12 +75,12 @@ public abstract class FiniteElementGeometry(int[] vertexIndices) : IFiniteElemen
 
 public readonly struct BasisSet(
     Func<IEnumerable<Quadratures.QuadratureNode2D>> quadratures,
-    params IBasisFunction[] basis
+    params IBasisFunction2D[] basis
 ) : IBasisSet
 {
     public IEnumerable<Quadratures.QuadratureNode2D> Quadratures => quadratures();
-    private readonly IBasisFunction[] _basis = basis;
-    public ReadOnlySpan<IBasisFunction> Basis => _basis;
+    private readonly IBasisFunction2D[] _basis = basis;
+    public ReadOnlySpan<IBasisFunction2D> Basis => _basis;
 }
 
 public sealed class MutableBasisSet(

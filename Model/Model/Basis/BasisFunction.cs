@@ -8,7 +8,7 @@ public interface IBasisFunction<TVector> where TVector : struct
     TVector Derivatives(TVector point);
 }
 
-public interface IBasisFunction : IBasisFunction<Vector2D>;
+public interface IBasisFunction2D : IBasisFunction<Vector2D>;
 
 public sealed class OrientedBasisFunction<TVector>(IBasisFunction<TVector> basis) :
     IBasisFunction<TVector>

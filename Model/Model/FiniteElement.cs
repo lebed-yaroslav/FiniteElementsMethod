@@ -40,7 +40,7 @@ public interface IDofManager
 public interface IBasisSet
 {
     IEnumerable<Quadratures.QuadratureNode2D> Quadratures { get; }
-    ReadOnlySpan<IBasisFunction> Basis { get; }
+    ReadOnlySpan<IBasisFunction2D> Basis { get; }
 }
 
 public readonly record struct Edge(int I, int J);
