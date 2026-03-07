@@ -9,7 +9,7 @@ namespace Telma;
 
 public enum AngleMeasureUnits { amuRadians = 0, amuDegrees = 1 };
 
-public readonly struct Vector1D(double x) : IVectorTraits<Vector1D>
+public readonly struct Vector1D(double x) : IVectorBase<Vector1D>
 {
     public static int Dimensions => 1;
     public static Vector1D Zero { get; } = new(0);
@@ -24,12 +24,19 @@ public readonly struct Vector1D(double x) : IVectorTraits<Vector1D>
     public ReadOnlySpan<double> AsSpan() =>
          MemoryMarshal.Cast<Vector1D, double>(MemoryMarshal.CreateReadOnlySpan(in this, 1));
 
+    #region Static operators
     public static implicit operator Vector1D(double v) => new(v);
     public static implicit operator double(Vector1D v) => v.X;
+    public static Vector1D operator -(Vector1D a) => -a.X;
+    public static Vector1D operator +(Vector1D a, Vector1D b) => a.X + b.X;
+    public static Vector1D operator -(Vector1D a, Vector1D b) => a.X - b.X;
+    public static Vector1D operator *(Vector1D a, double v) => a.X * v;
+    public static Vector1D operator /(Vector1D a, double v) => a.X / v;
+    #endregion
 
 }
 
-public readonly struct Vector2D : IVectorTraits<Vector2D>, IEquatable<Vector2D>
+public readonly struct Vector2D : IVectorBase<Vector2D>, IEquatable<Vector2D>
 {
     public static int Dimensions => 2;
     public static Vector2D Zero { get; } = new(0, 0);
@@ -125,33 +132,22 @@ public readonly struct Vector2D : IVectorTraits<Vector2D>, IEquatable<Vector2D>
 
     public static Vector2D Vec(double x, double y) => new Vector2D(x, y);
     public Vector3D As3D() => new Vector3D(X, Y, 0);
+
     #region Static operators
-
-    public static Vector2D operator -(Vector2D a) => new Vector2D(-a.X, -a.Y);
-
-    public static Vector2D operator +(Vector2D a, Vector2D b) => new Vector2D(a.X + b.X, a.Y + b.Y);
-
-    public static Vector2D operator -(Vector2D a, Vector2D b) => new Vector2D(a.X - b.X, a.Y - b.Y);
-
-    public static Vector2D operator /(Vector2D a, double v) => new Vector2D(a.X / v, a.Y / v);
-
-    public static Vector2D operator *(Vector2D a, double v) => new Vector2D(a.X * v, a.Y * v);
-
-    public static Vector2D operator *(double v, Vector2D a) => new Vector2D(v * a.X, v * a.Y);
-
+    public static Vector2D operator -(Vector2D a) => new(-a.X, -a.Y);
+    public static Vector2D operator +(Vector2D a, Vector2D b) => new(a.X + b.X, a.Y + b.Y);
+    public static Vector2D operator -(Vector2D a, Vector2D b) => new(a.X - b.X, a.Y - b.Y);
+    public static Vector2D operator /(Vector2D a, double v) => new(a.X / v, a.Y / v);
+    public static Vector2D operator *(Vector2D a, double v) => new(a.X * v, a.Y * v);
+    public static Vector2D operator *(double v, Vector2D a) => new(v * a.X, v * a.Y);
     public static double operator *(Vector2D a, Vector2D b) => a.X * b.X + a.Y * b.Y;
-
     public static bool operator ==(Vector2D a, Vector2D b) => a.X == b.X && a.Y == b.Y;
-
     public static bool operator !=(Vector2D a, Vector2D b) => a.X != b.X || a.Y != b.Y;
-
-    public static Vector2D Cross(Vector2D v1) => new Vector2D(v1.Y, -v1.X);
-
+    public static Vector2D Sum(Vector2D a, Vector2D b) => a + b;
+    public static Vector2D Cross(Vector2D v1) => new(v1.Y, -v1.X);
     public static double Mixed(Vector2D v1, Vector2D v2) => v1.Y * v2.X - v1.X * v2.Y;
-
-    public static Vector2D Sum(Vector2D a, Vector2D b) => new Vector2D(a.X + b.X, a.Y + b.Y);
-
     #endregion
+
     #region EqualityComparer
 
     private class EqualityComparer : IEqualityComparer<Vector2D>
@@ -174,7 +170,7 @@ public readonly struct Vector2D : IVectorTraits<Vector2D>, IEquatable<Vector2D>
     #endregion
 }
 
-public readonly struct Vector3D : IVectorTraits<Vector3D>, INumberBase<Vector3D>, IMultiplyOperators<Vector3D, double, Vector3D>
+public readonly struct Vector3D : IVectorBase<Vector3D>, INumberBase<Vector3D>, IMultiplyOperators<Vector3D, double, Vector3D>
 {
     public static int Dimensions => 3;
     public static Vector3D Zero { get; } = new(0, 0, 0);
@@ -289,7 +285,7 @@ public readonly struct Vector3D : IVectorTraits<Vector3D>, INumberBase<Vector3D>
     #region Static operators
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static Vector3D operator -(Vector3D a) => new Vector3D(-a.X, -a.Y, -a.Z);
+    public static Vector3D operator -(Vector3D a) => new(-a.X, -a.Y, -a.Z);
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static Vector3D operator +(Vector3D a) => a;
@@ -298,19 +294,19 @@ public readonly struct Vector3D : IVectorTraits<Vector3D>, INumberBase<Vector3D>
     public static double operator *(Vector3D a, Vector3D b) => a.X * b.X + a.Y * b.Y + a.Z * b.Z;
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static Vector3D operator *(double a, Vector3D b) => new Vector3D(a * b.X, a * b.Y, a * b.Z);
+    public static Vector3D operator *(double a, Vector3D b) => new(a * b.X, a * b.Y, a * b.Z);
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static Vector3D operator *(Vector3D b, double a) => new Vector3D(a * b.X, a * b.Y, a * b.Z);
+    public static Vector3D operator *(Vector3D b, double a) => new(a * b.X, a * b.Y, a * b.Z);
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static Vector3D operator /(Vector3D a, double v) => new Vector3D(a.X / v, a.Y / v, a.Z / v);
+    public static Vector3D operator /(Vector3D a, double v) => new(a.X / v, a.Y / v, a.Z / v);
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static Vector3D operator +(Vector3D a, Vector3D b) => new Vector3D(a.X + b.X, a.Y + b.Y, a.Z + b.Z);
+    public static Vector3D operator +(Vector3D a, Vector3D b) => new(a.X + b.X, a.Y + b.Y, a.Z + b.Z);
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static Vector3D operator -(Vector3D a, Vector3D b) => new Vector3D(a.X - b.X, a.Y - b.Y, a.Z - b.Z);
+    public static Vector3D operator -(Vector3D a, Vector3D b) => new(a.X - b.X, a.Y - b.Y, a.Z - b.Z);
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static bool operator ==(Vector3D a, Vector3D b) => a.X == b.X && a.Y == b.Y && a.Z == b.Z;
@@ -331,11 +327,11 @@ public readonly struct Vector3D : IVectorTraits<Vector3D>, INumberBase<Vector3D>
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static Vector3D Min(Vector3D a, Vector3D b) =>
-        new Vector3D(Math.Min(a.X, b.X), Math.Min(a.Y, b.Y), Math.Min(a.Z, b.Z));
+        new(Math.Min(a.X, b.X), Math.Min(a.Y, b.Y), Math.Min(a.Z, b.Z));
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static Vector3D Max(Vector3D a, Vector3D b) =>
-        new Vector3D(Math.Max(a.X, b.X), Math.Max(a.Y, b.Y), Math.Max(a.Z, b.Z));
+        new(Math.Max(a.X, b.X), Math.Max(a.Y, b.Y), Math.Max(a.Z, b.Z));
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static double Distance(Vector3D a, Vector3D b) => (a - b).Norm;
