@@ -1,6 +1,3 @@
-using System.Diagnostics.CodeAnalysis;
-using System.Globalization;
-using System.Numerics;
 using System.Runtime.CompilerServices;
 using Telma.Extensions;
 
@@ -29,6 +26,17 @@ public readonly struct Vector1D(double x) : IVectorBase<Vector1D>
     public bool Equals(Vector1D b) => X == b.X;
     public override bool Equals(object? obj) => obj is Vector1D vec && Equals(vec);
     public override int GetHashCode() => X.GetHashCode();
+
+    #region Constructors
+    public static Vector1D FromSpan(ReadOnlySpan<double> span)
+    {
+#if DEBUG
+        if (span.Length != Dimensions)
+            throw new ArgumentException($"Unable to create {nameof(Vector1D)} from span of length {span.Length}");
+#endif
+        return span[0];
+    }
+    #endregion
 
     #region Static operators
     public static implicit operator Vector1D(double v) => new(v);
@@ -74,12 +82,13 @@ public readonly struct Vector2D(double x, double y) : IVectorBase<Vector2D>
     public void Deconstruct(out double x, out double y) => (x, y) = (X, Y);
 
     #region Constructors
-    public Vector2D(ReadOnlySpan<double> span) : this(span[0], span[1])
+    public static Vector2D FromSpan(ReadOnlySpan<double> span)
     {
 #if DEBUG
         if (span.Length != Dimensions)
             throw new ArgumentException($"Unable to create {nameof(Vector2D)} from span of length {span.Length}");
 #endif
+        return new(span[0], span[1]);
     }
     #endregion
 
@@ -145,6 +154,7 @@ public readonly struct Vector3D(double x, double y, double z) : IVectorBase<Vect
     public double Y { get; } = y;
     public double Z { get; } = z;
 
+
     public double Norm => Math.Sqrt(NormSqr);
     public double NormSqr => X * X + Y * Y + Z * Z;
     public double MaxNorm => Math.Max(Math.Abs(X), Math.Max(Math.Abs(Y), Math.Abs(Z)));
@@ -163,12 +173,14 @@ public readonly struct Vector3D(double x, double y, double z) : IVectorBase<Vect
 
     #region Constructors
     public Vector3D(Vector2D vec, double z) : this(vec.X, vec.Y, z) {}
-    public Vector3D(ReadOnlySpan<double> span) : this(span[0], span[1], span[2])
+    public Vector3D(double x, Vector2D vec) : this(x, vec.X, vec.Y) {}
+    public static Vector3D FromSpan(ReadOnlySpan<double> span)
     {
 #if DEBUG
-        if (span.Length != 3)
+        if (span.Length != Dimensions)
             throw new ArgumentException($"Unable to create {nameof(Vector3D)} from span of length {span.Length}");
 #endif
+        return new(span[0], span[1], span[2]);
     }
     #endregion
 

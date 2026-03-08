@@ -21,6 +21,8 @@ public interface IVectorBase<TSelf> :
     static abstract TSelf Zero { get; }
     static abstract TSelf[] Axes { get; }
 
+    static abstract TSelf FromSpan(ReadOnlySpan<double> span);
+
     double Norm { get; }
     double NormSqr { get; }
     double MaxNorm { get; }
@@ -31,7 +33,6 @@ public interface IVectorBase<TSelf> :
     Vector3D As3D();
 
     static abstract double operator *(TSelf a, TSelf b);
-    static TSelf Sum(TSelf a, TSelf b) => a + b;
     static abstract TSelf Min(TSelf a, TSelf b);
     static abstract TSelf Max(TSelf a, TSelf b);
 }
