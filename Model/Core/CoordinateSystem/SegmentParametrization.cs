@@ -14,7 +14,7 @@ public sealed class SegmentParametrization<TSource>(TSource a, TSource b) :
     ICoordinateTransform<TSource, Vector1D>
     where TSource : struct, IVectorBase<TSource>
 {
-    public bool IsLinear => true;
+    public static bool IsLinear => true;
     private readonly InverseSegmentJacobyMatrix<TSource> _j = new(b - a);
     public TSource Origin { get; } = a;
     public TSource Offset => _j.Offset;

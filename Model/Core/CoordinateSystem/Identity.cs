@@ -9,12 +9,11 @@ public sealed class IdentityTransform<TSource> : ICoordinateTransform<TSource, T
     public static IdentityTransform<TSource> Instance { get; } = new();
     private IdentityTransform() {}
 
-    public bool IsLinear => true;
+    public static bool IsLinear => true;
+
     public TSource Transform(TSource sourcePoint) => sourcePoint;
     public TSource InverseTransform(TSource targetPoint) => targetPoint;
-
     public double Jacobian(TSource targetPoint) => 1.0;
-
     public IJacobyMatrix<TSource, TSource> InverseJacoby()
         => IdentityJacobyMatrix<TSource>.Instance;
 }

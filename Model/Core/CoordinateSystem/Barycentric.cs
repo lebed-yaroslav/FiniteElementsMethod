@@ -1,17 +1,18 @@
-using Model.Core.CoordinateSystem;
-using Telma;
+﻿using Telma;
 
-namespace Model.Core.CoordinateSystems;
+namespace Model.Core.CoordinateSystem;
 
-public sealed record BarycentricCoordinateSystem : ICoordinateSystem2D
+public sealed record BarycentricCoordinateSystem: ICoordinateTransform<Vector2D, Vector2D>
 {
     public Vector2D A { get; }
     public Vector2D B { get; }
     public Vector2D C { get; }
 
-    public readonly ConstantJacobyMatrix J;
+    public readonly ConstantJacobyMatrix2D J;
 
-    private readonly Lazy<ConstantJacobyMatrix> _invJ;
+    private readonly Lazy<ConstantJacobyMatrix2D> _invJ;
+
+    public static bool IsLinear => true;
 
     public BarycentricCoordinateSystem(Vector2D a, Vector2D b, Vector2D c)
     {
@@ -23,20 +24,19 @@ public sealed record BarycentricCoordinateSystem : ICoordinateSystem2D
         _invJ = new(() => J.Inverse());
     }
 
-    public Vector2D ToGlobal(Vector2D localPoint)
+    public Vector2D Transform(Vector2D globalPoint)
+    {
+        var invJ = _invJ.Value;
+        var delta = globalPoint - A;
+        return invJ * delta;
+    }
+
+    public Vector2D InverseTransform(Vector2D localPoint)
     {
         (var xi, var eta) = localPoint;
         return A * (1 - xi - eta) + B * xi + C * eta;
     }
 
-    public Vector2D ToLocal(Vector2D globalPoint)
-    {
-        var invJ = _invJ.Value;
-        var delta = globalPoint - A;
-        return (invJ as IJacobyMatrix) * delta;
-    }
-
-    public bool IsJacobianConstant => true;
     public double Jacobian(Vector2D point) => J.Det(point);
-    public IJacobyMatrix InverseJacoby() => _invJ.Value;
+    public IJacobyMatrix<Vector2D, Vector2D> InverseJacoby() => _invJ.Value;
 }
