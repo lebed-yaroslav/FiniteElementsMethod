@@ -1,10 +1,8 @@
-
-using Vector1D = double;
 namespace Telma;
 
 public static class Quadratures
 {
-    public record Node<TVector>(TVector Point, double Weight);
+    public sealed record Node<TVector>(TVector Point, double Weight);
 
     #region Segment Gauss–Legendre
     /// <summary>
@@ -862,6 +860,7 @@ public static class Quadratures
     }
 
     #endregion
+
     #region Gauss-Kronrod
 
     /// <summary>
