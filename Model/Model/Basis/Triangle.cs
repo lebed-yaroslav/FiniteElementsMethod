@@ -1,4 +1,4 @@
-﻿using Telma;
+using Telma;
 
 namespace Model.Model.Basis;
 
@@ -121,7 +121,7 @@ public static class TriangleBasis
         {
             (var xi, var eta) = localCoords;
             return new(
-                eta * (eta - 2 * xi ), // d/dξ
+                eta * (eta - 2 * xi), // d/dξ
                 xi * (2 * eta - xi) // d/dη
             );
         }

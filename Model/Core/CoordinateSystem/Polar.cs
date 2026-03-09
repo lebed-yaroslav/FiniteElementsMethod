@@ -1,4 +1,4 @@
-﻿using Model.Core.CoordinateSystem;
+using Model.Core.CoordinateSystem;
 using Telma;
 
 namespace Model.Core.CoordinateSystems;
@@ -42,7 +42,8 @@ public sealed class InversePolarJacobyMatrix : IJacobyMatrix
         get
         {
             (var r, var theta) = sourcePoint;
-            return (i, j) switch {
+            return (i, j) switch
+            {
                 (0, 0) => Math.Cos(theta),
                 (0, 1) => Math.Sin(theta),
                 (1, 0) => Math.Sin(theta) / r,

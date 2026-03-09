@@ -1,4 +1,4 @@
-﻿using System.Numerics;
+using System.Numerics;
 using System.Runtime.InteropServices;
 
 namespace Telma.Extensions;
@@ -113,7 +113,7 @@ public static class VectorExtensions
     }
 
     public static Func<TVector, int> SplitBox<TVector>(this IEnumerable<TVector> vectors)
-        where TVector: IVectorBase<TVector>
+        where TVector : IVectorBase<TVector>
     {
         var min = vectors.Aggregate(TVector.Min);
         var max = vectors.Aggregate(TVector.Max);

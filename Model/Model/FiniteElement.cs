@@ -1,4 +1,4 @@
-﻿using Model.Core.CoordinateSystem;
+using Model.Core.CoordinateSystem;
 using Model.Model.Basis;
 using Model.Model.Elements.Triangle;
 using Telma;
@@ -11,7 +11,7 @@ public interface IFiniteElement :
     IDofManager,
     IBasisSet
 {
-	int MaterialIndex { get; }
+    int MaterialIndex { get; }
 }
 
 public interface IFiniteElementGeometry
@@ -55,7 +55,8 @@ public struct Edge
     }
 }
 
-public interface IFiniteElementFactory {
+public interface IFiniteElementFactory
+{
     IFiniteElement Create(IMesh2D mesh, int[] vertices, int materialIndex);
 }
 

@@ -1,4 +1,4 @@
-﻿namespace Model.Core.Matrix;
+namespace Model.Core.Matrix;
 
 
 public class CsrMatrix(CsrMatrix.Portrait portrait) : IGlobalMatrix

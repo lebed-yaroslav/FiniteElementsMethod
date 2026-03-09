@@ -1,4 +1,4 @@
-﻿using Model.Core.Matrix;
+using Model.Core.Matrix;
 using Telma;
 
 namespace Model.Model;
@@ -19,7 +19,8 @@ public static class NumericIntegrator
         var masterInvJ = masterCs.InverseJacoby();
         var meshInvJ = meshCs.InverseJacoby();
 
-        for (int i = 0; i < n; i++) {
+        for (int i = 0; i < n; i++)
+        {
             for (int j = 0; j <= i; j++)
             {
                 var value = 0.0;
@@ -40,7 +41,7 @@ public static class NumericIntegrator
                         (invJ[0, 0] * invJ[0, 1] + invJ[1, 0] * invJ[1, 1]) * gradPhiI.X
                     ) * gradPhiJ.Y;
 
-                    var jacobian = Math.Abs(1 / invJ.Det(Vector2D.Zero)); 
+                    var jacobian = Math.Abs(1 / invJ.Det(Vector2D.Zero));
 
                     value += lambda(mp) * product * jacobian * q.Weight;
                 }
@@ -58,7 +59,7 @@ public static class NumericIntegrator
     {
         int n = element.Dof.Length;
         var mass = new LocalMatrix(n);
-        
+
         var masterCs = element.MasterElementCoordinateSystem;
         var meshCs = element.Mesh.CoordinateSystem;
 

@@ -1,4 +1,4 @@
-﻿using Model.Model.Basis;
+using Model.Model.Basis;
 using Telma;
 
 namespace Model.Model.Elements.Triangle;

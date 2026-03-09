@@ -1,4 +1,4 @@
-﻿using Model.Core.Matrix;
+using Model.Core.Matrix;
 using Telma;
 
 namespace Model.Core.CoordinateSystem;
@@ -14,7 +14,8 @@ public interface ICoordinateSystem2D
     IJacobyMatrix InverseJacoby();
 }
 
-public interface IJacobyMatrix : IMatrix {
+public interface IJacobyMatrix : IMatrix
+{
     int IMatrix.Size => 2; // FIXME: Temporary workaround
 
     static abstract bool IsConstant { get; }
@@ -47,7 +48,8 @@ public sealed class ConstantJacobyMatrix(double[,] j) : IJacobyMatrix
     public double this[int i, int j, Vector2D _] => _j[i, j];
     public double this[int i, int j] => _j[i, j];
 
-    public ConstantJacobyMatrix Inverse() {
+    public ConstantJacobyMatrix Inverse()
+    {
         var detJ = Det(Vector2D.Zero);
         return new(new[,] {
             {_j[1, 1] / detJ, -_j[0, 1] / detJ},

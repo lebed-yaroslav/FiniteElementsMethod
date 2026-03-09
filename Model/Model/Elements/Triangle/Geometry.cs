@@ -1,4 +1,4 @@
-﻿using Model.Core.CoordinateSystems;
+using Model.Core.CoordinateSystems;
 
 namespace Model.Model.Elements.Triangle;
 

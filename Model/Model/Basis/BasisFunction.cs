@@ -1,4 +1,4 @@
-﻿using Telma;
+using Telma;
 
 namespace Model.Model.Basis;
 

@@ -172,8 +172,8 @@ public readonly struct Vector3D(double x, double y, double z) : IVectorBase<Vect
         => (x, y, z) = (X, Y, Z);
 
     #region Constructors
-    public Vector3D(Vector2D vec, double z) : this(vec.X, vec.Y, z) {}
-    public Vector3D(double x, Vector2D vec) : this(x, vec.X, vec.Y) {}
+    public Vector3D(Vector2D vec, double z) : this(vec.X, vec.Y, z) { }
+    public Vector3D(double x, Vector2D vec) : this(x, vec.X, vec.Y) { }
     public static Vector3D FromSpan(ReadOnlySpan<double> span)
     {
 #if DEBUG

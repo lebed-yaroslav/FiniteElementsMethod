@@ -1,4 +1,4 @@
-﻿namespace Model.Core.Solver;
+namespace Model.Core.Solver;
 
 internal interface ISolver
 {

@@ -1,4 +1,4 @@
-﻿namespace Model.Model;
+namespace Model.Model;
 
 public interface IBoundaryElement
 {
