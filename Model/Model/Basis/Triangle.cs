@@ -297,6 +297,5 @@ public static class TriangleBasis
                     27.0 * (-2 * xi * eta - xi * xi + xi)); // [d/dxi, d/deta]
       }
    }
+
 }
-
-
