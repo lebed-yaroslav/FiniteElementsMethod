@@ -1,4 +1,4 @@
-﻿using System.Xml.Linq;
+using System.Xml.Linq;
 using Model.Model.Basis;
 using Telma;
 
@@ -6,11 +6,12 @@ namespace Model.Model.Elements.Quadrangle;
 
 public sealed class BicubicLagrangeQuadrangleFactory : IFiniteElementFactory
 {
-    public IFiniteElement Create(IMesh2D mesh, int[] vertices) =>
+    public IFiniteElement Create(IMesh2D mesh, int[] vertices, int materialIndex) =>
         new FiniteElement(
             Geometry: new QuadrangleGeometry(vertices) { Mesh = mesh },
             DOF: new Dof(),
-            BasisSet: Basis
+            BasisSet: Basis,
+            MaterialIndex: materialIndex
      );
 
     public static readonly IBasisSet Basis = new BasisSet(
@@ -27,7 +28,7 @@ public sealed class BicubicLagrangeQuadrangleFactory : IFiniteElementFactory
         /// <summary>
         /// Ребра нумеруются с нижнего против часовой {0, 1, 2, 3}, на ребре 2 ущла, которые имеют индексы 0 и 1 и нумеруются опять же по часовой
         /// </summary>
-        public override void SetEdgeDof(int localEdgeIndex, int n, int dofIndex)
+        public override void SetEdgeDof(int localEdgeIndex, bool isOrientationFlipped, int n, int dofIndex)
         {
             if (n < 0 || n >= 2) throw new NotSupportedException();
             if (localEdgeIndex >= 4) throw new NotSupportedException();

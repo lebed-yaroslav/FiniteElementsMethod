@@ -1,4 +1,4 @@
-﻿using Model.Model.Basis;
+using Model.Model.Basis;
 using Model.Model.Elements.Quadrangle;
 using Telma;
 
@@ -6,11 +6,12 @@ namespace Model.Model.Elements.Quadrangle;
 
 public sealed class HermiteQuadraticFactory : IFiniteElementFactory
 {
-    public IFiniteElement Create(IMesh2D mesh, int[] vertices) =>
+    public IFiniteElement Create(IMesh2D mesh, int[] vertices, int materialIndex) =>
         new FiniteElement(
             Geometry: new QuadrangleGeometry(vertices) { Mesh = mesh },
             DOF: new Dof(),
-            BasisSet: Basis
+            BasisSet: Basis,
+            MaterialIndex: materialIndex
      );
 
     public static readonly IBasisSet Basis = new BasisSet(
@@ -25,7 +26,7 @@ public sealed class HermiteQuadraticFactory : IFiniteElementFactory
         public override int NumberOfDofOnElement => 0;
 
 
-        public override void SetEdgeDof(int localEdgeIndex, int n, int dofIndex) => throw new NotSupportedException();
+        public override void SetEdgeDof(int localEdgeIndex, bool isOrientationFlipped, int n, int dofIndex) => throw new NotSupportedException();
 
         public override void SetVertexDof(int localVertexIndex, int n, int dofIndex)
         {
