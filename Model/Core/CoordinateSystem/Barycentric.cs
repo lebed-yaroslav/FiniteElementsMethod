@@ -1,8 +1,8 @@
-﻿using Telma;
+using Telma;
 
 namespace Model.Core.CoordinateSystem;
 
-public sealed record BarycentricCoordinateSystem: ICoordinateTransform<Vector2D, Vector2D>
+public sealed record BarycentricCoordinateSystem : ICoordinateTransform<Vector2D, Vector2D>
 {
     public Vector2D A { get; }
     public Vector2D B { get; }

@@ -29,7 +29,7 @@ public static class FiniteElementExtensions
         public ReadOnlySpan<int> Vertices => self.Geometry.Vertices;
         public IEnumerable<Edge> Edges => self.Geometry.Edges;
         public int EdgeCount => self.Geometry.EdgeCount;
-        public ICoordinateTransform<TSpace, TBoundary> MasterElementCoordinateSystem  => self.Geometry.MasterElementCoordinateSystem;
+        public ICoordinateTransform<TSpace, TBoundary> MasterElementCoordinateSystem => self.Geometry.MasterElementCoordinateSystem;
 
         public IEnumerable<Quadratures.Node<TBoundary>> Quadratures => self.BasisSet.Quadratures;
         public ReadOnlySpan<IBasisFunction<TBoundary>> Basis => self.BasisSet.Basis;

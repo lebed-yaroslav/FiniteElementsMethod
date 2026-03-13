@@ -1,4 +1,4 @@
-﻿using System.Diagnostics;
+using System.Diagnostics;
 using Telma.Extensions;
 
 namespace Model.Core.CoordinateSystem;
@@ -8,7 +8,7 @@ public sealed class IdentityTransform<TSource> : ICoordinateTransform<TSource, T
     where TSource : IVectorBase<TSource>
 {
     public static IdentityTransform<TSource> Instance { get; } = new();
-    private IdentityTransform() {}
+    private IdentityTransform() { }
 
     public static bool IsLinear => true;
 
@@ -24,7 +24,7 @@ public sealed class IdentityJacobyMatrix<TSource> : IJacobyMatrix<TSource, TSour
     where TSource : IVectorBase<TSource>
 {
     public static IdentityJacobyMatrix<TSource> Instance { get; } = new();
-    private IdentityJacobyMatrix() {}
+    private IdentityJacobyMatrix() { }
 
     public static bool IsConstant => true;
     public double this[int i, int j]

@@ -62,7 +62,7 @@ public static class NumericIntegrator
     {
         int n = element.DOF.Count;
         var mass = new LocalMatrix(n);
-        
+
         var masterCs = element.MasterElementCoordinateSystem;
         var meshCs = element.Mesh.CoordinateSystem;
 
@@ -95,7 +95,7 @@ public static class NumericIntegrator
     {
         int n = element.DOF.Count;
         var masterCs = element.Geometry.MasterElementCoordinateSystem;
-		var meshCs = element.Mesh.CoordinateSystem;
+        var meshCs = element.Mesh.CoordinateSystem;
 
         for (int j = 0; j < n; j++)
         {

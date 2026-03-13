@@ -16,6 +16,7 @@ public interface IMesh<TSpace>
     IEnumerable<IFiniteElement<TSpace>> FiniteElements { get; }
 }
 
+
 // FIXME: This is dirty workaround because TBoundary cannot be deduced from TSpace
 public interface IMeshWithBoundaries<TSpace, TBoundary>
     where TSpace : IVectorBase<TSpace>
@@ -23,6 +24,7 @@ public interface IMeshWithBoundaries<TSpace, TBoundary>
 {
     IEnumerable<IBoundaryElement<TSpace, TBoundary>> BoundaryElements { get; }
 }
+
 
 public abstract class Mesh<TSpace>(ICoordinateTransform<TSpace, TSpace> coordinateSystem) :
     IMesh<TSpace>
@@ -40,11 +42,22 @@ public abstract class Mesh<TSpace>(ICoordinateTransform<TSpace, TSpace> coordina
          _finiteElements.Add(factory.CreateElement(this, vertices, materialIndex));
 }
 
+
 public sealed class Mesh2D(ICoordinateTransform<Vector2D, Vector2D> coordinateSystem) :
     Mesh<Vector2D>(coordinateSystem), IMeshWithBoundaries<Vector2D, Vector1D>
 {
     private readonly List<IBoundaryElement<Vector2D, Vector1D>> _boundaryElements = [];
     public IEnumerable<IBoundaryElement<Vector2D, Vector1D>> BoundaryElements => _boundaryElements;
     public void AddBoundary(IBoundaryElementFactory<Vector2D, Vector1D> factory, int[] vertices, int materialIndex) =>
+         _boundaryElements.Add(factory.CreateBoundary(this, vertices, materialIndex));
+}
+
+
+public sealed class Mesh3D(ICoordinateTransform<Vector3D, Vector3D> coordinateSystem) :
+    Mesh<Vector3D>(coordinateSystem), IMeshWithBoundaries<Vector3D, Vector2D>
+{
+    private readonly List<IBoundaryElement<Vector3D, Vector2D>> _boundaryElements = [];
+    public IEnumerable<IBoundaryElement<Vector3D, Vector2D>> BoundaryElements => _boundaryElements;
+    public void AddBoundary(IBoundaryElementFactory<Vector3D, Vector2D> factory, int[] vertices, int materialIndex) =>
          _boundaryElements.Add(factory.CreateBoundary(this, vertices, materialIndex));
 }

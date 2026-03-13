@@ -12,7 +12,7 @@ public class SegmentGeometry<TSpace> :
     public override IEnumerable<Edge> Edges => [new(Vertices[0], Vertices[1])];
     public override int EdgeCount => 1;
 
-    private SegmentGeometry(int[] vertexIndices) : base(vertexIndices) {}
+    private SegmentGeometry(int[] vertexIndices) : base(vertexIndices) { }
 
     public ICoordinateTransform<TSpace, Vector1D> MasterElementCoordinateSystem =>
         new SegmentParametrization<TSpace>(Mesh[Vertices[0]], Mesh[Vertices[1]]);

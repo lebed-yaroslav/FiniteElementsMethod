@@ -7,7 +7,7 @@ public static class JacobyMatrix2D
 {
     extension(IJacobyMatrix2D self)
     {
-        public IJacobyMatrix2D MulAt(Vector2D lp, IJacobyMatrix2D rhs, Vector2D rp) 
+        public IJacobyMatrix2D MulAt(Vector2D lp, IJacobyMatrix2D rhs, Vector2D rp)
             => new ConstantJacobyMatrix2D(new[,] {
                 {
                     self[0, 0, lp] * rhs[0, 0, rp] + self[0, 1, lp] * rhs[1, 0, rp],
