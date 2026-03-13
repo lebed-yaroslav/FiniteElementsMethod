@@ -43,17 +43,7 @@ public interface IBasisSet
     ReadOnlySpan<IBasisFunction> Basis { get; }
 }
 
-public struct Edge
-{
-    public readonly int I { get; private init; }
-    public readonly int J { get; private init; }
-
-    public Edge(int i, int j)
-    {
-        I = i;
-        J = j;
-    }
-}
+public readonly record struct Edge(int I, int J);
 
 public interface IFiniteElementFactory
 {
