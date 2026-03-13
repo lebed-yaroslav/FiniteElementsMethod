@@ -1,38 +1,37 @@
-using Model.Core.CoordinateSystem;
 using Telma;
 
-namespace Model.Core.CoordinateSystems;
+namespace Model.Core.CoordinateSystem;
 
-public sealed class PolarCoordinateSystem : ICoordinateSystem2D
+
+public sealed class PolarCoordinateSystem : ICoordinateTransform<Vector2D, Vector2D>
 {
     public static readonly PolarCoordinateSystem Instance = new();
     private PolarCoordinateSystem() { }
 
-    public Vector2D ToLocal(Vector2D globalPoint)
-        => new(globalPoint.Norm, Math.Atan2(globalPoint.Y, globalPoint.X));
+    public static bool IsLinear => false;
 
-    public Vector2D ToGlobal(Vector2D localPoint)
+    public Vector2D Transform(Vector2D sourcePoint)
+        => new(sourcePoint.Norm, Math.Atan2(sourcePoint.Y, sourcePoint.X));
+
+    public Vector2D InverseTransform(Vector2D targetPoint)
     {
-        (var r, var theta) = localPoint;
+        (var r, var theta) = targetPoint;
         return new(r * Math.Cos(theta), r * Math.Sin(theta));
     }
 
-    public bool IsJacobianConstant => false;
-    public double Jacobian(Vector2D localPoint) => localPoint.X;
+    public double Jacobian(Vector2D targetPoint) => targetPoint.X; // r
 
-    public IJacobyMatrix InverseJacoby() => IdentityJacobyMatrix.Instance;
+    public IJacobyMatrix<Vector2D, Vector2D> InverseJacoby()
+        => InversePolarJacobyMatrix.Instance;
 }
 
 
-public sealed class InversePolarJacobyMatrix : IJacobyMatrix
+public sealed class InversePolarJacobyMatrix : IJacobyMatrix<Vector2D, Vector2D>
 {
     public static readonly InversePolarJacobyMatrix Instance = new();
     private InversePolarJacobyMatrix() { }
 
     public static bool IsConstant => false;
-
-    public double Det(Vector2D sourcePoint)
-        => 1 / sourcePoint.X; // 1 / r
 
     public double this[int i, int j] =>
         throw new NotSupportedException($"{nameof(InversePolarJacobyMatrix)} is not constant");
@@ -54,4 +53,6 @@ public sealed class InversePolarJacobyMatrix : IJacobyMatrix
         }
     }
 
+    public double Det(Vector2D sourcePoint)
+        => 1 / sourcePoint.X; // 1 / r
 }

@@ -1,26 +1,61 @@
 using Model.Core.CoordinateSystem;
+using Model.Model.Elements;
 using Telma;
+using Telma.Extensions;
 
 namespace Model.Model;
 
-public interface IMesh2D
+
+public interface IMesh<TSpace>
+    where TSpace : IVectorBase<TSpace>
 {
-    Vector2D this[int i] { get; }
-    ICoordinateSystem2D CoordinateSystem { get; }
-    IEnumerable<IFiniteElement> FiniteElements { get; }
+    TSpace this[int i] { get; }
+    ICoordinateTransform<TSpace, TSpace> CoordinateSystem { get; }
+    IEnumerable<IFiniteElement<TSpace>> FiniteElements { get; }
 }
 
-public sealed class Mesh2D(ICoordinateSystem2D coordinateSystem) : IMesh2D
+
+// FIXME: This is dirty workaround because TBoundary cannot be deduced from TSpace
+public interface IMeshWithBoundaries<TSpace, TBoundary>
+    where TSpace : IVectorBase<TSpace>
+    where TBoundary : IVectorBase<TBoundary>
 {
-    private List<Vector2D> _vertices = new();
-    private List<IFiniteElement> _finiteElements = new();
-
-    public ICoordinateSystem2D CoordinateSystem { get; } = coordinateSystem;
-    public Vector2D this[int i] => _vertices[i];
-    public IEnumerable<IFiniteElement> FiniteElements => _finiteElements;
+    IEnumerable<IBoundaryElement<TSpace, TBoundary>> BoundaryElements { get; }
+}
 
 
-    public void AddVertex(Vector2D vertex) => _vertices.Add(vertex);
-    public void AddElement(IFiniteElementFactory factory, int[] vertices, int materialIndex) =>
-        _finiteElements.Add(factory.Create(this, vertices, materialIndex));
+public abstract class Mesh<TSpace>(ICoordinateTransform<TSpace, TSpace> coordinateSystem) :
+    IMesh<TSpace>
+    where TSpace : IVectorBase<TSpace>
+{
+    private readonly List<TSpace> _vertices = [];
+    private readonly List<IFiniteElement<TSpace>> _finiteElements = [];
+
+    public TSpace this[int i] => _vertices[i];
+    public ICoordinateTransform<TSpace, TSpace> CoordinateSystem { get; } = coordinateSystem;
+    public IEnumerable<IFiniteElement<TSpace>> FiniteElements => _finiteElements;
+
+    public void AddVertex(TSpace vertex) => _vertices.Add(vertex);
+    public void AddElement(IFiniteElementFactory<TSpace> factory, int[] vertices, int materialIndex) =>
+         _finiteElements.Add(factory.CreateElement(this, vertices, materialIndex));
+}
+
+
+public sealed class Mesh2D(ICoordinateTransform<Vector2D, Vector2D> coordinateSystem) :
+    Mesh<Vector2D>(coordinateSystem), IMeshWithBoundaries<Vector2D, Vector1D>
+{
+    private readonly List<IBoundaryElement<Vector2D, Vector1D>> _boundaryElements = [];
+    public IEnumerable<IBoundaryElement<Vector2D, Vector1D>> BoundaryElements => _boundaryElements;
+    public void AddBoundary(IBoundaryElementFactory<Vector2D, Vector1D> factory, int[] vertices, int materialIndex) =>
+         _boundaryElements.Add(factory.CreateBoundary(this, vertices, materialIndex));
+}
+
+
+public sealed class Mesh3D(ICoordinateTransform<Vector3D, Vector3D> coordinateSystem) :
+    Mesh<Vector3D>(coordinateSystem), IMeshWithBoundaries<Vector3D, Vector2D>
+{
+    private readonly List<IBoundaryElement<Vector3D, Vector2D>> _boundaryElements = [];
+    public IEnumerable<IBoundaryElement<Vector3D, Vector2D>> BoundaryElements => _boundaryElements;
+    public void AddBoundary(IBoundaryElementFactory<Vector3D, Vector2D> factory, int[] vertices, int materialIndex) =>
+         _boundaryElements.Add(factory.CreateBoundary(this, vertices, materialIndex));
 }

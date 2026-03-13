@@ -1,16 +1,19 @@
+using Model.Core.CoordinateSystem;
 using Model.Core.Matrix;
+using Model.Model.Elements;
 using Telma;
 
 namespace Model.Model;
 
+
 public static class NumericIntegrator
 {
     public static LocalMatrix CalculateLocalStiffness(
-        IFiniteElement element,
+        IFiniteElement<Vector2D> element,
         Func<Vector2D, double> lambda
     )
     {
-        int n = element.Dof.Length;
+        int n = element.DOF.Count;
         var stiffness = new LocalMatrix(n);
 
         var masterCs = element.MasterElementCoordinateSystem;
@@ -26,8 +29,8 @@ public static class NumericIntegrator
                 var value = 0.0;
                 foreach (var q in element.Quadratures)
                 {
-                    var ep = q.Node; // master element-space point
-                    var mp = masterCs.ToGlobal(ep); // mesh-space point
+                    var ep = q.Point; // master element-space point
+                    var mp = masterCs.InverseTransform(ep); // mesh-space point
                     var invJ = masterInvJ.MulAt(ep, meshInvJ, mp); // Jacoby from master to physical
                     var gradPhiI = element.Basis[i].Derivatives(ep);
                     var gradPhiJ = element.Basis[j].Derivatives(ep);
@@ -53,11 +56,11 @@ public static class NumericIntegrator
     }
 
     public static LocalMatrix CalculateLocalMass(
-        IFiniteElement element,
+        IFiniteElement<Vector2D> element,
         Func<Vector2D, double> gamma
     )
     {
-        int n = element.Dof.Length;
+        int n = element.DOF.Count;
         var mass = new LocalMatrix(n);
 
         var masterCs = element.MasterElementCoordinateSystem;
@@ -70,8 +73,8 @@ public static class NumericIntegrator
                 var value = 0.0;
                 foreach (var q in element.Quadratures)
                 {
-                    var ep = q.Node; // master element-space point
-                    var mp = masterCs.ToGlobal(ep); // mesh-space point
+                    var ep = q.Point; // master element-space point
+                    var mp = masterCs.InverseTransform(ep); // mesh-space point
                     var phiI = element.Basis[i].Value(ep);
                     var phiJ = element.Basis[j].Value(ep);
                     var jacobian = Math.Abs(masterCs.Jacobian(ep) * meshCs.Jacobian(mp)); // FIXME: may be optimized (by IsConstant)
@@ -85,13 +88,13 @@ public static class NumericIntegrator
     }
 
     public static void CalculateLocalLoad(
-        IFiniteElement element,
+        IFiniteElement<Vector2D> element,
         Func<Vector2D, double> source,
         Span<double> load
     )
     {
-        int n = element.Dof.Length;
-        var masterCs = element.MasterElementCoordinateSystem;
+        int n = element.DOF.Count;
+        var masterCs = element.Geometry.MasterElementCoordinateSystem;
         var meshCs = element.Mesh.CoordinateSystem;
 
         for (int j = 0; j < n; j++)
@@ -99,8 +102,8 @@ public static class NumericIntegrator
             var value = 0.0;
             foreach (var q in element.Quadratures)
             {
-                var ep = q.Node; // master element-space point
-                var mp = masterCs.ToGlobal(q.Node); // mesh-space point
+                var ep = q.Point; // master element-space point
+                var mp = masterCs.InverseTransform(q.Point); // mesh-space point
                 var psiJ = element.Basis[j].Value(ep);
                 var jacobian = Math.Abs(masterCs.Jacobian(ep) * meshCs.Jacobian(mp));
                 value += source(mp) * psiJ * q.Weight * jacobian;

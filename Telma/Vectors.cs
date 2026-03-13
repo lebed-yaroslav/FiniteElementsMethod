@@ -52,7 +52,6 @@ public readonly struct Vector1D(double x) : IVectorBase<Vector1D>
     public static Vector1D Min(Vector1D a, Vector1D b) => Math.Min(a.X, b.X);
     public static Vector1D Max(Vector1D a, Vector1D b) => Math.Max(a.X, b.X);
     #endregion
-
 }
 
 public readonly struct Vector2D(double x, double y) : IVectorBase<Vector2D>

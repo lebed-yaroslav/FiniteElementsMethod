@@ -1,8 +1,8 @@
-using Model.Core.CoordinateSystems;
+using Telma;
 
 namespace Model.Model.Elements.Rectangle;
 
-public sealed class RectangleGeometry(int[] vertexIndices) : FiniteElementGeometry(vertexIndices)
+public sealed class RectangleGeometry(int[] vertexIndices) : ElementGeometry<Vector2D>(vertexIndices)
 {
     public override IEnumerable<Edge> Edges
     {
@@ -15,7 +15,4 @@ public sealed class RectangleGeometry(int[] vertexIndices) : FiniteElementGeomet
         }
     }
     public override int EdgeCount => 4;
-
-    // TODO: Coordinate system
-    public override BarycentricCoordinateSystem MasterElementCoordinateSystem => throw new NotImplementedException();
 }

@@ -1,20 +1,26 @@
 using Telma;
+using Telma.Extensions;
 
 namespace Model.Model.Basis;
 
-public interface IBasisFunction
+
+public interface IBasisFunction<TSpace> where TSpace : IVectorBase<TSpace>
 {
-    double Value(Vector2D point);
-    Vector2D Derivatives(Vector2D point);
+    double Value(TSpace point);
+    TSpace Derivatives(TSpace point);
 }
 
-public sealed class OrientedBasisFunction(IBasisFunction basis) : IBasisFunction
+public interface IBasisFunction2D : IBasisFunction<Vector2D>;
+
+public sealed class OrientedBasisFunction<TSpace>(IBasisFunction<TSpace> basis) :
+    IBasisFunction<TSpace>
+    where TSpace : IVectorBase<TSpace>
 {
     private int _sign = 1;
-    private readonly IBasisFunction _basis = basis;
+    private readonly IBasisFunction<TSpace> _basis = basis;
 
     public bool IsOrientationFlipped { get => _sign == -1; set => _sign = value ? -1 : 1; }
 
-    public double Value(Vector2D point) => _sign * _basis.Value(point);
-    public Vector2D Derivatives(Vector2D point) => _sign * _basis.Derivatives(point);
+    public double Value(TSpace point) => _basis.Value(point) * _sign;
+    public TSpace Derivatives(TSpace point) => _basis.Derivatives(point) * _sign;
 }

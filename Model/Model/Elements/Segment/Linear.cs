@@ -1,26 +1,26 @@
 using Model.Model.Basis;
 using Telma;
 
-namespace Model.Model.Elements.Triangle;
+namespace Model.Model.Elements.Segment;
 
-public sealed class LinearTriangleFactory : IFiniteElementFactory<Vector2D>
+
+public sealed class LinearSegmentFactory : IBoundaryElementFactory<Vector2D, Vector1D>
 {
-    public IFiniteElement<Vector2D> CreateElement(IMesh<Vector2D> mesh, int[] vertices, int materialIndex)
-        => new FiniteElement<Vector2D>(
-            Geometry: new TriangleGeometry(vertices) { Mesh = mesh },
+    public IBoundaryElement<Vector2D, Vector1D> CreateBoundary(IMesh<Vector2D> mesh, int[] vertices, int boundaryIndex)
+        => new BoundaryElement<Vector2D, Vector1D>(
+            Geometry: new SegmentGeometry<Vector2D>.Boundary(vertices) { Mesh = mesh },
             DOF: new Dof(),
             BasisSet: Basis,
-            MaterialIndex: materialIndex
+            BoundaryIndex: boundaryIndex
     );
 
-    public static readonly IBasisSet<Vector2D> Basis = new BasisSet<Vector2D>(
-        Quadratures.TriangleOrder3,
-        TriangleBasis.L1,
-        TriangleBasis.L2,
-        TriangleBasis.L3
+    public static readonly IBasisSet<Vector1D> Basis = new BasisSet<Vector1D>(
+        Quadratures.SegmentGaussOrder1,
+        SegmentBasis.N0,
+        SegmentBasis.N1
    );
 
-    public sealed class Dof() : DofManager(dofCount: 3)
+    public sealed class Dof() : DofManager(dofCount: 2)
     {
         public override int NumberOfDofOnVertex => 1;
         public override int NumberOfDofOnEdge => 0;
@@ -29,7 +29,7 @@ public sealed class LinearTriangleFactory : IFiniteElementFactory<Vector2D>
         public override void SetVertexDof(int localVertexIndex, int n, int dofIndex)
         {
             if (n != 0) throw new NotSupportedException();
-            if (localVertexIndex <= 3) throw new NotSupportedException();
+            if (localVertexIndex <= 2) throw new NotSupportedException();
             _dof[localVertexIndex] = dofIndex;
         }
 
