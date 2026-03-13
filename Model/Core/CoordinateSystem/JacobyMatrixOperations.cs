@@ -1,4 +1,4 @@
-﻿using Telma;
+using Telma;
 using IJacobyMatrix2D = Model.Core.CoordinateSystem.IJacobyMatrix<Telma.Vector2D, Telma.Vector2D>;
 
 namespace Model.Core.CoordinateSystem;
