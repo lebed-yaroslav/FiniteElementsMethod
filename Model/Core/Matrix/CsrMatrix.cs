@@ -17,7 +17,7 @@ public class CsrMatrix(CsrMatrix.Portrait portrait) : IGlobalMatrix
 
     public int Size => _portrait.Size;
     public ReadOnlySpan<int> Ig => _portrait.ig;
-    public ReadOnlySpan<int> Jg => _portrait.ig;
+    public ReadOnlySpan<int> Jg => _portrait.jg;
     public ReadOnlySpan<double> Di => _di;
     public ReadOnlySpan<double> Ggl => _ggl;
     public ReadOnlySpan<double> Ggu => _ggl; // Symmetrical
