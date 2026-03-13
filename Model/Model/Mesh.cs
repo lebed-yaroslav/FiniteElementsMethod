@@ -1,5 +1,3 @@
-
-using System.Diagnostics;
 using Model.Core.CoordinateSystem;
 using Model.Model.Elements;
 using Telma;
