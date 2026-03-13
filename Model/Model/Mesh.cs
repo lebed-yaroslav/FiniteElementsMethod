@@ -1,26 +1,35 @@
+
 using Model.Core.CoordinateSystem;
-using Telma;
+using Telma.Extensions;
 
 namespace Model.Model;
 
-public interface IMesh2D
+
+public interface IMesh<TSpace>
+    where TSpace : IVectorBase<TSpace>
 {
-    Vector2D this[int i] { get; }
-    ICoordinateSystem2D CoordinateSystem { get; }
-    IEnumerable<IFiniteElement> FiniteElements { get; }
+    TSpace this[int i] { get; }
+    ICoordinateTransform<TSpace, TSpace> CoordinateSystem { get; }
+    IEnumerable<IFiniteElement<TSpace>> FiniteElements { get; }
+    IEnumerable<IBoundaryElement<TSpace>> BoundaryElements { get; }
 }
 
-public sealed class Mesh2D(ICoordinateSystem2D coordinateSystem) : IMesh2D
+public sealed class Mesh<TSpace>(ICoordinateTransform<TSpace, TSpace> coordinateSystem) :
+    IMesh<TSpace>
+    where TSpace : IVectorBase<TSpace>
 {
-    private List<Vector2D> _vertices = new();
-    private List<IFiniteElement> _finiteElements = new();
+    private readonly List<TSpace> _vertices = [];
+    private readonly List<IFiniteElement<TSpace>> _finiteElements = [];
+    private readonly List<IBoundaryElement<TSpace>> _boundaryElements = [];
 
-    public ICoordinateSystem2D CoordinateSystem { get; } = coordinateSystem;
-    public Vector2D this[int i] => _vertices[i];
-    public IEnumerable<IFiniteElement> FiniteElements => _finiteElements;
+    public TSpace this[int i] => _vertices[i];
+    public ICoordinateTransform<TSpace, TSpace> CoordinateSystem { get; } = coordinateSystem;
+    public IEnumerable<IFiniteElement<TSpace>> FiniteElements => _finiteElements;
+    public IEnumerable<IBoundaryElement<TSpace>> BoundaryElements => _boundaryElements;
 
-
-    public void AddVertex(Vector2D vertex) => _vertices.Add(vertex);
-    public void AddElement(IFiniteElementFactory factory, int[] vertices, int materialIndex) =>
-        _finiteElements.Add(factory.Create(this, vertices, materialIndex));
+    public void AddVertex(TSpace vertex) => _vertices.Add(vertex);
+    public void AddElement(IFiniteElementFactory<TSpace> factory, int[] vertices, int materialIndex) =>
+         _finiteElements.Add(factory.CreateElement(this, vertices, materialIndex));
+    public void AddBoundary(IFiniteElementFactory<TSpace> factory, int[] vertices, int boundaryIndex) =>
+        _boundaryElements.Add(factory.CreateBoundary(this, vertices, boundaryIndex));
 }

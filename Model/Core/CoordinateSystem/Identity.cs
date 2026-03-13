@@ -3,6 +3,7 @@ using Telma.Extensions;
 
 namespace Model.Core.CoordinateSystem;
 
+
 public sealed class IdentityTransform<TSource> : ICoordinateTransform<TSource, TSource>
     where TSource : IVectorBase<TSource>
 {
@@ -17,6 +18,7 @@ public sealed class IdentityTransform<TSource> : ICoordinateTransform<TSource, T
     public IJacobyMatrix<TSource, TSource> InverseJacoby()
         => IdentityJacobyMatrix<TSource>.Instance;
 }
+
 
 public sealed class IdentityJacobyMatrix<TSource> : IJacobyMatrix<TSource, TSource>
     where TSource : IVectorBase<TSource>
@@ -36,7 +38,6 @@ public sealed class IdentityJacobyMatrix<TSource> : IJacobyMatrix<TSource, TSour
     }
 
     public double this[int i, int j, TSource _] => this[i, j];
-
 
     public double Det(TSource targetPoint) => 1.0;
 }

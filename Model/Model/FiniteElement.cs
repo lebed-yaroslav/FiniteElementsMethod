@@ -2,27 +2,52 @@ using Model.Core.CoordinateSystem;
 using Model.Model.Basis;
 using Model.Model.Elements.Triangle;
 using Telma;
+using Telma.Extensions;
 
 namespace Model.Model;
 
 
-public interface IFiniteElement :
-    IFiniteElementGeometry,
+public interface IFiniteElement<TSpace> :
+    IElementGeometry<TSpace>,
     IDofManager,
-    IBasisSet<Vector2D>
+    IBasisSet<TSpace>
+    where TSpace : IVectorBase<TSpace>
 {
     int MaterialIndex { get; }
 }
 
-public interface IFiniteElementGeometry
+
+public interface IBoundaryElement<TSpace> :
+    IElementGeometry<TSpace>,
+    IDofManager,
+    IBasisSet<TSpace>
+    where TSpace: IVectorBase<TSpace>
 {
-    IMesh2D Mesh { get; }
+    int BoundaryIndex { get; }
+}
+
+
+public interface IElementGeometry<TSpace>
+    where TSpace : IVectorBase<TSpace>
+{
+    IMesh<TSpace> Mesh { get; }
 
     ReadOnlySpan<int> Vertices { get; }
     IEnumerable<Edge> Edges { get; }
     int EdgeCount { get; }
+}
 
-    ICoordinateSystem2D MasterElementCoordinateSystem { get; }
+public interface IVolumeElementGeometry<TSpace> : IElementGeometry<TSpace>
+    where TSpace : IVectorBase<TSpace>
+{
+    ICoordinateTransform<TSpace, TSpace> MasterElementCoordinateSystem { get; }
+}
+
+public interface IBoundaryElementGeometry<TSpace, TBoundary> : IElementGeometry<TSpace>
+    where TSpace : IVectorBase<TSpace>
+    where TBoundary : IVectorBase<TBoundary>
+{
+    ICoordinateTransform<TSpace, TBoundary> MasterElementCoordinateSystem { get; }
 }
 
 public interface IDofManager
@@ -37,23 +62,27 @@ public interface IDofManager
     public void SetElementDof(int n, int dofIndex);
 }
 
-public interface IBasisSet<TVector> where TVector : struct
+
+public interface IBasisSet<TSpace> where TSpace : IVectorBase<TSpace>
 {
-    IEnumerable<Quadratures.Node<TVector>> Quadratures { get; }
-    ReadOnlySpan<IBasisFunction<TVector>> Basis { get; }
+    IEnumerable<Quadratures.Node<TSpace>> Quadratures { get; }
+    ReadOnlySpan<IBasisFunction<TSpace>> Basis { get; }
 }
 
 public readonly record struct Edge(int I, int J);
 
 public interface IBasisSet2D : IBasisSet<Vector2D>;
 
-public interface IFiniteElementFactory
+public interface IFiniteElementFactory<TSpace>
+    where TSpace: IVectorBase<TSpace>
 {
-    IFiniteElement Create(IMesh2D mesh, int[] vertices, int materialIndex);
+    IFiniteElement<TSpace> CreateElement(IMesh<TSpace> mesh, int[] vertices, int materialIndex);
+    IBoundaryElement<TSpace> CreateBoundary(IMesh<TSpace> mesh, int[] vertices, int boundaryIndex);
 }
+
 
 public static class FiniteElements
 {
-    public static readonly IFiniteElementFactory LinearTriangle = new LinearTriangleFactory();
-    public static readonly IFiniteElementFactory HierarchicalQuadraticTriangle = new HierarchicalQuadraticTriangleFactory();
+    public static readonly IFiniteElementFactory<Vector2D> LinearTriangle = new LinearTriangleFactory();
+    public static readonly IFiniteElementFactory<Vector2D> HierarchicalQuadraticTriangle = new HierarchicalQuadraticTriangleFactory();
 }

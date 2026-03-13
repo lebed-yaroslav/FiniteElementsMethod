@@ -4,6 +4,7 @@ using Telma.Extensions;
 
 namespace Model.Core.CoordinateSystem;
 
+
 /// <summary>
 /// Parametrization: γ(t) = A + V * t
 /// </summary>
@@ -31,6 +32,7 @@ public sealed class SegmentParametrization<TSource>(TSource a, TSource b) :
     public IJacobyMatrix<Vector1D, TSource> InverseJacoby()
         => _j;
 }
+
 
 public sealed record InverseSegmentJacobyMatrix<TSource>(
     TSource Offset

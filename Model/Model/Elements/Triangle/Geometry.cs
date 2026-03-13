@@ -1,8 +1,12 @@
-using Model.Core.CoordinateSystems;
+using Model.Core.CoordinateSystem;
+using Telma;
 
 namespace Model.Model.Elements.Triangle;
 
-public sealed class TriangleGeometry(int[] vertexIndices) : FiniteElementGeometry(vertexIndices)
+
+public sealed class TriangleGeometry(int[] vertexIndices) :
+    ElementGeometry<Vector2D>(vertexIndices),
+    IVolumeElementGeometry<Vector2D>
 {
     public override IEnumerable<Edge> Edges
     {
@@ -13,9 +17,11 @@ public sealed class TriangleGeometry(int[] vertexIndices) : FiniteElementGeometr
             yield return new(Vertices[2], Vertices[0]);
         }
     }
+
     public override int EdgeCount => 3;
 
-    public override BarycentricCoordinateSystem MasterElementCoordinateSystem => new(
-        Mesh[Vertices[0]], Mesh[Vertices[1]], Mesh[Vertices[2]]
-    );
+    public ICoordinateTransform<Vector2D, Vector2D> MasterElementCoordinateSystem =>
+        new BarycentricCoordinateSystem(
+            Mesh[Vertices[0]], Mesh[Vertices[1]], Mesh[Vertices[2]]
+        );
 }

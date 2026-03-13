@@ -3,15 +3,19 @@ using Telma;
 
 namespace Model.Model.Elements.Triangle;
 
-public sealed class HierarchicalQuadraticTriangleFactory : IFiniteElementFactory
+public sealed class HierarchicalQuadraticTriangleFactory : IFiniteElementFactory<Vector2D>
 {
-    public IFiniteElement Create(IMesh2D mesh, int[] vertices, int materialIndex) =>
-        new FiniteElement(
+    public IFiniteElement<Vector2D> CreateElement(IMesh<Vector2D> mesh, int[] vertices, int materialIndex) =>
+        new FiniteElement<Vector2D>(
             Geometry: new TriangleGeometry(vertices) { Mesh = mesh },
             DOF: new Dof(),
             BasisSet: Basis,
             MaterialIndex: materialIndex
      );
+
+    public IBoundaryElement<Vector2D> CreateBoundary(IMesh<Vector2D> mesh, int[] vertices, int boundaryIndex) =>
+        throw new NotImplementedException(); // TODO: Boundary element
+
 
     public static readonly IBasisSet<Vector2D> Basis = new BasisSet<Vector2D>(
         Quadratures.TriangleOrder6,

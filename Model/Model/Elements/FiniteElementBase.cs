@@ -1,22 +1,23 @@
 using Model.Core.CoordinateSystem;
 using Model.Model.Basis;
 using Telma;
+using Telma.Extensions;
 
 namespace Model.Model.Elements;
 
 
-public sealed record class FiniteElement(
-    IFiniteElementGeometry Geometry,
+public sealed record class FiniteElement<TSpace>(
+    IElementGeometry<TSpace> Geometry,
     IDofManager DOF,
-    IBasisSet<Vector2D> BasisSet,
+    IBasisSet<TSpace> BasisSet,
     int MaterialIndex
-) : IFiniteElement
+) : IFiniteElement<TSpace>
+    where TSpace : IVectorBase<TSpace>
 {
-    public IMesh2D Mesh => Geometry.Mesh;
+    public IMesh<TSpace> Mesh => Geometry.Mesh;
     public ReadOnlySpan<int> Vertices => Geometry.Vertices;
     public IEnumerable<Edge> Edges => Geometry.Edges;
     public int EdgeCount => Geometry.EdgeCount;
-    public ICoordinateSystem2D MasterElementCoordinateSystem => Geometry.MasterElementCoordinateSystem;
 
     public ReadOnlySpan<int> Dof => DOF.Dof;
 
@@ -36,8 +37,8 @@ public sealed record class FiniteElement(
     public void SetElementDof(int n, int dofIndex)
         => DOF.SetElementDof(n, dofIndex);
 
-    public ReadOnlySpan<IBasisFunction<Vector2D>> Basis => BasisSet.Basis;
-    public IEnumerable<Quadratures.Node<Vector2D>> Quadratures => BasisSet.Quadratures;
+    public ReadOnlySpan<IBasisFunction<TSpace>> Basis => BasisSet.Basis;
+    public IEnumerable<Quadratures.Node<TSpace>> Quadratures => BasisSet.Quadratures;
 }
 
 public abstract class DofManager(
@@ -62,25 +63,25 @@ public abstract class DofManager(
     public abstract void SetElementDof(int n, int dofIndex);
 }
 
-public abstract class FiniteElementGeometry(int[] vertexIndices) : IFiniteElementGeometry
+public abstract class ElementGeometry<TSpace>(int[] vertexIndices) : IElementGeometry<TSpace>
+    where TSpace : IVectorBase<TSpace>
 {
-    public required IMesh2D Mesh { get; init; }
+    public required IMesh<TSpace> Mesh { get; init; }
 
     protected int[] _vertexIndices = vertexIndices;
     public ReadOnlySpan<int> Vertices => _vertexIndices;
     public abstract IEnumerable<Edge> Edges { get; }
     public abstract int EdgeCount { get; }
-    public abstract ICoordinateSystem2D MasterElementCoordinateSystem { get; }
 }
 
-public readonly struct BasisSet<TVector>(
-    Func<IEnumerable<Quadratures.Node<TVector>>> quadratures,
-    params IBasisFunction<TVector>[] basis
-) : IBasisSet<TVector> where TVector : struct
+public readonly struct BasisSet<TSpace>(
+    Func<IEnumerable<Quadratures.Node<TSpace>>> quadratures,
+    params IBasisFunction<TSpace>[] basis
+) : IBasisSet<TSpace> where TSpace : IVectorBase<TSpace>
 {
-    public IEnumerable<Quadratures.Node<TVector>> Quadratures => quadratures();
-    private readonly IBasisFunction<TVector>[] _basis = basis;
-    public ReadOnlySpan<IBasisFunction<TVector>> Basis => _basis;
+    public IEnumerable<Quadratures.Node<TSpace>> Quadratures => quadratures();
+    private readonly IBasisFunction<TSpace>[] _basis = basis;
+    public ReadOnlySpan<IBasisFunction<TSpace>> Basis => _basis;
 }
 
 public sealed class MutableBasisSet(

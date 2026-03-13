@@ -1,8 +1,10 @@
+using Telma.Extensions;
+
 namespace Telma;
 
 public static class Quadratures
 {
-    public sealed record Node<TVector>(TVector Point, double Weight);
+    public sealed record Node<TVector>(TVector Point, double Weight) where TVector : IVectorBase<TVector>;
 
     #region Segment Gauss–Legendre
     /// <summary>
