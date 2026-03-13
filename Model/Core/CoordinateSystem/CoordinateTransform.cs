@@ -1,8 +1,7 @@
-﻿using System.Diagnostics;
-using Telma;
-using Telma.Extensions;
+﻿using Telma.Extensions;
 
 namespace Model.Core.CoordinateSystem;
+
 
 public interface ICoordinateTransform<TSource, TTarget>
     where TSource : IVectorBase<TSource>
