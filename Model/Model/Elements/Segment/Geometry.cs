@@ -1,4 +1,4 @@
-﻿using Model.Core.CoordinateSystem;
+using Model.Core.CoordinateSystem;
 using Telma;
 using Telma.Extensions;
 

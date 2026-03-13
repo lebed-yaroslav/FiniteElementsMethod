@@ -13,10 +13,6 @@ public sealed class HierarchicalQuadraticTriangleFactory : IFiniteElementFactory
             MaterialIndex: materialIndex
      );
 
-    public IBoundaryElement<Vector2D> CreateBoundary(IMesh<Vector2D> mesh, int[] vertices, int boundaryIndex) =>
-        throw new NotImplementedException(); // TODO: Boundary element
-
-
     public static readonly IBasisSet<Vector2D> Basis = new BasisSet<Vector2D>(
         Quadratures.TriangleOrder6,
         TriangleBasis.L3,

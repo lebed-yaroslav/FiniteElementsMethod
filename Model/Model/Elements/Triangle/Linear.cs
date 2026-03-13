@@ -13,9 +13,6 @@ public sealed class LinearTriangleFactory : IFiniteElementFactory<Vector2D>
             MaterialIndex: materialIndex
     );
 
-    public IBoundaryElement<Vector2D> CreateBoundary(IMesh<Vector2D> mesh, int[] vertices, int boundaryIndex)
-        => throw new NotImplementedException(); //TODO: Add boundary element
-
     public static readonly IBasisSet<Vector2D> Basis = new BasisSet<Vector2D>(
         Quadratures.TriangleOrder3,
         TriangleBasis.L1,

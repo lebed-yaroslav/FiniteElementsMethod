@@ -13,10 +13,10 @@ public static class NumericIntegrator
         Func<Vector2D, double> lambda
     )
     {
-        int n = element.Dof.Length;
+        int n = element.DOF.Count;
         var stiffness = new LocalMatrix(n);
 
-        var masterCs = ((IVolumeElementGeometry<Vector2D>)element).MasterElementCoordinateSystem;
+        var masterCs = element.MasterElementCoordinateSystem;
         var meshCs = element.Mesh.CoordinateSystem;
 
         var masterInvJ = masterCs.InverseJacoby();
@@ -60,10 +60,10 @@ public static class NumericIntegrator
         Func<Vector2D, double> gamma
     )
     {
-        int n = element.Dof.Length;
+        int n = element.DOF.Count;
         var mass = new LocalMatrix(n);
         
-        var masterCs = ((IVolumeElementGeometry<Vector2D>)element).MasterElementCoordinateSystem;
+        var masterCs = element.MasterElementCoordinateSystem;
         var meshCs = element.Mesh.CoordinateSystem;
 
         for (int i = 0; i < n; i++)
@@ -93,8 +93,8 @@ public static class NumericIntegrator
         Span<double> load
     )
     {
-        int n = element.Dof.Length;
-        var masterCs = ((IVolumeElementGeometry<Vector2D>)element).MasterElementCoordinateSystem;
+        int n = element.DOF.Count;
+        var masterCs = element.Geometry.MasterElementCoordinateSystem;
 		var meshCs = element.Mesh.CoordinateSystem;
 
         for (int j = 0; j < n; j++)

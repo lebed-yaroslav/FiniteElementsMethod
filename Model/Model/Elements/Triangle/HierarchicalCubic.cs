@@ -17,9 +17,6 @@ public sealed class HierarchicalCubicTriangleFactory : IFiniteElementFactory<Vec
         );
     }
 
-    public IBoundaryElement<Vector2D> CreateBoundary(IMesh<Vector2D> mesh, int[] vertices, int boundaryIndex)
-        => throw new NotImplementedException(); // TODO: Add boundaries
-
     public static IBasisSet<Vector2D> DefaultBasis() => new BasisSet<Vector2D>(
         Quadratures.TriangleOrder6,
         TriangleBasis.L3,
