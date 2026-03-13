@@ -1,5 +1,6 @@
 using Model.Core.CoordinateSystem;
 using Model.Core.Matrix;
+using Model.Model.Elements;
 using Telma;
 
 namespace Model.Model;
