@@ -47,6 +47,8 @@ public sealed class Mesh2D(ICoordinateTransform<Vector2D, Vector2D> coordinateSy
 {
     private readonly List<IBoundaryElement<Vector2D, Vector1D>> _boundaryElements = [];
     public IEnumerable<IBoundaryElement<Vector2D, Vector1D>> BoundaryElements => _boundaryElements;
+
+    //По-идее вместо materialIndex должен был быть boundaryIndex, как в методе CreateBoundary.
     public void AddBoundary(IBoundaryElementFactory<Vector2D, Vector1D> factory, int[] vertices, int materialIndex) =>
          _boundaryElements.Add(factory.CreateBoundary(this, vertices, materialIndex));
 }
