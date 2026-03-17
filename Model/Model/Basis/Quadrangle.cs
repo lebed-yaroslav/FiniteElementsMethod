@@ -1,4 +1,4 @@
-﻿using Telma;
+using Telma;
 
 namespace Model.Model.Basis;
 
@@ -94,7 +94,7 @@ public static class QuadrangleBasis
         {
             var xi = localCoords.X;
             var eta = localCoords.Y;
-            return (xi) * (eta);
+            return (1 - xi) * eta;
         }
         public Vector2D Derivatives(Vector2D localCoords)
         {
