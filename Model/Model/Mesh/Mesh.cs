@@ -61,20 +61,3 @@ public sealed class Mesh3D(ICoordinateTransform<Vector3D, Vector3D> coordinateSy
     public void AddBoundary(IBoundaryElementFactory<Vector3D, Vector2D> factory, int[] vertices, int boundaryIndex) =>
          _boundaryElements.Add(factory.CreateBoundary(this, vertices, boundaryIndex));
 }
-
-
-public static class MeshExtensions
-{
-    extension<TSpace, TBoundary>(IMeshWithBoundaries<TSpace, TBoundary> self)
-        where TSpace : IVectorBase<TSpace>
-        where TBoundary : IVectorBase<TBoundary>
-    {
-        public IEnumerable<FiniteElementBase<TSpace>> AllElements => self.FiniteElements
-            .Select(e => new FiniteElementBase<TSpace>(e.Geometry, e.DOF))
-            .Concat(self.BoundaryElements.Select(e => new FiniteElementBase<TSpace>(e.Geometry, e.DOF)));
-
-        public IEnumerable<IDofManager> ElementsDof => self.FiniteElements
-            .Select(e => e.DOF)
-            .Concat(self.BoundaryElements.Select(e => e.DOF));
-    }
-}
