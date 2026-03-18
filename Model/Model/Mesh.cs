@@ -32,6 +32,7 @@ public abstract class Mesh<TSpace>(ICoordinateTransform<TSpace, TSpace> coordina
     private readonly List<IFiniteElement<TSpace>> _finiteElements = [];
 
     public TSpace this[int i] => _vertices[i];
+    public int VerticesCount => _vertices.Count;
     public ICoordinateTransform<TSpace, TSpace> CoordinateSystem { get; } = coordinateSystem;
     public IEnumerable<IFiniteElement<TSpace>> FiniteElements => _finiteElements;
 
@@ -67,6 +68,10 @@ public static class MeshExtensions
         where TSpace : IVectorBase<TSpace>
         where TBoundary : IVectorBase<TBoundary>
     {
+        public IEnumerable<FiniteElementBase<TSpace>> AllElements => self.FiniteElements
+            .Select(e => new FiniteElementBase<TSpace>(e.Geometry, e.DOF))
+            .Concat(self.BoundaryElements.Select(e => new FiniteElementBase<TSpace>(e.Geometry, e.DOF)));
+
         public IEnumerable<IDofManager> ElementsDof => self.FiniteElements
             .Select(e => e.DOF)
             .Concat(self.BoundaryElements.Select(e => e.DOF));

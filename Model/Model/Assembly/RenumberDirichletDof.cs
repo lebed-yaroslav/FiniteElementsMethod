@@ -3,7 +3,7 @@ using Model.Model.Elements;
 namespace Model.Model.Assembly;
 
 
-public static class AssemblerUtils
+public static partial class DofNumerator
 {
     /// <summary>
     /// Производит перенумерацию степеней свободы таким образом,
@@ -13,7 +13,7 @@ public static class AssemblerUtils
     /// <param name="elementsDof">Степени свободы всех элементов сетки</param>
     /// <param name="dofCount">Общее количество степеней свободы</param>
     /// <returns>Количество незафиксированных узлов</returns>
-    public static int RenumberDirichletElements(
+    public static int RenumberDirichletDof(
         IEnumerable<IDofManager> dirichletElementsDofs,
         IEnumerable<IDofManager> elementsDof,
         int dofCount

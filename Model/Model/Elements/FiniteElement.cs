@@ -3,6 +3,12 @@ using Telma.Extensions;
 namespace Model.Model.Elements;
 
 
+public sealed record FiniteElementBase<TSpace>(
+    IElementGeometry<TSpace> Geometry,
+    IDofManager DOF
+) where TSpace : IVectorBase<TSpace>;
+
+
 public interface IFiniteElement<TSpace>
     where TSpace : IVectorBase<TSpace>
 {
