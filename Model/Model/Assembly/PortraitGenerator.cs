@@ -49,9 +49,9 @@ public static class PortraitGenerator
         for (int i = 0; i < n; i++)
             adjacencyList.Add([]);
 
-        foreach (var dofManager in elementsDof)
+        foreach (var elementDof in elementsDof)
         {
-            var dof = dofManager.Dof;
+            var dof = elementDof.Dof;
             int elementDOFCount = dof.Length;
             for (int i = 0; i < elementDOFCount; i++)
             {
