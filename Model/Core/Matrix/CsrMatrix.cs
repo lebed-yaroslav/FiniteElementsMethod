@@ -110,7 +110,7 @@ public class CsrMatrix(CsrMatrix.Portrait portrait) : IGlobalMatrix
     public void Addition(CsrMatrix M, CsrMatrix Res)
     {
         int n = Size;
-        Res = Clone(M);
+        Res = Clone(this);
         for (int i = 0; i < n; i++)
         {
             Res._di[i] = Di[i] + M.Di[i];
@@ -118,6 +118,19 @@ public class CsrMatrix(CsrMatrix.Portrait portrait) : IGlobalMatrix
         for (int i = 0; i < Ggl.Length; i++)
         {
             Res._ggl[i] = Ggl[i] + M.Ggl[i];
+        }
+    }
+    public void Diff(CsrMatrix M, CsrMatrix Res)
+    {
+        int n = Size;
+        Res = Clone(this);
+        for (int i = 0; i < n; i++)
+        {
+            Res._di[i] = Di[i] - M.Di[i];
+        }
+        for (int i = 0; i < Ggl.Length; i++)
+        {
+            Res._ggl[i] = Ggl[i] - M.Ggl[i];
         }
     }
     public static CsrMatrix Clone(CsrMatrix M)
