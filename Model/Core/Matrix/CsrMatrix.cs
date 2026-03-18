@@ -94,7 +94,41 @@ public class CsrMatrix(CsrMatrix.Portrait portrait) : IGlobalMatrix
             }
         }
     }
+    public void MultiplyByNumber(double number, CsrMatrix Res)
+    {
+        int n = Size;
+        Res = Clone(this);
+        for (int i = 0; i < n; i++)
+        {
+            Res._di[i] = Di[i] * number;
+        }
+        for (int i = 0; i < Ggl.Length; i++)
+        {
+            Res._ggl[i] = Ggl[i] * number;
+        }
+    }
+    public void Addition(CsrMatrix M, CsrMatrix Res)
+    {
+        int n = Size;
+        Res = Clone(M);
+        for (int i = 0; i < n; i++)
+        {
+            Res._di[i] = Di[i] + M.Di[i];
+        }
+        for (int i = 0; i < Ggl.Length; i++)
+        {
+            Res._ggl[i] = Ggl[i] + M.Ggl[i];
+        }
+    }
+    public static CsrMatrix Clone(CsrMatrix M)
+    {
+        var clone = new CsrMatrix(M._portrait);
 
+        Array.Copy(M._di, clone._di, M._di.Length);
+        Array.Copy(M._ggl, clone._ggl, M._ggl.Length);
+
+        return clone;
+    }
     private int FindPosition(int row, int col)
     {
         (int start, int end) = (Ig[row], Ig[row + 1]);
