@@ -1,20 +1,21 @@
-using System.Xml.Linq;
 using Model.Model.Basis;
+using Model.Model.Mesh;
 using Telma;
 
 namespace Model.Model.Elements.Quadrangle;
 
-public sealed class BicubicLagrangeQuadrangleFactory : IFiniteElementFactory
+
+public sealed class BicubicLagrangeQuadrangleFactory : IFiniteElementFactory<Vector2D>
 {
-    public IFiniteElement Create(IMesh2D mesh, int[] vertices, int materialIndex) =>
-        new FiniteElement(
+    public IFiniteElement<Vector2D> CreateElement(IMesh<Vector2D> mesh, int[] vertices, int materialIndex) =>
+        new FiniteElement<Vector2D>(
             Geometry: new QuadrangleGeometry(vertices) { Mesh = mesh },
             DOF: new Dof(),
             BasisSet: Basis,
             MaterialIndex: materialIndex
      );
 
-    public static readonly IBasisSet Basis = new BasisSet(
+    public static readonly IBasisSet<Vector2D> Basis = new BasisSet<Vector2D>(
         Quadratures.QuadrangleOrder7,
         QuadrangleBasis.Q3_Lagrange
     );
@@ -24,6 +25,28 @@ public sealed class BicubicLagrangeQuadrangleFactory : IFiniteElementFactory
         public override int NumberOfDofOnVertex => 1;
         public override int NumberOfDofOnEdge => 2;
         public override int NumberOfDofOnElement => 4;
+
+
+        public override void SetVertexDof(int localVertexIndex, int n, int dofIndex)
+        {
+            if (n != 0) throw new NotSupportedException();
+            if (localVertexIndex >= 4) throw new NotSupportedException();
+            switch (localVertexIndex)
+            {
+                case 0:
+                    _dof[0] = dofIndex;
+                    break;
+                case 1:
+                    _dof[3] = dofIndex;
+                    break;
+                case 2:
+                    _dof[15] = dofIndex;
+                    break;
+                case 3:
+                    _dof[12] = dofIndex;
+                    break;
+            }
+        }
 
         /// <summary>
         /// Ребра нумеруются с нижнего против часовой {0, 1, 2, 3}, на ребре 2 ущла, которые имеют индексы 0 и 1 и нумеруются опять же по часовой
@@ -45,28 +68,6 @@ public sealed class BicubicLagrangeQuadrangleFactory : IFiniteElementFactory
                     break;
                 case 3:
                     _dof[8 - n * 4] = dofIndex;
-                    break;
-            }
-        }
-
-
-        public override void SetVertexDof(int localVertexIndex, int n, int dofIndex)
-        {
-            if (n != 0) throw new NotSupportedException();
-            if (localVertexIndex >= 4) throw new NotSupportedException();
-            switch (localVertexIndex)
-            {
-                case 0:
-                    _dof[0] = dofIndex;
-                    break;
-                case 1:
-                    _dof[3] = dofIndex;
-                    break;
-                case 2:
-                    _dof[15] = dofIndex;
-                    break;
-                case 3:
-                    _dof[12] = dofIndex;
                     break;
             }
         }

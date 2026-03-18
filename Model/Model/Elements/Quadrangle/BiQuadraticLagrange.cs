@@ -1,23 +1,20 @@
-using System;
-using System.Collections.Generic;
-using System.Text;
-using Model.Model;
 using Model.Model.Basis;
 using Model.Model.Elements;
 using Model.Model.Elements.Quadrangle;
+using Model.Model.Mesh;
 using Telma;
 
-internal class BiQuadraticLagrangeQuadrangleFactory : IFiniteElementFactory
+internal class BiQuadraticLagrangeQuadrangleFactory : IFiniteElementFactory<Vector2D>
 {
-    public IFiniteElement Create(IMesh2D mesh, int[] vertices, int materialIndex) =>
-        new FiniteElement(
+    public IFiniteElement<Vector2D> CreateElement(IMesh<Vector2D> mesh, int[] vertices, int materialIndex) =>
+        new FiniteElement<Vector2D>(
             Geometry: new QuadrangleGeometry(vertices) { Mesh = mesh },
             DOF: new Dof(),
             BasisSet: Basis,
             MaterialIndex: materialIndex
      );
 
-    public static readonly IBasisSet Basis = new BasisSet(
+    public static readonly IBasisSet<Vector2D> Basis = new BasisSet<Vector2D>(
         Quadratures.QuadrangleOrder7,
         QuadrangleBasis.Q2_Lagrange
     );

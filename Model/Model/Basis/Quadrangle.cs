@@ -1,40 +1,41 @@
 using Telma;
+using IBasisFunction = Model.Model.Basis.IBasisFunction<Telma.Vector2D>;
 
 namespace Model.Model.Basis;
 
 public static class QuadrangleBasis
 {
     /// <summary>N00(xi, eta) = (1 - xi) * (1 - eta)</summary>
-    public static readonly IBasisFunction N00 = new QuadrangleN00();
+    public static readonly IBasisFunction2D N00 = new QuadrangleN00();
     /// <summary>N10(xi, eta) = xi * (1 - eta)</summary>
-    public static readonly IBasisFunction N10 = new QuadrangleN10();
+    public static readonly IBasisFunction2D N10 = new QuadrangleN10();
     /// <summary>N11(xi, eta) = xi * eta</summary>
-    public static readonly IBasisFunction N11 = new QuadrangleN11();
+    public static readonly IBasisFunction2D N11 = new QuadrangleN11();
     /// <summary>N11(xi, eta) = (1 - xi) * eta</summary>
-    public static readonly IBasisFunction N01 = new QuadrangleN01();
+    public static readonly IBasisFunction2D N01 = new QuadrangleN01();
 
     /// <summary>
     /// Билинейная нода для всех 4 вершин одинакова, так как элемент прямоугольный и узлы расположены в одних и тех же местах по xi и eta.
     /// Поэтому можно использовать один массив для всех 4 вершин.
     /// </summary>
-    public static readonly IBasisFunction[] Q1 = { N00, N10, N11, N01 };
+    public static readonly IBasisFunction2D[] Q1 = { N00, N10, N11, N01 };
     /// <summary>
     /// Биквадратная базисные функции для квадрата, построенные как тензорное произведение одномерных лагранжевых базисов.
     /// </summary>
-    public static readonly IBasisFunction[] Q2_Lagrange = CreateTensorLagrange(2);
+    public static readonly IBasisFunction2D[] Q2_Lagrange = CreateTensorLagrange(2);
     /// <summary>
     /// Бикубическая базисные функции для квадрата, построенные как тензорное произведение одномерных лагранжевых базисов.
     /// </summary>
-    public static readonly IBasisFunction[] Q3_Lagrange = CreateTensorLagrange(3);
+    public static readonly IBasisFunction2D[] Q3_Lagrange = CreateTensorLagrange(3);
     /// <summary>
     /// бикубическая базисные функции для квадрата, построенные как тензорное произведение одномерных эрмитовых базисов.
     /// </summary>
-    public static readonly IBasisFunction[] Q3_Hermite = CreateTensorHermite();
+    public static readonly IBasisFunction2D[] Q3_Hermite = CreateTensorHermite();
 
     /// <summary>
     /// Базисная функция для линейного квадрата, определенная по (1 - xi, 1 - eta).
     /// </summary>
-    private readonly struct QuadrangleN00 : IBasisFunction
+    private readonly struct QuadrangleN00 : IBasisFunction2D
     {
         public double Value(Vector2D localCoords)
         {
@@ -52,7 +53,7 @@ public static class QuadrangleBasis
     /// <summary>
     /// Базисная функция для линейного квадрата, определенная по (xi, 1 - eta).
     /// </summary>
-    private readonly struct QuadrangleN10 : IBasisFunction
+    private readonly struct QuadrangleN10 : IBasisFunction2D
     {
         public double Value(Vector2D localCoords)
         {
@@ -70,7 +71,7 @@ public static class QuadrangleBasis
     /// <summary>
     /// Базисная функция для линейного квадрата, определенная по ( xi, eta ).
     /// </summary>
-    private readonly struct QuadrangleN11 : IBasisFunction
+    private readonly struct QuadrangleN11 : IBasisFunction2D
     {
         public double Value(Vector2D localCoords)
         {
@@ -88,7 +89,7 @@ public static class QuadrangleBasis
     /// <summary>
     /// Базисная функция для линейного квадрата, определенная по (1 - xi, eta ).
     /// </summary>
-    private readonly struct QuadrangleN01 : IBasisFunction
+    private readonly struct QuadrangleN01 : IBasisFunction2D
     {
         public double Value(Vector2D localCoords)
         {
@@ -111,7 +112,7 @@ public static class QuadrangleBasis
     /// <param name="degree">Степень полинома в каждом направлении.</param>
     /// <returns>Возвращает массив базисных функций для квадрата, построенных как тензорное произведение одномерных лагранжевых базисов.</returns>
     /// <exception cref="ArgumentOutOfRangeException">Выброс исключения, если степень не равна 2 или 3.</exception>
-    private static IBasisFunction[] CreateTensorLagrange(int degree)
+    private static IBasisFunction2D[] CreateTensorLagrange(int degree)
     {
         // degree=2 -> nodes {0, 1/2, 1}
         // degree=3 -> nodes {0, 1/3, 2/3, 1}
@@ -126,7 +127,7 @@ public static class QuadrangleBasis
 
         int n = nodes.Length;
 
-        var basisFunctions = new IBasisFunction[n * n];
+        var basisFunctions = new IBasisFunction2D[n * n];
 
         int index = 0;
 
@@ -192,7 +193,7 @@ public static class QuadrangleBasis
     /// <summary>
     /// Тензорное произведение одномерных лагранжевых базисов для квадрата.
     /// </summary>
-    private readonly struct TensorLagrange2D : IBasisFunction
+    private readonly struct TensorLagrange2D : IBasisFunction2D
     {
         private readonly Lagrange1D _oneD;
         private readonly int _iXi;
@@ -227,12 +228,12 @@ public static class QuadrangleBasis
     /// </summary>
     /// <returns>Возвращает массив базисных функций для квадрата, построенных как тензорное произведение одномерных эрмитовых базисов.
     /// </returns>
-    private static IBasisFunction[] CreateTensorHermite()
+    private static IBasisFunction2D[] CreateTensorHermite()
     {
         var hx = new Hermite1D();
         var hy = new Hermite1D();
 
-        var basisFunctions = new IBasisFunction[16];
+        var basisFunctions = new IBasisFunction2D[16];
         int index = 0;
 
         for (int j = 0; j < 4; j++)
@@ -275,7 +276,7 @@ public static class QuadrangleBasis
     /// <summary>
     /// Тензорное произведение одномерных эрмитовых базисов для квадрата.
     /// </summary>
-    private readonly struct TensorHermite2D : IBasisFunction
+    private readonly struct TensorHermite2D : IBasisFunction2D
     {
         private readonly Hermite1D _hx;
         private readonly Hermite1D _hy;

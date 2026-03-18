@@ -1,9 +1,13 @@
+using Model.Core.CoordinateSystem;
+using Model.Core.CoordinateSystems;
 using Telma;
 
 namespace Model.Model.Elements.Quadrangle;
 
 
-public sealed class QuadrangleGeometry(int[] vertexIndices) : ElementGeometry<Vector2D>(vertexIndices)
+public sealed class QuadrangleGeometry(int[] vertexIndices) :
+    ElementGeometry<Vector2D>(vertexIndices),
+    IVolumeElementGeometry<Vector2D>
 {
     public override IEnumerable<Edge> Edges
     {
@@ -17,7 +21,8 @@ public sealed class QuadrangleGeometry(int[] vertexIndices) : ElementGeometry<Ve
     }
     public override int EdgeCount => 4;
 
-    public override BilinearQuadrangleCoordinateSystem MasterElementCoordinateSystem => new(
-        Mesh[Vertices[0]], Mesh[Vertices[1]], Mesh[Vertices[2]], Mesh[Vertices[3]]
-    );
+    public ICoordinateTransform<Vector2D, Vector2D> MasterElementCoordinateSystem =>
+        new QuadrangleCoordinateSystem(
+            Mesh[Vertices[0]], Mesh[Vertices[1]], Mesh[Vertices[2]], Mesh[Vertices[3]]
+        );
 }
