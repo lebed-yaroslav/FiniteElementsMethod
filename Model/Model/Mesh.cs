@@ -16,7 +16,7 @@ public interface IMesh<TSpace>
 
 
 // FIXME: This is dirty workaround because TBoundary cannot be deduced from TSpace
-public interface IMeshWithBoundaries<TSpace, TBoundary>
+public interface IMeshWithBoundaries<TSpace, TBoundary> : IMesh<TSpace>
     where TSpace : IVectorBase<TSpace>
     where TBoundary : IVectorBase<TBoundary>
 {
@@ -58,4 +58,17 @@ public sealed class Mesh3D(ICoordinateTransform<Vector3D, Vector3D> coordinateSy
     public IEnumerable<IBoundaryElement<Vector3D, Vector2D>> BoundaryElements => _boundaryElements;
     public void AddBoundary(IBoundaryElementFactory<Vector3D, Vector2D> factory, int[] vertices, int materialIndex) =>
          _boundaryElements.Add(factory.CreateBoundary(this, vertices, materialIndex));
+}
+
+
+public static class MeshExtensions
+{
+    extension<TSpace, TBoundary>(IMeshWithBoundaries<TSpace, TBoundary> self)
+        where TSpace : IVectorBase<TSpace>
+        where TBoundary : IVectorBase<TBoundary>
+    {
+        public IEnumerable<IDofManager> ElementsDof => self.FiniteElements
+            .Select(e => e.DOF)
+            .Concat(self.BoundaryElements.Select(e => e.DOF));
+    }
 }
