@@ -19,11 +19,11 @@ namespace QuadrangleTest
             var p3 = new Vector2D(0, 1);
             var p4 = new Vector2D(1, 1);
 
-            var point = new BilinearQuadrangleCoordinateSystem(p1, p2, p3, p4);
-            var p1_res = point.ToLocal(p1);
-            var p2_res = point.ToLocal(p2);
-            var p3_res = point.ToLocal(p3);
-            var p4_res = point.ToLocal(p4);
+            var point = new QuadrangleCoordinateSystem(p1, p2, p3, p4);
+            var p1_res = point.Transform(p1);
+            var p2_res = point.Transform(p2);
+            var p3_res = point.Transform(p3);
+            var p4_res = point.Transform(p4);
 
             Assert.Equal(p1, p1_res);
             Assert.Equal(p2, p2_res);
@@ -46,11 +46,11 @@ namespace QuadrangleTest
             var p3 = new Vector2D(5, 6);
             var p4 = new Vector2D(7, 3);
 
-            var point = new BilinearQuadrangleCoordinateSystem(p1, p2, p3, p4);
-            var p1_res = point.ToLocal(p1);
-            var p2_res = point.ToLocal(p2);
-            var p3_res = point.ToLocal(p3);
-            var p4_res = point.ToLocal(p4);
+            var point = new QuadrangleCoordinateSystem(p1, p2, p3, p4);
+            var p1_res = point.Transform(p1);
+            var p2_res = point.Transform(p2);
+            var p3_res = point.Transform(p3);
+            var p4_res = point.Transform(p4);
 
             Assert.True(AreVectorsEqual(tp1, p1_res, eps));
             Assert.True(AreVectorsEqual(tp2, p2_res, eps));
