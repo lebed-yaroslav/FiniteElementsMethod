@@ -5,4 +5,6 @@
   </Folder>
   <Project Path="Model/Model.csproj" />
   <Project Path="Telma/Telma.csproj" />
+  <Project Path="UnitTest/QuadrangleTest/QuadrangleTest.csproj" Id="438251f7-7a9d-4054-8add-17e3d39e82bf" />
+  <Project Path="ViewModel/ViewModel.csproj" />
 </Solution>
