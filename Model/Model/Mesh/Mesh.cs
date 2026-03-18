@@ -3,7 +3,7 @@ using Model.Model.Elements;
 using Telma;
 using Telma.Extensions;
 
-namespace Model.Model;
+namespace Model.Model.Mesh;
 
 
 public interface IMesh<TSpace>
