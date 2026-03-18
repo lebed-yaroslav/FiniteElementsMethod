@@ -3,21 +3,18 @@ namespace Model.Core.Matrix;
 
 public class CsrMatrix(CsrMatrix.Portrait portrait) : IGlobalMatrix
 {
-    public sealed class Portrait
+    public sealed record Portrait(int[] Ig, int[] Jg)
     {
-        public required int[] ig;
-        public required int[] jg;
-
-        public int Size => ig.Length;
-        public int TriangleElementCount => ig[^1];
+        public int Size => Ig.Length;
+        public int TriangleElementCount => Ig[^1];
     }
     private readonly Portrait _portrait = portrait;
     private double[] _di = new double[portrait.Size];
     private double[] _ggl = new double[portrait.TriangleElementCount];
 
     public int Size => _portrait.Size;
-    public ReadOnlySpan<int> Ig => _portrait.ig;
-    public ReadOnlySpan<int> Jg => _portrait.jg;
+    public ReadOnlySpan<int> Ig => _portrait.Ig;
+    public ReadOnlySpan<int> Jg => _portrait.Jg;
     public ReadOnlySpan<double> Di => _di;
     public ReadOnlySpan<double> Ggl => _ggl;
     public ReadOnlySpan<double> Ggu => _ggl; // Symmetrical
@@ -65,6 +62,6 @@ public class CsrMatrix(CsrMatrix.Portrait portrait) : IGlobalMatrix
     private int FindPosition(int row, int col)
     {
         (int start, int end) = (Ig[row], Ig[row + 1]);
-        return Array.BinarySearch(_portrait.jg, start, end - start, col);
+        return Array.BinarySearch(_portrait.Jg, start, end - start, col);
     }
 }
