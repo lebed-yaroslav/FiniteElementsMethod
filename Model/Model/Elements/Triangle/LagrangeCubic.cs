@@ -1,14 +1,15 @@
 ﻿using Model.Model.Basis;
+using Model.Model.Mesh;
 using Telma;
 
 namespace Model.Model.Elements.Triangle;
 
-public sealed class LagrangeCubicTriangleFactory : IFiniteElementFactory
+public sealed class LagrangeCubicTriangleFactory : IFiniteElementFactory<Vector2D>
 {
-    public IFiniteElement Create(IMesh2D mesh, int[] vertices, int materialIndex)
+    public IFiniteElement<Vector2D> CreateElement(IMesh<Vector2D> mesh, int[] vertices, int materialIndex)
     {
-        var basis = (MutableBasisSet)DefaultBasis();
-        return new FiniteElement(
+        var basis = (MutableBasisSet<Vector2D>)DefaultBasis();
+        return new FiniteElement<Vector2D>(
             Geometry: new TriangleGeometry(vertices) { Mesh = mesh },
             DOF: new Dof(basis),
             BasisSet: basis,
@@ -17,7 +18,7 @@ public sealed class LagrangeCubicTriangleFactory : IFiniteElementFactory
     }
 
     // базис должен быть изменяемым как и в иерархическом (функции нужно менять местами)
-    public static IBasisSet DefaultBasis() => new MutableBasisSet(
+    public static IBasisSet<Vector2D> DefaultBasis() => new MutableBasisSet<Vector2D>(
         Quadratures.TriangleOrder18,
         TriangleBasis.Lagrange.L3L3L3,
         TriangleBasis.Lagrange.L1L1L1,
@@ -31,9 +32,9 @@ public sealed class LagrangeCubicTriangleFactory : IFiniteElementFactory
         TriangleBasis.Lagrange.L1L2L3
     );
 
-    public sealed class Dof(MutableBasisSet mutableBasis) : DofManager(dofCount: 10)
+    public sealed class Dof(MutableBasisSet<Vector2D> mutableBasis) : DofManager(dofCount: 10)
     {
-        private readonly MutableBasisSet _mutableBasisSet = mutableBasis;
+        private readonly MutableBasisSet<Vector2D> _mutableBasisSet = mutableBasis;
 
         public override int NumberOfDofOnVertex => 1;
         public override int NumberOfDofOnEdge => 2;

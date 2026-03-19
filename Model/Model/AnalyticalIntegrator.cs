@@ -4,7 +4,7 @@ using Telma;
 
 namespace Model.Model;
 
-public interface IPolynomial : IBasisFunction
+public interface IPolynomial : IBasisFunction2D
 {
    int Degree { get; }
    List<(int p, int q, double coeff)> Summands { get; set; } //p - х degree, q - у degree
@@ -127,7 +127,7 @@ public class Polynomial : IPolynomial
       return res;
    }
 
-   public ReadOnlySpan<IBasisFunction> Gradient()
+   public ReadOnlySpan<IBasisFunction2D> Gradient()
    {
       var grad = new IPolynomial[2];
       foreach (var i in Summands)
