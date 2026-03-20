@@ -1,5 +1,4 @@
 using Model.Core.CoordinateSystem;
-using Model.Core.CoordinateSystems;
 using Telma;
 
 namespace Model.Model.Elements.Quadrangle;

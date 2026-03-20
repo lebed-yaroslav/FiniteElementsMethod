@@ -6,14 +6,14 @@ namespace Model.Model.Basis;
 
 public static class QuadrangleBasis
 {
-    /// <summary>N00(xi, eta) = (1 - xi) * (1 - eta)</summary>
-    public static readonly IBasisFunction2D N00 = new QuadrangleN00();
-    /// <summary>N10(xi, eta) = xi * (1 - eta)</summary>
-    public static readonly IBasisFunction2D N10 = new QuadrangleN10();
-    /// <summary>N11(xi, eta) = xi * eta</summary>
-    public static readonly IBasisFunction2D N11 = new QuadrangleN11();
-    /// <summary>N11(xi, eta) = (1 - xi) * eta</summary>
-    public static readonly IBasisFunction2D N01 = new QuadrangleN01();
+    /// <summary>N00(ξ, η) = (1 - ξ) * (1 - η)</summary>
+    public static readonly IBasisFunction2D N00 = new TensorBasis2D(SegmentBasis.N0, SegmentBasis.N0);
+    /// <summary>N10(ξ, η) = ξ * (1 - η)</summary>
+    public static readonly IBasisFunction2D N10 = new TensorBasis2D(SegmentBasis.N1, SegmentBasis.N0);
+    /// <summary>N11(ξ, η) = ξ * η</summary>
+    public static readonly IBasisFunction2D N11 = new TensorBasis2D(SegmentBasis.N1, SegmentBasis.N1);
+    /// <summary>N01(ξ, η) = (1 - ξ) * η</summary>
+    public static readonly IBasisFunction2D N01 = new TensorBasis2D(SegmentBasis.N0, SegmentBasis.N1);
 
     /// <summary>
     /// Билинейная нода для всех 4 вершин одинакова, так как элемент прямоугольный и узлы расположены в одних и тех же местах по xi и eta.
@@ -32,78 +32,6 @@ public static class QuadrangleBasis
     /// бикубическая базисные функции для квадрата, построенные как тензорное произведение одномерных эрмитовых базисов.
     /// </summary>
     public static readonly IBasisFunction2D[] Q3_Hermite = CreateTensorHermite();
-
-    /// <summary>
-    /// Базисная функция для линейного квадрата, определенная по (1 - xi, 1 - eta).
-    /// </summary>
-    private readonly struct QuadrangleN00 : IBasisFunction2D
-    {
-        public double Value(Vector2D localCoords)
-        {
-            (var xi, var eta) = localCoords;
-            return (1 - xi) * (1 - eta);
-        }
-
-        public Vector2D Derivatives(Vector2D localCoords)
-        {
-            (var xi, var eta) = localCoords;
-            return new Vector2D(-(1 - eta), -(1 - xi)); // [d/dxi, d/deta]
-        }
-    }
-
-    /// <summary>
-    /// Базисная функция для линейного квадрата, определенная по (xi, 1 - eta).
-    /// </summary>
-    private readonly struct QuadrangleN10 : IBasisFunction2D
-    {
-        public double Value(Vector2D localCoords)
-        {
-            (var xi, var eta) = localCoords;
-            return (xi) * (1 - eta);
-        }
-
-        public Vector2D Derivatives(Vector2D localCoords)
-        {
-            (var xi, var eta) = localCoords;
-            return new Vector2D((1 - eta), -xi); // [d/dxi, d/deta]
-        }
-    }
-
-    /// <summary>
-    /// Базисная функция для линейного квадрата, определенная по ( xi, eta ).
-    /// </summary>
-    private readonly struct QuadrangleN11 : IBasisFunction2D
-    {
-        public double Value(Vector2D localCoords)
-        {
-            (var xi, var eta) = localCoords;
-            return (xi) * (eta);
-        }
-
-        public Vector2D Derivatives(Vector2D localCoords)
-        {
-            (var xi, var eta) = localCoords;
-            return new Vector2D((eta), xi); // [d/dxi, d/deta]
-        }
-    }
-
-    /// <summary>
-    /// Базисная функция для линейного квадрата, определенная по (1 - xi, eta ).
-    /// </summary>
-    private readonly struct QuadrangleN01 : IBasisFunction2D
-    {
-        public double Value(Vector2D localCoords)
-        {
-            (var xi, var eta) = localCoords;
-            return (1 - xi) * eta;
-        }
-
-        public Vector2D Derivatives(Vector2D localCoords)
-        {
-            (var xi, var eta) = localCoords;
-            return new Vector2D(-eta, 1 - xi); // [d/dxi, d/deta]
-        }
-    }
 
     /// <summary>
     /// Тензорное произведение одномерных лагранжевых базисов для квадрата.
@@ -161,24 +89,5 @@ public static class QuadrangleBasis
             }
         }
         return basisFunctions;
-    }
-
-    /// <summary>
-    /// Универсальное тензорное произведение двух одномерных базисов для построения 2D базиса.
-    /// </summary>
-    private readonly struct TensorBasis2D(IBasisFunction<Vector1D> bX, IBasisFunction<Vector1D> bY) : IBasisFunction2D
-    {
-        public double Value(Vector2D p) => bX.Value(p.X) * bY.Value(p.Y);
-
-        public Vector2D Derivatives(Vector2D p)
-        {
-            double valX = bX.Value(p.X);
-            double valY = bY.Value(p.Y);
-
-            double derX = bX.Derivatives(p.X);
-            double derY = bY.Derivatives(p.Y);
-
-            return new Vector2D(derX * valY, valX * derY);
-        }
     }
 }

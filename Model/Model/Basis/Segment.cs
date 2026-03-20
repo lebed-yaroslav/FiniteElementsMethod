@@ -30,7 +30,7 @@ public static class SegmentBasis
         public Vector1D Derivatives(Vector1D point) => 1 - 2 * point;
     }
 
-    public readonly struct Lagrange1D(double[] nodes, int index) : IBasisFunction<Vector1D>
+    public readonly struct Lagrange1D(double[] nodes, int index) : IBasisFunction1D
     {
         public double Value(Vector1D point)
         {
@@ -77,7 +77,7 @@ public static class SegmentBasis
     /// <summary>
     /// Эрмитовы базисные функции для одномерного интервала, определенные по 4 функциям: H00, H10, H01, H11.
     /// </summary>
-    public readonly struct Hermite1D(int index) : IBasisFunction<Vector1D>
+    public readonly struct Hermite1D(int index) : IBasisFunction1D
     {
         public double Value(Vector1D point)
         {
