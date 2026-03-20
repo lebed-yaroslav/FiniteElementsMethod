@@ -1,3 +1,5 @@
+using System.Diagnostics;
+
 namespace Model.Core.Matrix;
 
 
@@ -38,6 +40,7 @@ public class CsrMatrix(CsrMatrix.Portrait portrait) : IGlobalMatrix
                 int gj = indices[j];
                 if (gi <= gj) continue;
                 int k = FindPosition(row: gi, col: gj);
+                Debug.Assert(k >= 0, "Local matrix does not match the portrait");
                 _ggl[k] += matrix[i, j];
             }
         }
