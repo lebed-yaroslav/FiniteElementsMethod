@@ -6,23 +6,23 @@ namespace Model.Core.CoordinateSystems;
 /// <summary>
 /// Отображение в квадрат [0,1]х[0,1]
 /// произвольного четырехугольника с вершинами:
-/// P00 -- P10
-///  |      |
 /// P01 -- P11
+///  |      |
+/// P00 -- P10
 /// в локальной нумерации: 
-/// 2 --- 3
+/// 3 --- 2
 /// |     |
 /// 0 --- 1
 /// </summary>
 public sealed class QuadrangleCoordinateSystem(
     Vector2D p00,
     Vector2D p10,
-    Vector2D p01,
-    Vector2D p11
+    Vector2D p11,
+    Vector2D p01
 ) : ICoordinateTransform<Vector2D, Vector2D>
 {
     public static bool IsLinear => false;
-    private readonly QuadrangleJacobyMatrix _j = new(p00, p10, p01, p11);
+    private readonly QuadrangleJacobyMatrix _j = new(p00, p10, p11, p01);
 
     public Vector2D Transform(Vector2D sourcePoint)
     {
@@ -60,7 +60,6 @@ public sealed class QuadrangleCoordinateSystem(
 }
 
 
-// FIXME: This matrix used target point instead of source point
 public sealed record QuadrangleJacobyMatrix(
     Vector2D P00,
     Vector2D P10,
@@ -73,13 +72,13 @@ public sealed record QuadrangleJacobyMatrix(
     public double this[int i, int j] =>
         throw new NotSupportedException($"{nameof(QuadrangleInverseJacobyMatrix)} is not constant.");
 
-    public double this[int i, int j, Vector2D targetPoint] => At(targetPoint)[i, j];
+    public double this[int i, int j, Vector2D soursPoint] => At(soursPoint)[i, j];
 
-    public double Det(Vector2D targetPoint) => At(targetPoint).Det(Vector2D.Zero);
+    public double Det(Vector2D soursPoint) => At(soursPoint).Det(Vector2D.Zero);
 
-    public ConstantJacobyMatrix2D At(Vector2D targetPoint)
+    public ConstantJacobyMatrix2D At(Vector2D soursPoint)
     {
-        (var ξ, var η) = targetPoint;
+        (var ξ, var η) = soursPoint;
 
         // N00 = (1-ξ)(1-η)
         // N10 = ξ(1-η)

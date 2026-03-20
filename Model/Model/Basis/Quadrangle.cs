@@ -1,5 +1,6 @@
 using Telma;
-using IBasisFunction = Model.Model.Basis.IBasisFunction<Telma.Vector2D>;
+using Lagrange1D = Model.Model.Basis.SegmentBasis.Lagrange1D;
+using Hermite1D = Model.Model.Basis.SegmentBasis.Hermite1D;
 
 namespace Model.Model.Basis;
 
@@ -123,99 +124,26 @@ public static class QuadrangleBasis
             _ => throw new ArgumentOutOfRangeException(nameof(degree), "Only degree 2 or 3 supported")
         };
 
-        var oneD = new Lagrange1D(nodes);
         int n = nodes.Length;
         var basisFunctions = new IBasisFunction2D[n * n];
         int index = 0;
 
+<<<<<<< HEAD
+=======
+
+>>>>>>> Исправления: одномерный лагранжевые и эрмитовые базисы вынесены в SegmentBasis
         for (int j = 0; j < n; j++)
             for (int i = 0; i < n; i++)
-                basisFunctions[index++] = new TensorLagrange2D(oneD, i, j);
-
+            {
+                basisFunctions[index++] = new TensorBasis2D(
+                    new Lagrange1D(nodes, i),
+                    new Lagrange1D(nodes, j)
+                );
+            }
+        }
         return basisFunctions;
     }
-
-    /// <summary>
-    /// Лагранжевы базисные функции для одномерного интервала, определенные по заданным узлам.
-    /// </summary>
-    private readonly struct Lagrange1D
-    {
-        private readonly double[] _nodes;
-        public Lagrange1D(double[] nodes)
-        {
-            _nodes = nodes;
-        }
-        public double Value(int i, double x)
-        {
-            double xi = _nodes[i];
-            double res = 1.0;
-
-            for (int j = 0; j < _nodes.Length; j++)
-            {
-                if (j == i) continue;
-                double xj = _nodes[j];
-                res *= (x - xj) / (xi - xj);
-            }
-
-            return res;
-        }
-        public double Derivative(int i, double x)
-        {
-            double xi = _nodes[i];
-            double sum = 0.0;
-
-            for (int j = 0; j < _nodes.Length; j++)
-            {
-                if (j == i) continue;
-
-                double xj = _nodes[j];
-                double product = 1.0 / (xi - xj);
-
-                for (int k = 0; k < _nodes.Length; k++)
-                {
-                    if (k == i || k == j) continue;
-                    double xk = _nodes[k];
-                    product *= (x - xk) / (xi - xk);
-                }
-
-                sum += product;
-            }
-            return sum;
-        }
-    }
-    /// <summary>
-    /// Тензорное произведение одномерных лагранжевых базисов для квадрата.
-    /// </summary>
-    private readonly struct TensorLagrange2D : IBasisFunction2D
-    {
-        private readonly Lagrange1D _oneD;
-        private readonly int _iXi;
-        private readonly int _iEta;
-
-        public TensorLagrange2D(Lagrange1D oneD, int iXi, int iEta)
-        {
-            _oneD = oneD;
-            _iXi = iXi;
-            _iEta = iEta;
-        }
-        public double Value(Vector2D localCoords)
-        {
-            return _oneD.Value(_iXi, localCoords.X) * _oneD.Value(_iEta, localCoords.Y);
-        }
-
-        public Vector2D Derivatives(Vector2D localCoords)
-        {
-            var (xi, eta) = localCoords;
-
-            double Lx = _oneD.Value(_iXi, xi);
-            double Ly = _oneD.Value(_iEta, eta);
-
-            double dLx = _oneD.Derivative(_iXi, xi);
-            double dLy = _oneD.Derivative(_iEta, eta);
-
-            return new Vector2D(dLx * Ly, Lx * dLy);
-        }
-    }
+    
     /// <summary>
     /// Эрмитовы базисные функции для квадрата, построенные как тензорное произведение одномерных эрмитовых базисов.
     /// </summary>
@@ -223,9 +151,6 @@ public static class QuadrangleBasis
     /// </returns>
     private static IBasisFunction2D[] CreateTensorHermite()
     {
-        var hx = new Hermite1D();
-        var hy = new Hermite1D();
-
         var basisFunctions = new IBasisFunction2D[16];
         int index = 0;
 
@@ -233,68 +158,31 @@ public static class QuadrangleBasis
         {
             for (int i = 0; i < 4; i++)
             {
-                basisFunctions[index++] = new TensorHermite2D(hx, hy, i, j);
+                basisFunctions[index++] = new TensorBasis2D(
+                    new Hermite1D(i),
+                    new Hermite1D(j)
+                );
             }
         }
         return basisFunctions;
     }
-    /// <summary>
-    /// Эрмитовы базисные функции для одномерного интервала, определенные по 4 функциям: H00, H10, H01, H11.
-    /// </summary>
-    private readonly struct Hermite1D
-    {
-        public double Value(int i, double x)
-        {
-            return i switch
-            {
-                0 => 1 - 3 * x * x + 2 * x * x * x, // H00
-                1 => x - 2 * x * x + x * x * x,     // H10
-                2 => 3 * x * x - 2 * x * x * x,     // H01
-                3 => -x * x + x * x * x,            // H11
-                _ => throw new ArgumentOutOfRangeException(nameof(i), "Only indices 0 to 3 supported")
-            };
-        }
 
-        public double Derivative(int i, double x)
-        {
-            return i switch
-            {
-                0 => -6 * x + 6 * x * x,
-                1 => 1 - 4 * x + 3 * x * x,
-                2 => 6 * x - 6 * x * x,
-                3 => -2 * x + 3 * x * x,
-                _ => throw new ArgumentOutOfRangeException(nameof(i), "Only indices 0 to 3 supported")
-            };
-        }
-    }
     /// <summary>
-    /// Тензорное произведение одномерных эрмитовых базисов для квадрата.
+    /// Универсальное тензорное произведение двух одномерных базисов для построения 2D базиса.
     /// </summary>
-    private readonly struct TensorHermite2D : IBasisFunction2D
+    private readonly struct TensorBasis2D(IBasisFunction<Vector1D> bX, IBasisFunction<Vector1D> bY) : IBasisFunction2D
     {
-        private readonly Hermite1D _hx;
-        private readonly Hermite1D _hy;
-        private readonly int _iXi;
-        private readonly int _iEta;
-        public TensorHermite2D(Hermite1D hx, Hermite1D hy, int iXi, int iEta)
+        public double Value(Vector2D p) => bX.Value(p.X) * bY.Value(p.Y);
+
+        public Vector2D Derivatives(Vector2D p)
         {
-            _hx = hx;
-            _hy = hy;
-            _iXi = iXi;
-            _iEta = iEta;
-        }
-        public double Value(Vector2D localCoords)
-        {
-            return _hx.Value(_iXi, localCoords.X) * _hy.Value(_iEta, localCoords.Y);
-        }
-        public Vector2D Derivatives(Vector2D localCoords)
-        {
-            var (xi, eta) = localCoords;
-            double Hx = _hx.Value(_iXi, xi);
-            double Hy = _hy.Value(_iEta, eta);
-            double dHx = _hx.Derivative(_iXi, xi);
-            double dHy = _hy.Derivative(_iEta, eta);
-            return new Vector2D(dHx * Hy, Hx * dHy);
+            double valX = bX.Value(p.X);
+            double valY = bY.Value(p.Y);
+
+            double derX = bX.Derivatives(p.X);
+            double derY = bY.Derivatives(p.Y);
+
+            return new Vector2D(derX * valY, valX * derY);
         }
     }
 }
