@@ -42,7 +42,7 @@ public static class FiniteElementExtensions
     }
 
     extension<TSpace>(IElementGeometry<TSpace> self)
-        where TSpace: IVectorBase<TSpace>
+        where TSpace : IVectorBase<TSpace>
     {
         public int VertexCount => self.Vertices.Length;
     }
