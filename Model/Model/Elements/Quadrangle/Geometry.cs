@@ -1,8 +1,23 @@
+using Model.Core.CoordinateSystem;
 using Telma;
 
-namespace Model.Model.Elements.Rectangle;
+namespace Model.Model.Elements.Quadrangle;
 
-public sealed class RectangleGeometry(int[] vertexIndices) : ElementGeometry<Vector2D>(vertexIndices)
+
+/// <summary>
+/// Represents quadrangle with local numeration:
+/// <code>
+///  3 --[2]-- 2
+///  |         |
+/// [3]       [1] <- Edge
+///  |         |
+///  0 --[0]-- 1  <- Vertex
+/// </code>
+/// </summary>
+/// <param name="vertexIndices">4 indices of vertices in following order</param>
+public sealed class QuadrangleGeometry(int[] vertexIndices) :
+    ElementGeometry<Vector2D>(vertexIndices),
+    IVolumeElementGeometry<Vector2D>
 {
     public override IEnumerable<Edge> Edges
     {
@@ -15,4 +30,9 @@ public sealed class RectangleGeometry(int[] vertexIndices) : ElementGeometry<Vec
         }
     }
     public override int EdgeCount => 4;
+
+    public ICoordinateTransform<Vector2D, Vector2D> MasterElementCoordinateSystem =>
+        new QuadrangleCoordinateSystem(
+            Mesh[Vertices[0]], Mesh[Vertices[1]], Mesh[Vertices[2]], Mesh[Vertices[3]]
+        );
 }

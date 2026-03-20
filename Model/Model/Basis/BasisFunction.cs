@@ -27,3 +27,21 @@ public sealed class OrientedBasisFunction<TSpace>(IBasisFunction<TSpace> basis) 
     public double Value(TSpace point) => _basis.Value(point) * _sign;
     public TSpace Derivatives(TSpace point) => _basis.Derivatives(point) * _sign;
 }
+
+
+/// <summary>
+/// Тензорное произведение двух одномерных базисов
+/// </summary>
+public readonly struct TensorBasis2D(IBasisFunction1D bX, IBasisFunction1D bY) : IBasisFunction2D
+{
+    public double Value(Vector2D p) => bX.Value(p.X) * bY.Value(p.Y);
+
+    public Vector2D Derivatives(Vector2D p)
+    {
+        double x = bX.Value(p.X);
+        double y = bY.Value(p.Y);
+        double dx = bX.Derivatives(p.X);
+        double dy = bY.Derivatives(p.Y);
+        return new(dx * y, x * dy);
+    }
+}
