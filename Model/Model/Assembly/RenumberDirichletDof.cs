@@ -9,18 +9,18 @@ public static partial class DofNumerator
     /// Производит перенумерацию степеней свободы таким образом,
     /// что все зафиксированные условиями Дирихле узлы оказываются в конце
     /// </summary>
-    /// <param name="dirichletElementsDofs">Степени свободы граничных элементов, на которых заданы условия Дирихле</param>
+    /// <param name="dirichletElementsDof">Степени свободы граничных элементов, на которых заданы условия Дирихле</param>
     /// <param name="elementsDof">Степени свободы всех элементов сетки</param>
     /// <param name="dofCount">Общее количество степеней свободы</param>
     /// <returns>Количество незафиксированных узлов</returns>
     public static int RenumberDirichletDof(
-        IEnumerable<IDofManager> dirichletElementsDofs,
+        IEnumerable<IDofManager> dirichletElementsDof,
         IEnumerable<IDofManager> elementsDof,
         int dofCount
     )
     {
         var dofToRenumber = new HashSet<int>();
-        foreach (var elementDof in dirichletElementsDofs)
+        foreach (var elementDof in dirichletElementsDof)
         {
             foreach (int dof in elementDof.Dof)
                 dofToRenumber.Add(dof);
