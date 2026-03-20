@@ -6,46 +6,21 @@ namespace Model.Model.Assembly;
 
 public static class PortraitGenerator
 {
-    // TODO: Fix numerator (unnecessary operations)
-    public static List<HashSet<int>> CreateAdjacencyListDirichlet(
-        IEnumerable<IDofManager> dirichletElementsDof,
-        int matrixSize,
-        int freeDofCount
-    )
-    {
-        int n = matrixSize;
-        var adjacencyList = new List<HashSet<int>>(n);
-        for (int i = 0; i < n; i++)
-            adjacencyList.Add([]);
-
-        foreach (var elementDof in dirichletElementsDof)
-        {
-            var dof = elementDof.Dof;
-            int elementDOFCount = dof.Length;
-            for (int i = 0; i < elementDOFCount; i++)
-            {
-                int row = dof[i] - freeDofCount;
-                if (row < 0 || row >= n) continue; // Ignore non-dirichlet dofs
-
-                var rowList = adjacencyList[row];
-                for (int j = 0; j < elementDOFCount; j++)
-                {
-                    int col = dof[j] - freeDofCount;
-                    if (col < 0 || col >= n) continue;
-                    if (row <= col) continue; // Build portrait by lower triangle
-                    rowList.Add(col);
-                }
-            }
-        }
-        return adjacencyList;
-    }
-
+    /// <summary>
+    /// Производит построение списка смежности степеней свободы, используемого
+    /// для построения потрета глобальной матрицы (нижнего треугольника).
+    /// </summary>
+    /// <param name="elementsDof">Степени свободы всех элементов сетки</param>
+    /// <param name="minDofIndex">Минимальный индекс степени свободы, включаемой в смежную структуру</param>
+    /// <param name="maxDofIndex">Максимальный индекс степени свободы, включаемой в смежную структуру</param>
     public static List<HashSet<int>> CreateAdjacencyList(
         IEnumerable<IDofManager> elementsDof,
-        int freeDOFCount
+        int minDofIndex,
+        int maxDofIndex
     )
     {
-        int n = freeDOFCount;
+        int n = maxDofIndex - minDofIndex;
+
         var adjacencyList = new List<HashSet<int>>(n);
         for (int i = 0; i < n; i++)
             adjacencyList.Add([]);
@@ -53,47 +28,46 @@ public static class PortraitGenerator
         foreach (var elementDof in elementsDof)
         {
             var dof = elementDof.Dof;
-            int elementDOFCount = dof.Length;
-            for (int i = 0; i < elementDOFCount; i++)
+            foreach (var dofI in dof)
             {
-                int row = dof[i];
-                if (row >= n) continue; // Ignore fixed elements
+                int row = dofI - minDofIndex;
+                if (row < 0 || row > n) continue;
 
-                var rowList = adjacencyList[row];
-                for (int j = 0; j < elementDOFCount; j++)
+                var rowAdjacent = adjacencyList[row];
+                foreach (var dofJ in dof)
                 {
-                    int col = dof[j];
+                    int col = dofJ - minDofIndex;
+                    if (col < 0 || col > n) continue;
                     if (row <= col) continue; // Build portrait by lower triangle
-                    rowList.Add(col);
+                    rowAdjacent.Add(col);
                 }
             }
         }
-
         return adjacencyList;
     }
-
 
     public static CsrMatrix.Portrait GeneratePortrait(List<HashSet<int>> adjacencyList)
     {
         int n = adjacencyList.Count;
-
+        
+        // 1. Initialize ig (row indices)
         int sum = 0;
         int[] ig = new int[n + 1];
-        for (int i = 0; i < n; i++) //Задаем массив IG.
+        for (int i = 0; i < n; i++)
         {
             ig[i] = sum;
             sum += adjacencyList[i].Count;
         }
-        ig[n] = sum; //инициализируем последний элемент.
+        ig[n] = sum;
 
-        int[] jg = new int[sum]; //Создаем список jg, чтобы можно было использовать метод AddRange.
+        // 2. Initialize jg (col indices)
+        int[] jg = new int[sum];
         int addr = 0;
+
         for (int i = 0; i < n; i++)
-        {
-            //Сортируем матрицу смежности, чтобы можно было добавлять в конец массива JG строки этой матрицы.
-            foreach (var k in adjacencyList[i].OrderBy(j => j))
-                jg[addr++] = k; //Добавляем в конец JG отсортированные строки матрицы смежности.
-        }
+            foreach (var k in adjacencyList[i].OrderBy(j => j)) // adjacencyList must be sorted
+                jg[addr++] = k;
+
         return new CsrMatrix.Portrait(ig, jg);
     }
 }
