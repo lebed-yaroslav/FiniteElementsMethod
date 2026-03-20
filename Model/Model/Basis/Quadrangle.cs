@@ -128,10 +128,6 @@ public static class QuadrangleBasis
         var basisFunctions = new IBasisFunction2D[n * n];
         int index = 0;
 
-<<<<<<< HEAD
-=======
-
->>>>>>> Исправления: одномерный лагранжевые и эрмитовые базисы вынесены в SegmentBasis
         for (int j = 0; j < n; j++)
             for (int i = 0; i < n; i++)
             {
@@ -140,7 +136,7 @@ public static class QuadrangleBasis
                     new Lagrange1D(nodes, j)
                 );
             }
-        }
+        
         return basisFunctions;
     }
     
