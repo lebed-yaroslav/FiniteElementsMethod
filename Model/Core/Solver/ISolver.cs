@@ -8,7 +8,5 @@ public interface ISolver
         int MaxIterations = 1000
     );
 
-    (double residual, int iterations) Solve(ReadOnlySpan<double> rhsVector, Span<double> solution, SolverParams paramz);
-    (double residual, int iterations) Solve(ReadOnlySpan<double> rhsVector, Span<double> solution)
-        => Solve(rhsVector, solution, new());
+    (double residual, int iterations) Solve(ReadOnlySpan<double> rhsVector, Span<double> solution, SolverParams paramz = new());
 }

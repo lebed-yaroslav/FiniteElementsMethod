@@ -24,19 +24,19 @@ public sealed record BarycentricCoordinateSystem : ICoordinateTransform<Vector2D
         _invJ = new(() => J.Inverse());
     }
 
-    public Vector2D Transform(Vector2D globalPoint)
+    public Vector2D Transform(Vector2D sourcePoint)
     {
         var invJ = _invJ.Value;
-        var delta = globalPoint - A;
+        var delta = sourcePoint - A;
         return invJ * delta;
     }
 
-    public Vector2D InverseTransform(Vector2D localPoint)
+    public Vector2D InverseTransform(Vector2D targetPoint)
     {
-        (var xi, var eta) = localPoint;
+        (var xi, var eta) = targetPoint;
         return A * (1 - xi - eta) + B * xi + C * eta;
     }
 
-    public double Jacobian(Vector2D point) => J.Det(point);
+    public double Jacobian(Vector2D targetPoint) => J.Det(targetPoint);
     public IJacobyMatrix<Vector2D, Vector2D> InverseJacoby() => _invJ.Value;
 }

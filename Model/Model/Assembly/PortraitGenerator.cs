@@ -6,6 +6,7 @@ namespace Model.Model.Assembly;
 
 public static class PortraitGenerator
 {
+    // TODO: Fix numerator (unnecessary operations)
     public static List<HashSet<int>> CreateAdjacencyListDirichlet(
         IEnumerable<IDofManager> dirichletElementsDof,
         int matrixSize,

@@ -12,8 +12,8 @@ public interface IJacobyMatrix<TSource, TTarget>
     static int Columns => TSource.Dimensions;
     static abstract bool IsConstant { get; }
 
-    double Det(TSource targetPoint);
-    double this[int i, int j, TSource targetPoint] { get; }
+    double Det(TSource sourcePoint);
+    double this[int i, int j, TSource sourcePoint] { get; }
     double this[int i, int j] { get; }
 }
 

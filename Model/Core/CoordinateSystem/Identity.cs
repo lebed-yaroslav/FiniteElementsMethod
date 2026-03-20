@@ -39,5 +39,5 @@ public sealed class IdentityJacobyMatrix<TSource> : IJacobyMatrix<TSource, TSour
 
     public double this[int i, int j, TSource _] => this[i, j];
 
-    public double Det(TSource targetPoint) => 1.0;
+    public double Det(TSource _) => 1.0;
 }
