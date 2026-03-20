@@ -4,7 +4,7 @@ using Telma;
 
 namespace Model.Model.Elements.Quadrangle;
 
-public sealed class HermiteQuadraticFactory : IFiniteElementFactory<Vector2D>
+public sealed class HermiteQuadrangleFactory : IFiniteElementFactory<Vector2D>
 {
     public IFiniteElement<Vector2D> CreateElement(IMesh<Vector2D> mesh, int[] vertices, int materialIndex) =>
         new FiniteElement<Vector2D>(

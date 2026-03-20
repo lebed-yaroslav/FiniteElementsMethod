@@ -25,58 +25,36 @@ internal class BiQuadraticLagrangeQuadrangleFactory : IFiniteElementFactory<Vect
         public override int NumberOfDofOnEdge => 1;
         public override int NumberOfDofOnElement => 1;
 
-        /// <summary>
-        /// Ребра нумеруются с нижнего против часовой {0, 1, 2, 3}, на ребре 2 узла, которые имеют индексы 0 и 1 и нумеруются опять же по часовой
-        /// </summary>
-        public override void SetEdgeDof(int localEdgeIndex, bool isOrientationFlipped, int n, int dofIndex)
-        {
-            if (n != 0) throw new NotSupportedException();
-            if (localEdgeIndex >= 4) throw new NotSupportedException();
-            switch (localEdgeIndex)
-            {
-                case 0:
-                    _dof[1] = dofIndex;
-                    break;
-                case 1:
-                    _dof[5] = dofIndex;
-                    break;
-                case 2:
-                    _dof[7] = dofIndex;
-                    break;
-                case 3:
-                    _dof[3] = dofIndex;
-                    break;
-            }
-        }
-
-
         public override void SetVertexDof(int localVertexIndex, int n, int dofIndex)
         {
             if (n != 0) throw new NotSupportedException();
             if (localVertexIndex >= 4) throw new NotSupportedException();
-            switch (localVertexIndex)
+            var basisIndex = localVertexIndex switch
             {
-                case 0:
-                    _dof[0] = dofIndex;
-                    break;
-                case 1:
-                    _dof[2] = dofIndex;
-                    break;
-                case 2:
-                    _dof[6] = dofIndex;
-                    break;
-                case 3:
-                    _dof[8] = dofIndex;
-                    break;
-            }
+                0 => 0,
+                1 => 2,
+                2 => 6,
+                3 => 8,
+                _ => throw new NotSupportedException()
+            };
+            _dof[basisIndex] = dofIndex;
         }
 
-        /// <summary>
-        /// локальная нумерация соответствует нумерации вершин(узлов на углах)
-        /// 3---2
-        /// |   |
-        /// 0---1
-        /// </summary>
+        public override void SetEdgeDof(int localEdgeIndex, bool isOrientationFlipped, int n, int dofIndex)
+        {
+            if (n != 0) throw new NotSupportedException();
+            if (localEdgeIndex >= 4) throw new NotSupportedException();
+            var basisIndex = localEdgeIndex switch
+            {
+                0 => 1,
+                1 => 5,
+                2 => 7,
+                3 => 3,
+                _ => throw new NotSupportedException()
+            };
+            _dof[basisIndex] = dofIndex;
+        }
+
         public override void SetElementDof(int n, int dofIndex)
         {
             if (n != 0) throw new NotSupportedException();

@@ -4,6 +4,17 @@ using Telma;
 namespace Model.Model.Elements.Quadrangle;
 
 
+/// <summary>
+/// Represents quadrangle with local numeration:
+/// <code>
+///  3 --[2]-- 2
+///  |         |
+/// [3]       [1] <- Edge
+///  |         |
+///  0 --[0]-- 1  <- Vertex
+/// </code>
+/// </summary>
+/// <param name="vertexIndices">4 indices of vertices in following order</param>
 public sealed class QuadrangleGeometry(int[] vertexIndices) :
     ElementGeometry<Vector2D>(vertexIndices),
     IVolumeElementGeometry<Vector2D>

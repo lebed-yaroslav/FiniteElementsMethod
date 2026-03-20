@@ -30,72 +30,43 @@ public sealed class BicubicLagrangeQuadrangleFactory : IFiniteElementFactory<Vec
         public override void SetVertexDof(int localVertexIndex, int n, int dofIndex)
         {
             if (n != 0) throw new NotSupportedException();
-            if (localVertexIndex >= 4) throw new NotSupportedException();
-            switch (localVertexIndex)
-            {
-                case 0:
-                    _dof[0] = dofIndex;
-                    break;
-                case 1:
-                    _dof[3] = dofIndex;
-                    break;
-                case 2:
-                    _dof[15] = dofIndex;
-                    break;
-                case 3:
-                    _dof[12] = dofIndex;
-                    break;
-            }
+            var basisIndex = localVertexIndex switch {
+                0 => 0,
+                1 => 3,
+                2 => 15,
+                3 => 12,
+                _ => throw new NotSupportedException()
+            };
+            _dof[basisIndex] = dofIndex;
         }
 
-        /// <summary>
-        /// Ребра нумеруются с нижнего против часовой {0, 1, 2, 3}, на ребре 2 ущла, которые имеют индексы 0 и 1 и нумеруются опять же по часовой
-        /// </summary>
+        // Each edge has two nodes that numbered in clockwise order (corresponds to QuadrangleGeometry edge numeration)
         public override void SetEdgeDof(int localEdgeIndex, bool isOrientationFlipped, int n, int dofIndex)
         {
             if (n < 0 || n >= 2) throw new NotSupportedException();
-            if (localEdgeIndex >= 4) throw new NotSupportedException();
-            switch (localEdgeIndex)
+            var basisIndex = localEdgeIndex switch
             {
-                case 0:
-                    _dof[1 + n] = dofIndex;
-                    break;
-                case 1:
-                    _dof[7 + n * 4] = dofIndex;
-                    break;
-                case 2:
-                    _dof[14 - n] = dofIndex;
-                    break;
-                case 3:
-                    _dof[8 - n * 4] = dofIndex;
-                    break;
-            }
+                0 => 1 + n,
+                1 => 7 + n * 4,
+                2 => 14 - n,
+                3 => 8 - n * 4,
+                _ => throw new NotSupportedException()
+            };
+            _dof[basisIndex] = dofIndex;
         }
 
-        /// <summary>
-        /// локальная нумерация соответствует нумерации вершин(узлов на углах)
-        /// 3---2
-        /// |   |
-        /// 0---1
-        /// </summary>
+        // Local numeration corresponds to vertex node numerations
         public override void SetElementDof(int n, int dofIndex)
         {
-            if (n < 0 || n >= 4) throw new NotSupportedException();
-            switch (n)
+            var basisIndex = n switch
             {
-                case 0:
-                    _dof[5] = dofIndex;
-                    break;
-                case 1:
-                    _dof[6] = dofIndex;
-                    break;
-                case 2:
-                    _dof[9] = dofIndex;
-                    break;
-                case 3:
-                    _dof[10] = dofIndex;
-                    break;
-            }
+                0 => 5,
+                1 => 6,
+                2 => 9,
+                3 => 10,
+                _ => throw new NotSupportedException()
+            };
+            _dof[basisIndex] = dofIndex;
         }
     }
 }
