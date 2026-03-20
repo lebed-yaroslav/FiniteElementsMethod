@@ -18,7 +18,7 @@ public static class QuadrangleBasis
     /// Билинейная нода для всех 4 вершин одинакова, так как элемент прямоугольный и узлы расположены в одних и тех же местах по xi и eta.
     /// Поэтому можно использовать один массив для всех 4 вершин.
     /// </summary>
-    public static readonly IBasisFunction2D[] Q1 = { N00, N10, N11, N01 };
+    public static readonly IBasisFunction2D[] Q1 = [N00, N10, N11, N01];
     /// <summary>
     /// Биквадратная базисные функции для квадрата, построенные как тензорное произведение одномерных лагранжевых базисов.
     /// </summary>
@@ -39,17 +39,17 @@ public static class QuadrangleBasis
     {
         public double Value(Vector2D localCoords)
         {
-            var xi = localCoords.X;
-            var eta = localCoords.Y;
+            (var xi, var eta) = localCoords;
             return (1 - xi) * (1 - eta);
         }
+
         public Vector2D Derivatives(Vector2D localCoords)
         {
-            var xi = localCoords.X;
-            var eta = localCoords.Y;
+            (var xi, var eta) = localCoords;
             return new Vector2D(-(1 - eta), -(1 - xi)); // [d/dxi, d/deta]
         }
     }
+
     /// <summary>
     /// Базисная функция для линейного квадрата, определенная по (xi, 1 - eta).
     /// </summary>
@@ -57,17 +57,17 @@ public static class QuadrangleBasis
     {
         public double Value(Vector2D localCoords)
         {
-            var xi = localCoords.X;
-            var eta = localCoords.Y;
+            (var xi, var eta) = localCoords;
             return (xi) * (1 - eta);
         }
+
         public Vector2D Derivatives(Vector2D localCoords)
         {
-            var xi = localCoords.X;
-            var eta = localCoords.Y;
+            (var xi, var eta) = localCoords;
             return new Vector2D((1 - eta), -xi); // [d/dxi, d/deta]
         }
     }
+
     /// <summary>
     /// Базисная функция для линейного квадрата, определенная по ( xi, eta ).
     /// </summary>
@@ -75,17 +75,17 @@ public static class QuadrangleBasis
     {
         public double Value(Vector2D localCoords)
         {
-            var xi = localCoords.X;
-            var eta = localCoords.Y;
+            (var xi, var eta) = localCoords;
             return (xi) * (eta);
         }
+
         public Vector2D Derivatives(Vector2D localCoords)
         {
-            var xi = localCoords.X;
-            var eta = localCoords.Y;
+            (var xi, var eta) = localCoords;
             return new Vector2D((eta), xi); // [d/dxi, d/deta]
         }
     }
+
     /// <summary>
     /// Базисная функция для линейного квадрата, определенная по (1 - xi, eta ).
     /// </summary>
@@ -93,17 +93,17 @@ public static class QuadrangleBasis
     {
         public double Value(Vector2D localCoords)
         {
-            var xi = localCoords.X;
-            var eta = localCoords.Y;
+            (var xi, var eta) = localCoords;
             return (1 - xi) * eta;
         }
+
         public Vector2D Derivatives(Vector2D localCoords)
         {
-            var xi = localCoords.X;
-            var eta = localCoords.Y;
+            (var xi, var eta) = localCoords;
             return new Vector2D(-eta, 1 - xi); // [d/dxi, d/deta]
         }
     }
+
     /// <summary>
     /// Тензорное произведение одномерных лагранжевых базисов для квадрата.
     /// Для degree=2 узлы расположены в {0, 0.5, 1},
@@ -116,32 +116,25 @@ public static class QuadrangleBasis
     {
         // degree=2 -> nodes {0, 1/2, 1}
         // degree=3 -> nodes {0, 1/3, 2/3, 1}
-        var nodes = degree switch
+        double[] nodes = degree switch
         {
-            2 => new double[] { 0, 0.5, 1 },
-            3 => new double[] { 0, 1.0 / 3, 2.0 / 3, 1 },
+            2 => [0, 0.5, 1],
+            3 => [0, 1.0 / 3, 2.0 / 3, 1],
             _ => throw new ArgumentOutOfRangeException(nameof(degree), "Only degree 2 or 3 supported")
         };
 
         var oneD = new Lagrange1D(nodes);
-
         int n = nodes.Length;
-
         var basisFunctions = new IBasisFunction2D[n * n];
-
         int index = 0;
 
-
-
         for (int j = 0; j < n; j++)
-        {
             for (int i = 0; i < n; i++)
-            {
                 basisFunctions[index++] = new TensorLagrange2D(oneD, i, j);
-            }
-        }
+
         return basisFunctions;
     }
+
     /// <summary>
     /// Лагранжевы базисные функции для одномерного интервала, определенные по заданным узлам.
     /// </summary>
@@ -261,6 +254,7 @@ public static class QuadrangleBasis
                 _ => throw new ArgumentOutOfRangeException(nameof(i), "Only indices 0 to 3 supported")
             };
         }
+
         public double Derivative(int i, double x)
         {
             return i switch

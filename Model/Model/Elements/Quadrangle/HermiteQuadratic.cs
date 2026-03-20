@@ -31,8 +31,7 @@ public sealed class HermiteQuadraticFactory : IFiniteElementFactory<Vector2D>
         public override void SetVertexDof(int localVertexIndex, int n, int dofIndex)
         {
             if (n != 0) throw new NotSupportedException();
-
-            if (localVertexIndex >= 4) throw new ArgumentOutOfRangeException(nameof(localVertexIndex));
+            ArgumentOutOfRangeException.ThrowIfGreaterThanOrEqual(localVertexIndex, 4);
             _dof[localVertexIndex * 4 + n] = dofIndex;
         }
         
