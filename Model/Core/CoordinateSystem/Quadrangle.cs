@@ -1,18 +1,19 @@
-using Model.Core.CoordinateSystem;
+using Model.Model.Basis;
 using Telma;
 
-namespace Model.Core.CoordinateSystems;
+using static Model.Model.Basis.QuadrangleBasis;
+
+namespace Model.Core.CoordinateSystem;
+
 
 /// <summary>
-/// Отображение в квадрат [0,1]х[0,1]
-/// произвольного четырехугольника с вершинами:
-/// P01 -- P11
-///  |      |
-/// P00 -- P10
-/// в локальной нумерации: 
-/// 3 --- 2
-/// |     |
-/// 0 --- 1
+/// Отображение произвольного четырехугольника с вершинами:
+/// <code>
+/// P01 -- P11    3 --- 2
+///  |      |     |     | - Локальная нумерация
+/// P00 -- P10    0 --- 1
+/// </code>
+/// в квадрат [0; 1] x [0; 1]
 /// </summary>
 public sealed class QuadrangleCoordinateSystem(
     Vector2D p00,
@@ -26,31 +27,31 @@ public sealed class QuadrangleCoordinateSystem(
 
     public Vector2D Transform(Vector2D sourcePoint)
     {
-        var local = new Vector2D(0.5, 0.5);
+        // Performs Newton method to solve non-linear system
+        var targetPoint = new Vector2D(0.5, 0.5); // initial guess
         const int maxIterations = 100;
         const double eps = 1e-13;
 
         for (int iter = 0; iter < maxIterations; iter++)
         {
-            var residual = InverseTransform(local) - sourcePoint; // r = F(η, ξ) - P, residual - вектор невязки
+            var residual = InverseTransform(targetPoint) - sourcePoint; // r = F(η, ξ) - P
 
-            if (residual.Norm < eps) return local;
+            if (residual.Norm < eps) return targetPoint;
 
-            var invJ = _j.At(local).Inverse();
-            var delta = invJ * residual;  // Δ = J^(-1) * r, delta - вектор коррекции
-            local -= delta; // (η, ξ) = (η, ξ) - Δ, обновляем локальные координаты
+            var invJ = _j.At(targetPoint).Inverse();
+            var delta = invJ * residual;  // Δ = J^(-1) * r
+            targetPoint -= delta; // (η, ξ) = (η, ξ) - Δ
         }
-        return local;
+
+        return targetPoint;
     }
 
     public Vector2D InverseTransform(Vector2D targetPoint)
     {
-        (var ξ, var η) = targetPoint;
-
-        var n00 = (1.0 - ξ) * (1.0 - η);
-        var n10 = ξ * (1.0 - η);
-        var n11 = ξ * η;
-        var n01 = (1.0 - ξ) * η;
+        var n00 = N00.Value(targetPoint);
+        var n10 = N10.Value(targetPoint);
+        var n11 = N11.Value(targetPoint);
+        var n01 = N01.Value(targetPoint);
 
         return n00 * _j.P00 + n10 * _j.P10 + n11 * _j.P11 + n01 * _j.P01;
     }
@@ -72,38 +73,24 @@ public sealed record QuadrangleJacobyMatrix(
     public double this[int i, int j] =>
         throw new NotSupportedException($"{nameof(QuadrangleInverseJacobyMatrix)} is not constant.");
 
-    public double this[int i, int j, Vector2D soursPoint] => At(soursPoint)[i, j];
+    public double this[int i, int j, Vector2D targetPoint] => At(targetPoint)[i, j];
 
-    public double Det(Vector2D soursPoint) => At(soursPoint).Det(Vector2D.Zero);
+    public double Det(Vector2D targetPoint) => At(targetPoint).Det(Vector2D.Zero);
 
-    public ConstantJacobyMatrix2D At(Vector2D soursPoint)
+    public ConstantJacobyMatrix2D At(Vector2D sourcePoint)
     {
-        (var ξ, var η) = soursPoint;
+        var dN00 = N00.Derivatives(sourcePoint); // [dξ, dη]
+        var dN10 = N10.Derivatives(sourcePoint); // [dξ, dη]
+        var dN11 = N11.Derivatives(sourcePoint); // [dξ, dη]
+        var dN01 = N01.Derivatives(sourcePoint); // [dξ, dη]
 
-        // N00 = (1-ξ)(1-η)
-        // N10 = ξ(1-η)
-        // N11 = ξ η
-        // N01 = (1-ξ)η
-
-        var dN00_dξ = -(1.0 - η);
-        var dN10_dξ = +(1.0 - η);
-        var dN11_dξ = +η;
-        var dN01_dξ = -η;
-
-        var dN00_dη = -(1.0 - ξ);
-        var dN10_dη = -ξ;
-        var dN11_dη = +ξ;
-        var dN01_dη = +(1.0 - ξ);
-
-        var dx_dξ = dN00_dξ * P00.X + dN10_dξ * P10.X + dN11_dξ * P11.X + dN01_dξ * P01.X;
-        var dx_dη = dN00_dη * P00.X + dN10_dη * P10.X + dN11_dη * P11.X + dN01_dη * P01.X;
-        var dy_dξ = dN00_dξ * P00.Y + dN10_dξ * P10.Y + dN11_dξ * P11.Y + dN01_dξ * P01.Y;
-        var dy_dη = dN00_dη * P00.Y + dN10_dη * P10.Y + dN11_dη * P11.Y + dN01_dη * P01.Y;
+        var dx = dN00 * P00.X + dN10 * P10.X + dN11 * P11.X + dN01 * P01.X; // [dξ, dη]
+        var dy = dN00 * P00.Y + dN10 * P10.Y + dN11 * P11.Y + dN01 * P01.Y; // [dξ, dη]
 
         return new(new[,]
         {
-            {dx_dξ,  dx_dη},
-            {dy_dξ,  dy_dη }
+            {dx.X,  dx.Y},
+            {dy.X,  dy.Y}
         });
     }
 }
