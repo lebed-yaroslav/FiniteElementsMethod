@@ -1,5 +1,10 @@
+global using IBasisFunction1D = Model.Model.Basis.IBasisFunction<Telma.Vector1D>;
+global using IBasisFunction2D = Model.Model.Basis.IBasisFunction<Telma.Vector2D>;
+global using IBasisFunction3D = Model.Model.Basis.IBasisFunction<Telma.Vector3D>;
+
 using Telma;
 using Telma.Extensions;
+
 
 namespace Model.Model.Basis;
 
@@ -9,8 +14,6 @@ public interface IBasisFunction<TSpace> where TSpace : IVectorBase<TSpace>
     double Value(TSpace point);
     TSpace Derivatives(TSpace point);
 }
-
-public interface IBasisFunction2D : IBasisFunction<Vector2D>;
 
 public sealed class OrientedBasisFunction<TSpace>(IBasisFunction<TSpace> basis) :
     IBasisFunction<TSpace>
