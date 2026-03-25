@@ -7,10 +7,10 @@ namespace Model.Core.Solver;
 
 /// <summary>Preconditioned conjugate gradient solver</summary>
 /// <param name="Matrix">System matrix</param>
-/// <param name="Factorization">Matrix factorization</param>
+/// <param name="Preconditioner">Matrix preconditioner</param>
 public sealed record PCGSolver(
     IGlobalMatrix Matrix,
-    IFactorization Factorization
+    IPreconditioner Preconditioner
 ) : ISolver
 {
     public (double residual, int iterations) Solve(
@@ -32,43 +32,41 @@ public sealed record PCGSolver(
 
         int n = Matrix.Size;
         var r = new double[n]; // residual
-        var z = new double[n]; // conjugate direction
-        var az = new double[n];
-        var mInvR = new double[n];
+        var p = new double[n]; // search direction
+        var ap = new double[n];
+        var z = new double[n]; // preconditioned residual
 
         // r = f - ax
         Matrix.MulVec(solution, r);
         rhsVector.Sub(r, r);
 
-        // z = (U^-1) * (L^-1) * (f - ax)
-        Factorization.LInvMul(r, z);
-        Factorization.UInvMul(z, z);
+        // p = (M^-1) * (f - ax)
+        Preconditioner.Apply(r, p);
 
-        // mInvR = (U^-1) * (L^-1) * r
-        Array.Copy(z, mInvR, n);
+        // z = (M^-1) * r
+        Array.Copy(p, z, n);
 
-        double dotRlR = mInvR.Dot(r);
+        double dotRlR = z.Dot(r);
 
         double rNorm = 0;
         for (int iter = 0; iter < paramz.MaxIterations; ++iter)
         {
-            Matrix.MulVec(z, az);
+            Matrix.MulVec(p, ap);
 
-            double alpha = dotRlR / az.Dot(z);
-            solution.AddScaled(alpha, z, solution); // x = x + a * z
-            r.AddScaled(-alpha, az, r); // r = r - a * z
+            double alpha = dotRlR / ap.Dot(p);
+            solution.AddScaled(alpha, p, solution); // x = x + a * z
+            r.AddScaled(-alpha, ap, r); // r = r - alpha * ap
 
             rNorm = r.Norm();
             if (rNorm < paramz.Eps * rhsNorm)
                 return (rNorm, iter);
 
-            // mInvR = (U^-1) * (L^-1) * r
-            Factorization.LInvMul(r, mInvR);
-            Factorization.UInvMul(mInvR, mInvR);
+            // z = (M^-1) * r
+            Preconditioner.Apply(r, z);
 
-            double newDotRlR = mInvR.Dot(r);
-            double beta = newDotRlR / dotRlR; // b = (mInvR_k, r_k) / (mInvR_{k-1}, r_{k-1})
-            mInvR.AddScaled(beta, z, z); // z = mInvR + b * z
+            double newDotRlR = z.Dot(r);
+            double beta = newDotRlR / dotRlR; // b = (z_k, r_k) / (z_{k-1}, r_{k-1})
+            z.AddScaled(beta, p, p); // p = z + b * p
             dotRlR = newDotRlR;
         }
 

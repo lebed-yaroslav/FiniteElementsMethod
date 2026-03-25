@@ -2,15 +2,22 @@ using Model.Core.Matrix;
 
 namespace Model.Core.Solver.Precondition;
 
-public sealed record ILUFactorization(CsrMatrix Storage) : IFactorization
+public sealed record CsrILUFactorization : ILUFactorization
 {
+    private readonly CsrMatrix _storage;
+
     public int Size => Di.Length;
 
-    public ReadOnlySpan<int> Ig => Storage.Ig;
-    public ReadOnlySpan<int> Jg => Storage.Jg;
-    public Span<double> Ggl => Storage.Ggl;
-    public Span<double> Ggu => Storage.Ggu;
-    public Span<double> Di => Storage.Di;
+    public ReadOnlySpan<int> Ig => _storage.Ig;
+    public ReadOnlySpan<int> Jg => _storage.Jg;
+    public Span<double> Ggl => _storage.Ggl;
+    public Span<double> Ggu => _storage.Ggu;
+    public Span<double> Di => _storage.Di;
+
+    public static void Factorize(CsrMatrix matrix, double eps)
+        => Factory.Instance.Factorize(matrix, eps);
+
+    private CsrILUFactorization(CsrMatrix storage) { _storage = storage; }
 
     public void LInvMul(ReadOnlySpan<double> vec, Span<double> res)
     {
@@ -41,57 +48,60 @@ public sealed record ILUFactorization(CsrMatrix Storage) : IFactorization
             }
         }
     }
-}
 
-public class ILUPreconditioner : IFactorizationPreconditioner
-{
-    public IFactorization Factorize(CsrMatrix matrix, double eps)
+    public sealed class Factory : ILUFactorizer
     {
-        int n = matrix.Size;
-        var lu = new ILUFactorization(Storage: matrix);
+        public static Factory Instance { get; } = new();
+        private Factory() { }
 
-        for (int i = 0; i < n; ++i)
+        public ILUFactorization Factorize(CsrMatrix matrix, double eps)
         {
-            double sumD = 0.0;
-            double d;
-            for (int p = matrix.Ig[i]; p < matrix.Ig[i + 1]; ++p)
+            int n = matrix.Size;
+            var lu = new CsrILUFactorization(matrix);
+
+            for (int i = 0; i < n; ++i)
             {
-                int j = matrix.Jg[p];
-
-                double sumL = 0.0;
-                double sumU = 0.0;
-
-                int lp = matrix.Ig[i];
-                int up = matrix.Ig[j];
-
-                while (lp < p && up < matrix.Ig[j + 1])
+                double sumD = 0.0;
+                double d;
+                for (int p = matrix.Ig[i]; p < matrix.Ig[i + 1]; ++p)
                 {
-                    int lj = matrix.Jg[lp];
-                    int uj = matrix.Jg[up];
+                    int j = matrix.Jg[p];
 
-                    if (lj > uj) up++;
-                    else if (lj < uj) lp++;
-                    else
+                    double sumL = 0.0;
+                    double sumU = 0.0;
+
+                    int lp = matrix.Ig[i];
+                    int up = matrix.Ig[j];
+
+                    while (lp < p && up < matrix.Ig[j + 1])
                     {
-                        sumL += matrix.Ggl[lp] * matrix.Ggu[up];
-                        sumU += matrix.Ggl[up] * matrix.Ggu[lp];
-                        up++; lp++;
+                        int lj = matrix.Jg[lp];
+                        int uj = matrix.Jg[up];
+
+                        if (lj > uj) up++;
+                        else if (lj < uj) lp++;
+                        else
+                        {
+                            sumL += matrix.Ggl[lp] * matrix.Ggu[up];
+                            sumU += matrix.Ggl[up] * matrix.Ggu[lp];
+                            up++; lp++;
+                        }
                     }
+
+                    d = lu.Di[j];
+                    if (!double.IsFinite(d) || Math.Abs(d) < eps)
+                        throw new ArithmeticException($"Bad diagonal in ILLt: Di[{j}]={d}");
+
+                    lu.Ggl[p] = (matrix.Ggl[p] - sumL) / d;
+                    lu.Ggu[p] = matrix.Ggu[p] - sumU;
+                    sumD += lu.Ggl[p] * lu.Ggu[p];
                 }
-
-                d = lu.Di[j];
+                d = matrix.Di[i] - sumD;
                 if (!double.IsFinite(d) || Math.Abs(d) < eps)
-                    throw new ArithmeticException($"Bad diagonal in ILLt: Di[{j}]={d}");
-
-                lu.Ggl[p] = (matrix.Ggl[p] - sumL) / d;
-                lu.Ggu[p] = matrix.Ggu[p] - sumU;
-                sumD += lu.Ggl[p] * lu.Ggu[p];
+                    throw new ArithmeticException($"Bad diagonal after ILLt: Di[{i}]={d}");
+                lu.Di[i] = d;
             }
-            d = matrix.Di[i] - sumD;
-            if (!double.IsFinite(d) || Math.Abs(d) < eps)
-                throw new ArithmeticException($"Bad diagonal after ILLt: Di[{i}]={d}");
-            lu.Di[i] = d;
+            return lu;
         }
-        return lu;
     }
 }
