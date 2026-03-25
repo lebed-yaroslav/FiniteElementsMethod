@@ -2,18 +2,13 @@ using Model.Core.Matrix;
 
 namespace Model.Core.Solver;
 
-public interface IFactorizationType : IMatrix 
+public interface IFactorization : IMatrix 
 {
-
-    void LMult(ReadOnlySpan<double> to, Span<double> res);
-    void UMult(ReadOnlySpan<double> to, Span<double> res);
-
-    public ReadOnlySpan<int> Ig { get; }
-    public ReadOnlySpan<int> Jg { get; }
-    public Span<double> Ggl { get; }
-    public Span<double> Di { get; }
+    void LInvMul(ReadOnlySpan<double> vec, Span<double> res);
+    void UInvMul(ReadOnlySpan<double> vec, Span<double> res);
 }
-public interface IFactorizationPrediconditioner 
+
+public interface IFactorizationPreconditioner
 {
-    IFactorizationType CreateFactor(CsrMatrix sparseMatrix, double eps);
+    IFactorization Factorize(CsrMatrix sparseMatrix, double eps);
 }
