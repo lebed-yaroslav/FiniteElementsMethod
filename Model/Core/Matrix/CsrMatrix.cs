@@ -9,7 +9,32 @@ public class CsrMatrix(CsrMatrix.Portrait portrait) : IGlobalMatrix
     {
         public int Size => Ig.Length - 1;
         public int TriangleElementCount => Ig[^1];
+
+        public static Portrait Create(IList<HashSet<int>> adjacencyList)
+        {
+            int n = adjacencyList.Count;
+
+            // 1. Initialize ig (row indices)
+            int sum = 0;
+            int[] ig = new int[n + 1];
+            for (int i = 0; i < n; i++)
+            {
+                ig[i] = sum;
+                sum += adjacencyList[i].Count;
+            }
+            ig[n] = sum;
+
+            // 2. Initialize jg (col indices)
+            int[] jg = new int[sum];
+            int addr = 0;
+            for (int i = 0; i < n; i++)
+                foreach (var k in adjacencyList[i].OrderBy(j => j))
+                    jg[addr++] = k;
+
+            return new(ig, jg);
+        }
     }
+
     private readonly Portrait _portrait = portrait;
     private readonly double[] _di = new double[portrait.Size];
     private readonly double[] _ggl = new double[portrait.TriangleElementCount];

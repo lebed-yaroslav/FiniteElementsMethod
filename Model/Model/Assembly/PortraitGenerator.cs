@@ -45,29 +45,4 @@ public static class PortraitGenerator
         }
         return adjacencyList;
     }
-
-    public static CsrMatrix.Portrait GeneratePortrait(List<HashSet<int>> adjacencyList)
-    {
-        int n = adjacencyList.Count;
-        
-        // 1. Initialize ig (row indices)
-        int sum = 0;
-        int[] ig = new int[n + 1];
-        for (int i = 0; i < n; i++)
-        {
-            ig[i] = sum;
-            sum += adjacencyList[i].Count;
-        }
-        ig[n] = sum;
-
-        // 2. Initialize jg (col indices)
-        int[] jg = new int[sum];
-        int addr = 0;
-
-        for (int i = 0; i < n; i++)
-            foreach (var k in adjacencyList[i].OrderBy(j => j)) // adjacencyList must be sorted
-                jg[addr++] = k;
-
-        return new CsrMatrix.Portrait(ig, jg);
-    }
 }
