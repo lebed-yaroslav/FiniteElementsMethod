@@ -1,5 +1,5 @@
 
-using Model.Core.CoordinateSystems;
+using Model.Core.CoordinateSystem;
 
 using Telma;
 namespace QuadrangleTest
