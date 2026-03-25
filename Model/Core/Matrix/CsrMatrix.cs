@@ -7,7 +7,7 @@ public class CsrMatrix(CsrMatrix.Portrait portrait) : IGlobalMatrix
 {
     public sealed record Portrait(int[] Ig, int[] Jg)
     {
-        public int Size => Ig.Length;
+        public int Size => Ig.Length - 1;
         public int TriangleElementCount => Ig[^1];
     }
     private readonly Portrait _portrait = portrait;
