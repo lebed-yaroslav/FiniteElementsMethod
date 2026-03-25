@@ -1,6 +1,6 @@
 using Model.Core.Matrix;
 
-namespace Model.Core.Solver;
+namespace Model.Core.Solver.Precondition;
 
 public interface IFactorization : IMatrix 
 {

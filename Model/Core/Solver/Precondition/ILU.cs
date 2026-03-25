@@ -1,6 +1,6 @@
 using Model.Core.Matrix;
 
-namespace Model.Core.Solver;
+namespace Model.Core.Solver.Precondition;
 
 public sealed record ILUFactorization(CsrMatrix Storage) : IFactorization
 {
@@ -48,11 +48,12 @@ public class ILUPreconditioner : IFactorizationPreconditioner
     public IFactorization Factorize(CsrMatrix matrix, double eps)
     {
         int n = matrix.Size;
-        var factorization = new ILUFactorization(Storage: matrix);
+        var lu = new ILUFactorization(Storage: matrix);
 
         for (int i = 0; i < n; ++i)
         {
             double sumD = 0.0;
+            double d;
             for (int p = matrix.Ig[i]; p < matrix.Ig[i + 1]; ++p)
             {
                 int j = matrix.Jg[p];
@@ -78,18 +79,19 @@ public class ILUPreconditioner : IFactorizationPreconditioner
                     }
                 }
 
-                double d = factorization.Di[j];
+                d = lu.Di[j];
                 if (!double.IsFinite(d) || Math.Abs(d) < eps)
                     throw new ArithmeticException($"Bad diagonal in ILLt: Di[{j}]={d}");
 
-                factorization.Ggl[p] = (matrix.Ggl[p] - sumL) / d;
-                factorization.Ggu[p] = matrix.Ggu[p] - sumU;
-                sumD += factorization.Ggl[p] * factorization.Ggu[p];
+                lu.Ggl[p] = (matrix.Ggl[p] - sumL) / d;
+                lu.Ggu[p] = matrix.Ggu[p] - sumU;
+                sumD += lu.Ggl[p] * lu.Ggu[p];
             }
-            factorization.Di[i] = matrix.Di[i] - sumD;
-            if (!double.IsFinite(factorization.Di[i]) || Math.Abs(factorization.Di[i]) < eps)
-                throw new ArithmeticException($"Bad diagonal after ILLt: Di[{i}]={factorization.Di[i]}");
+            d = matrix.Di[i] - sumD;
+            if (!double.IsFinite(d) || Math.Abs(d) < eps)
+                throw new ArithmeticException($"Bad diagonal after ILLt: Di[{i}]={d}");
+            lu.Di[i] = d;
         }
-        return factorization;
+        return lu;
     }
 }
