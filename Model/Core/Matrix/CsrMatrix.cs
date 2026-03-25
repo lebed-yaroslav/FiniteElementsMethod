@@ -21,6 +21,12 @@ public class CsrMatrix(CsrMatrix.Portrait portrait) : IGlobalMatrix
     public Span<double> Ggl => _ggl;
     public Span<double> Ggu => _ggl; // Symmetrical
 
+    public CsrMatrix(CsrMatrix other) : this(other._portrait)
+    {
+        _di = [.. other._di];
+        _ggl = [.. other._ggl];
+    }
+
     public void AddLocalMatrix(LocalMatrix matrix, ReadOnlySpan<int> indices)
     {
         int m = indices.Length;
