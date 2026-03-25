@@ -1,0 +1,38 @@
+using System.Diagnostics;
+
+namespace Model.Core.Vector;
+
+public static class SpanAsVectorExtensions
+{
+    extension(ReadOnlySpan<double> self)
+    {
+        public double Dot(ReadOnlySpan<double> rhs)
+        {
+            Debug.Assert(self.Length == rhs.Length);
+            double res = 0;
+            for (int i = 0; i < self.Length; i++)
+                res += self[i] * rhs[i];
+            return res;
+        }
+
+        public double Norm() => Math.Sqrt(self.Dot(self));
+
+        public void AddScaled(double alpha, ReadOnlySpan<double> rhs, Span<double> res)
+        {
+            Debug.Assert(rhs.Length == self.Length);
+            Debug.Assert(res.Length == self.Length);
+
+            for (int i = 0; i < self.Length; i++)
+                res[i] = self[i] + alpha * rhs[i];
+        }
+
+        public void Sub(ReadOnlySpan<double> rhs, Span<double> res)
+        {
+            Debug.Assert(rhs.Length == self.Length);
+            Debug.Assert(res.Length == self.Length);
+
+            for (int i = 0; i < self.Length; ++i)
+                res[i] = self[i] - rhs[i];
+        }
+    }
+}

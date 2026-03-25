@@ -7,19 +7,25 @@ public class CsrMatrix(CsrMatrix.Portrait portrait) : IGlobalMatrix
 {
     public sealed record Portrait(int[] Ig, int[] Jg)
     {
-        public int Size => Ig.Length;
+        public int Size => Ig.Length - 1;
         public int TriangleElementCount => Ig[^1];
     }
     private readonly Portrait _portrait = portrait;
-    private double[] _di = new double[portrait.Size];
-    private double[] _ggl = new double[portrait.TriangleElementCount];
+    private readonly double[] _di = new double[portrait.Size];
+    private readonly double[] _ggl = new double[portrait.TriangleElementCount];
 
     public int Size => _portrait.Size;
     public ReadOnlySpan<int> Ig => _portrait.Ig;
     public ReadOnlySpan<int> Jg => _portrait.Jg;
-    public ReadOnlySpan<double> Di => _di;
-    public ReadOnlySpan<double> Ggl => _ggl;
-    public ReadOnlySpan<double> Ggu => _ggl; // Symmetrical
+    public Span<double> Di => _di;
+    public Span<double> Ggl => _ggl;
+    public Span<double> Ggu => _ggl; // Symmetrical
+
+    public CsrMatrix(CsrMatrix other) : this(other._portrait)
+    {
+        _di = [.. other._di];
+        _ggl = [.. other._ggl];
+    }
 
     public void AddLocalMatrix(LocalMatrix matrix, ReadOnlySpan<int> indices)
     {
