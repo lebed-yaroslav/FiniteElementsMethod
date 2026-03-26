@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using Telma;
 
 namespace Model.Model.Basis;
@@ -32,6 +33,21 @@ public static class SegmentBasis
 
     public readonly struct Lagrange1D(double[] nodes, int index) : IBasisFunction1D
     {
+        public static Lagrange1D Create(int order, int index)
+        {
+            Debug.Assert(0 < order);
+            Debug.Assert(0 <= index && index <= order);
+
+            var nodes = new double[order + 1];
+            double h = 1.0 / order;
+
+            for (int i = 0; i < order; i++)
+                nodes[i] = i * h;
+            nodes[order] = 1;
+
+            return new(nodes, index);
+        }
+
         public double Value(Vector1D point)
         {
             double x = point;
