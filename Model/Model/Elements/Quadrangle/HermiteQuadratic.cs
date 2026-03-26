@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using Model.Model.Basis;
 using Model.Model.Mesh;
 using Telma;
@@ -25,16 +26,18 @@ public sealed class HermiteQuadrangleFactory : IFiniteElementFactory<Vector2D>
         public override int NumberOfDofOnEdge => 0;
         public override int NumberOfDofOnElement => 0;
 
-
-        public override void SetEdgeDof(int localEdgeIndex, bool isOrientationFlipped, int n, int dofIndex) => throw new NotSupportedException();
-
         public override void SetVertexDof(int localVertexIndex, int n, int dofIndex)
         {
-            if (n != 0) throw new NotSupportedException();
-            ArgumentOutOfRangeException.ThrowIfGreaterThanOrEqual(localVertexIndex, 4);
+            AssertIsValidVertexDofNumber(n);
+            Debug.Assert(0 <= localVertexIndex && localVertexIndex < 4); 
             _dof[localVertexIndex * 4 + n] = dofIndex;
         }
+
+        public override void SetEdgeDof(int localEdgeIndex, bool isOrientationFlipped, int n, int dofIndex)
+            => throw new NotSupportedException();
+
         
-        public override void SetElementDof(int n, int dofIndex) => throw new NotSupportedException();
+        public override void SetElementDof(int n, int dofIndex)
+            => throw new NotSupportedException();
     }
 }

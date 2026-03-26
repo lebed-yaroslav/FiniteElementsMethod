@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using Model.Model.Basis;
 using Model.Model.Mesh;
 using Telma;
@@ -42,11 +43,16 @@ public sealed class HierarchicalCubicTriangleFactory : IFiniteElementFactory<Vec
 
         public override void SetVertexDof(int localVertexIndex, int n, int dofIndex)
         {
+            AssertIsValidVertexDofNumber(n);
+            Debug.Assert(0 <= localVertexIndex && localVertexIndex < 3);
             _dof[localVertexIndex] = dofIndex;
         }
 
         public override void SetEdgeDof(int localEdgeIndex, bool isOrientationFlipped, int n, int dofIndex)
         {
+            AssertIsValidEdgeDofNumber(n);
+            Debug.Assert(0 <= localEdgeIndex && localEdgeIndex < 3);
+
             int basisIndex = 3 + 3 * n + localEdgeIndex;
             _dof[basisIndex] = dofIndex;
             if (n == 1)
@@ -55,6 +61,7 @@ public sealed class HierarchicalCubicTriangleFactory : IFiniteElementFactory<Vec
 
         public override void SetElementDof(int n, int dofIndex)
         {
+            AssertIsValidElementDofNumber(n);
             _dof[9] = dofIndex;
         }
     }

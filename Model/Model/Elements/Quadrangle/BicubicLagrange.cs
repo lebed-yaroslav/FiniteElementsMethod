@@ -29,7 +29,7 @@ public sealed class BicubicLagrangeQuadrangleFactory : IFiniteElementFactory<Vec
 
         public override void SetVertexDof(int localVertexIndex, int n, int dofIndex)
         {
-            if (n != 0) throw new NotSupportedException();
+            AssertIsValidVertexDofNumber(n);
             var basisIndex = localVertexIndex switch {
                 0 => 0,
                 1 => 3,
@@ -43,7 +43,7 @@ public sealed class BicubicLagrangeQuadrangleFactory : IFiniteElementFactory<Vec
         // Each edge has two nodes that numbered in clockwise order (corresponds to QuadrangleGeometry edge numeration)
         public override void SetEdgeDof(int localEdgeIndex, bool isOrientationFlipped, int n, int dofIndex)
         {
-            if (n < 0 || n >= 2) throw new NotSupportedException();
+            AssertIsValidEdgeDofNumber(n);
             var basisIndex = localEdgeIndex switch
             {
                 0 => 1 + n,
@@ -58,6 +58,7 @@ public sealed class BicubicLagrangeQuadrangleFactory : IFiniteElementFactory<Vec
         // Local numeration corresponds to vertex node numerations
         public override void SetElementDof(int n, int dofIndex)
         {
+            AssertIsValidElementDofNumber(n);
             var basisIndex = n switch
             {
                 0 => 5,

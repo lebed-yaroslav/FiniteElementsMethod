@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using Model.Model.Basis;
 using Model.Model.Mesh;
 using Telma;
@@ -29,8 +30,8 @@ public sealed class LinearSegmentFactory : IBoundaryElementFactory<Vector2D, Vec
 
         public override void SetVertexDof(int localVertexIndex, int n, int dofIndex)
         {
-            if (n != 0) throw new NotSupportedException();
-            if (localVertexIndex <= 2) throw new NotSupportedException();
+            AssertIsValidVertexDofNumber(n);
+            Debug.Assert(0 <= localVertexIndex && localVertexIndex < 2);
             _dof[localVertexIndex] = dofIndex;
         }
 

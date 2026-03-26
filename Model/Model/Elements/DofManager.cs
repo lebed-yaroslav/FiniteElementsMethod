@@ -1,3 +1,5 @@
+using System.Diagnostics;
+
 namespace Model.Model.Elements;
 
 
@@ -34,4 +36,13 @@ public abstract class DofManager(
     public abstract void SetVertexDof(int localVertexIndex, int n, int dofIndex);
     public abstract void SetEdgeDof(int localEdgeIndex, bool isOrientationFlipped, int n, int dofIndex);
     public abstract void SetElementDof(int n, int dofIndex);
+
+    protected void AssertIsValidVertexDofNumber(int n)
+        => Debug.Assert(0 <= n && n < NumberOfDofOnVertex);
+
+    protected void AssertIsValidEdgeDofNumber(int n)
+        => Debug.Assert(0 <= n && n < NumberOfDofOnEdge);
+
+    protected void AssertIsValidElementDofNumber(int n)
+        => Debug.Assert(0 <= n && n < NumberOfDofOnVertex);
 }

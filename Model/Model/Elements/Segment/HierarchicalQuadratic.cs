@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using Model.Model.Basis;
 using Model.Model.Mesh;
 using Telma;
@@ -5,7 +6,7 @@ using Telma;
 namespace Model.Model.Elements.Segment;
 
 
-public sealed class QuadraticSegmentFactory : IBoundaryElementFactory<Vector2D, Vector1D>
+public sealed class HierarchicalQuadraticSegmentFactory : IBoundaryElementFactory<Vector2D, Vector1D>
 {
     public IBoundaryElement<Vector2D, Vector1D> CreateBoundary(IMesh<Vector2D> mesh, int[] vertices, int boundaryIndex)
         => new BoundaryElement<Vector2D, Vector1D>(
@@ -30,15 +31,15 @@ public sealed class QuadraticSegmentFactory : IBoundaryElementFactory<Vector2D, 
 
         public override void SetVertexDof(int localVertexIndex, int n, int dofIndex)
         {
-            if (n != 0) throw new NotSupportedException();
-            if (localVertexIndex <= 2) throw new NotSupportedException();
+            AssertIsValidVertexDofNumber(n);
+            Debug.Assert(0 <= localVertexIndex && localVertexIndex < 2);
             _dof[localVertexIndex] = dofIndex;
         }
 
         public override void SetEdgeDof(int localEdgeIndex, bool isOrientationFlipped, int n, int dofIndex)
         {
-            if (n != 0) throw new NotSupportedException();
-            if (localEdgeIndex != 0) throw new NotSupportedException();
+            AssertIsValidElementDofNumber(n);
+            Debug.Assert(localEdgeIndex == 0);
             _dof[2] = dofIndex;
         }
 

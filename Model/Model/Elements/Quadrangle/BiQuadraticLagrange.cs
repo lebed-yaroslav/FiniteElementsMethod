@@ -27,8 +27,7 @@ internal class BiQuadraticLagrangeQuadrangleFactory : IFiniteElementFactory<Vect
 
         public override void SetVertexDof(int localVertexIndex, int n, int dofIndex)
         {
-            if (n != 0) throw new NotSupportedException();
-            if (localVertexIndex >= 4) throw new NotSupportedException();
+            AssertIsValidVertexDofNumber(n);
             var basisIndex = localVertexIndex switch
             {
                 0 => 0,
@@ -42,8 +41,7 @@ internal class BiQuadraticLagrangeQuadrangleFactory : IFiniteElementFactory<Vect
 
         public override void SetEdgeDof(int localEdgeIndex, bool isOrientationFlipped, int n, int dofIndex)
         {
-            if (n != 0) throw new NotSupportedException();
-            if (localEdgeIndex >= 4) throw new NotSupportedException();
+            AssertIsValidEdgeDofNumber(n);
             var basisIndex = localEdgeIndex switch
             {
                 0 => 1,
@@ -57,7 +55,7 @@ internal class BiQuadraticLagrangeQuadrangleFactory : IFiniteElementFactory<Vect
 
         public override void SetElementDof(int n, int dofIndex)
         {
-            if (n != 0) throw new NotSupportedException();
+            AssertIsValidElementDofNumber(n);
             _dof[4] = dofIndex;
         }
     }
