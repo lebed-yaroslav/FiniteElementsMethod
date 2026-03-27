@@ -15,7 +15,7 @@ public sealed class LocalMatrix(int n) : IMatrix
 /// <summary>
 /// Global sparse matrix for FEM assembly
 /// </summary>
-public interface IGlobalMatrix : IMatrix, IClonable
+public interface IGlobalMatrix : IMatrix, ICloneable
 {
     /// <summary>
     /// Assembles local matrix into global using index mapping.
