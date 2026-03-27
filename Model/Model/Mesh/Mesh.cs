@@ -1,3 +1,7 @@
+global using IMesh1D = Model.Model.Mesh.IMesh<Telma.Vector1D>;
+global using IMesh2D = Model.Model.Mesh.IMesh<Telma.Vector2D>;
+global using IMesh3D = Model.Model.Mesh.IMesh<Telma.Vector3D>;
+
 using Model.Core.CoordinateSystem;
 using Model.Model.Elements;
 using Telma;

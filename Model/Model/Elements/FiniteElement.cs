@@ -1,3 +1,22 @@
+global using IFiniteElement1D = Model.Model.Elements.IFiniteElement<Telma.Vector1D>;
+global using IFiniteElement2D = Model.Model.Elements.IFiniteElement<Telma.Vector2D>;
+global using IFiniteElement3D = Model.Model.Elements.IFiniteElement<Telma.Vector3D>;
+global using FiniteElement1D = Model.Model.Elements.FiniteElement<Telma.Vector1D>;
+global using FiniteElement2D = Model.Model.Elements.FiniteElement<Telma.Vector2D>;
+global using FiniteElement3D = Model.Model.Elements.FiniteElement<Telma.Vector3D>;
+
+global using IFiniteElementFactory1D = Model.Model.Elements.IFiniteElementFactory<Telma.Vector1D>;
+global using IFiniteElementFactory2D = Model.Model.Elements.IFiniteElementFactory<Telma.Vector2D>;
+global using IFiniteElementFactory3D = Model.Model.Elements.IFiniteElementFactory<Telma.Vector3D>;
+
+global using IBoundaryElement2D = Model.Model.Elements.IBoundaryElement<Telma.Vector2D, Telma.Vector1D>;
+global using IBoundaryElement3D = Model.Model.Elements.IBoundaryElement<Telma.Vector3D, Telma.Vector2D>;
+global using BoundaryElement2D = Model.Model.Elements.BoundaryElement<Telma.Vector2D, Telma.Vector1D>;
+global using BoundaryElement3D = Model.Model.Elements.BoundaryElement<Telma.Vector3D, Telma.Vector2D>;
+
+global using IBoundaryElementFactory2D = Model.Model.Elements.IBoundaryElementFactory<Telma.Vector2D, Telma.Vector1D>;
+global using IBoundaryElementFactory3D = Model.Model.Elements.IBoundaryElementFactory<Telma.Vector3D, Telma.Vector2D>;
+
 using Model.Model.Mesh;
 using Telma.Extensions;
 
