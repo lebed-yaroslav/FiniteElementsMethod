@@ -1,10 +1,29 @@
+using Model.Model.Elements.Quadrangle;
+using Model.Model.Elements.Segment;
 using Model.Model.Elements.Triangle;
-using Telma;
 
 namespace Model.Model.Elements;
 
 public static class FiniteElements
 {
-    public static readonly IFiniteElementFactory2D LinearTriangle = new LinearTriangleFactory();
-    public static readonly IFiniteElementFactory2D HierarchicalQuadraticTriangle = new HierarchicalQuadraticTriangleFactory();
+    public static class Segment
+    {
+        public static readonly IBoundaryElementFactory2D Linear = new LinearSegmentFactory();
+        public static readonly IBoundaryElementFactory2D HierarchicalQuadratic = new HierarchicalQuadraticSegmentFactory();
+    }
+
+    public static class Triangle
+    {
+        public static readonly IFiniteElementFactory2D Linear = new LinearTriangleFactory();
+        public static readonly IFiniteElementFactory2D HierarchicalQuadratic = new HierarchicalQuadraticTriangleFactory();
+        public static readonly IFiniteElementFactory2D HierarchicalCubic = new HierarchicalCubicTriangleFactory();
+    }
+
+    public static class Quadrangle
+    {
+        public static readonly IFiniteElementFactory2D Bilinear = new BilinearQuadrangleFactory();
+        public static readonly IFiniteElementFactory2D LagrangeQuadratic = new BiQuadraticLagrangeQuadrangleFactory();
+        public static readonly IFiniteElementFactory2D LagrangeCubic = new BicubicLagrangeQuadrangleFactory();
+        public static readonly IFiniteElementFactory2D Hermite = new HermiteQuadrangleFactory();
+    }
 }
