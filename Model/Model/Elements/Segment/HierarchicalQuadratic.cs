@@ -10,7 +10,7 @@ public sealed class HierarchicalQuadraticSegmentFactory : IBoundaryElementFactor
 {
     public IBoundaryElement2D CreateBoundary(IMesh2D mesh, int[] vertices, int boundaryIndex)
         => new BoundaryElement2D(
-            Geometry: new SegmentGeometry<Vector2D>.Boundary(vertices) { Mesh = mesh },
+            Geometry: new SegmentGeometry<Vector2D>(vertices) { Mesh = mesh },
             DOF: new Dof(),
             BasisSet: Basis,
             BoundaryIndex: boundaryIndex
