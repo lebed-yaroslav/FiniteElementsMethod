@@ -1,17 +1,19 @@
 using Model.Model.Elements;
 using Model.Model.Mesh;
+using Telma.Extensions;
 
 namespace Model.Model.Assembly;
 
-public static partial class DofNumerator
+public static partial class DofNumerator<TSpace, TBoundary>
+    where TSpace : IVectorBase<TSpace>
+    where TBoundary : IVectorBase<TBoundary>
 {
     /// <summary>
     /// Производит первичную нумерацию степеней свободы
     /// </summary>
     /// <returns>Общее количество степеней свободы</returns>
-    public static int NumerateDof(Mesh2D mesh)
+    public static int NumerateDof(IMeshWithBoundaries<TSpace, TBoundary> mesh)
     {
-
         int dofCount = 0;
 
         NumerateVertexDof(mesh, ref dofCount);
@@ -21,16 +23,16 @@ public static partial class DofNumerator
         return dofCount;
     }
 
-    private static void NumerateVertexDof(Mesh2D mesh, ref int dofCount)
+    private static void NumerateVertexDof(IMeshWithBoundaries<TSpace, TBoundary> mesh, ref int dofCount)
     {
         // 1. Count dof per vertex
-        int[] dofByVertex = new int[mesh.VerticesCount]; // Stores max dof count for given vertex
+        int[] dofByVertex = new int[mesh.VertexCount]; // Stores max dof count for given vertex
         foreach (var element in mesh.AllElements)
             foreach (var i in element.Geometry.Vertices)
                 dofByVertex[i] = Math.Max(dofByVertex[i], element.DOF.NumberOfDofOnVertex);
 
         // 2. Set up initial dof number per vertex
-        for (int i = 0; i < mesh.VerticesCount; ++i)
+        for (int i = 0; i < mesh.VertexCount; ++i)
         {
             int prevDofCount = dofCount;
             dofCount += dofByVertex[i];
@@ -48,10 +50,8 @@ public static partial class DofNumerator
     }
 
 
-    private static void NumerateEdgeDof(Mesh2D mesh, ref int dofCount)
+    private static void NumerateEdgeDof(IMeshWithBoundaries<TSpace, TBoundary> mesh, ref int dofCount)
     {
-        int localEdgeIndex = 0;
-
         // 1. Count dof per edge
         Dictionary<Edge, int> dofCountByEdge = []; // Stores max dof count for given edge
         foreach (var element in mesh.AllElements)
@@ -68,7 +68,7 @@ public static partial class DofNumerator
         Dictionary<Edge, int> dofNumberByEdge = [];
         foreach (var element in mesh.AllElements)
         {
-            localEdgeIndex = 0;
+            int localEdgeIndex = 0;
             foreach (var iter in element.Geometry.Edges)
             {
                 var edge = iter.Sorted(out var isOrientationFlipped);
@@ -85,7 +85,7 @@ public static partial class DofNumerator
     }
 
 
-    private static void NumerateElementDof(Mesh2D mesh, ref int dofCount)
+    private static void NumerateElementDof(IMeshWithBoundaries<TSpace, TBoundary> mesh, ref int dofCount)
     {
         foreach (var element in mesh.AllElements)
             for (int i = 0; i < element.DOF.NumberOfDofOnElement; i++)

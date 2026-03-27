@@ -14,6 +14,7 @@ public interface IMesh<TSpace>
     where TSpace : IVectorBase<TSpace>
 {
     TSpace this[int i] { get; }
+    int VertexCount { get; }
     ICoordinateTransform<TSpace, TSpace> CoordinateSystem { get; }
     IEnumerable<IFiniteElement<TSpace>> FiniteElements { get; }
 }
@@ -36,7 +37,7 @@ public abstract class Mesh<TSpace>(ICoordinateTransform<TSpace, TSpace> coordina
     private readonly List<IFiniteElement<TSpace>> _finiteElements = [];
 
     public TSpace this[int i] => _vertices[i];
-    public int VerticesCount => _vertices.Count;
+    public int VertexCount => _vertices.Count;
     public ICoordinateTransform<TSpace, TSpace> CoordinateSystem { get; } = coordinateSystem;
     public IEnumerable<IFiniteElement<TSpace>> FiniteElements => _finiteElements;
 
