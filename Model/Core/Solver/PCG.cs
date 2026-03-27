@@ -16,13 +16,24 @@ public sealed record PCGSolver(
         set
         {
             if (field != null)
+            {
                 _preconditioner = PreconditionerCreator((IGlobalMatrix)field.Clone());
-            else
-                _preconditioner = null;
+                int n = field.Size;
+                _r = new double[n];
+                _p = new double[n];
+                _ap = new double[n];
+                _z = new double[n];
+            }
             field = value;
         }
         private get;
     }
+
+    // Pre-Allocated buffers
+    private double[] _r = []; // residual
+    private double[] _p = []; // search direction
+    private double[] _ap = [];
+    private double[] _z = []; // preconditioned residual
 
     public (double residual, int iterations) Solve(
         ReadOnlySpan<double> rhsVector,
@@ -45,42 +56,38 @@ public sealed record PCGSolver(
         }
 
         int n = Matrix.Size;
-        var r = new double[n]; // residual
-        var p = new double[n]; // search direction
-        var ap = new double[n];
-        var z = new double[n]; // preconditioned residual
 
         // r = f - ax
-        Matrix.MulVec(solution, r);
-        rhsVector.Sub(r, r);
+        Matrix.MulVec(solution, _r);
+        rhsVector.Sub(_r, _r);
 
         // p = (M^-1) * (f - ax)
-        _preconditioner!.Apply(r, p);
+        _preconditioner!.Apply(_r, _p);
 
         // z = (M^-1) * r
-        Array.Copy(p, z, n);
+        Array.Copy(_p, _z, n);
 
-        double dotRlR = z.Dot(r);
+        double dotRlR = _z.Dot(_r);
 
         double rNorm = 0;
         for (int iter = 0; iter < paramz.MaxIterations; ++iter)
         {
-            Matrix.MulVec(p, ap);
+            Matrix.MulVec(_p, _ap);
 
-            double alpha = dotRlR / ap.Dot(p);
-            solution.AddScaled(alpha, p, solution); // x = x + a * z
-            r.AddScaled(-alpha, ap, r); // r = r - alpha * ap
+            double alpha = dotRlR / _ap.Dot(_p);
+            solution.AddScaled(alpha, _p, solution); // x = x + a * z
+            _r.AddScaled(-alpha, _ap, _r); // r = r - alpha * ap
 
-            rNorm = r.Norm();
+            rNorm = _r.Norm();
             if (rNorm < paramz.Eps * rhsNorm)
                 return (rNorm, iter);
 
             // z = (M^-1) * r
-            _preconditioner!.Apply(r, z);
+            _preconditioner!.Apply(_r, _z);
 
-            double newDotRlR = z.Dot(r);
+            double newDotRlR = _z.Dot(_r);
             double beta = newDotRlR / dotRlR; // b = (z_k, r_k) / (z_{k-1}, r_{k-1})
-            z.AddScaled(beta, p, p); // p = z + b * p
+            _z.AddScaled(beta, _p, _p); // p = z + b * p
             dotRlR = newDotRlR;
         }
 
