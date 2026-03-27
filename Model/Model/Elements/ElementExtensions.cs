@@ -41,7 +41,7 @@ public static class FiniteElementExtensions
         public int Count => self.Dof.Length;
     }
 
-    extension<TSpace>(IElementGeometry<TSpace> self)
+    extension<TSpace>(IElementGeometryBase<TSpace> self)
         where TSpace : IVectorBase<TSpace>
     {
         public int VertexCount => self.Vertices.Length;

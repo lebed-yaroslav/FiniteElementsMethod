@@ -5,8 +5,7 @@ namespace Model.Model.Elements.Triangle;
 
 
 public sealed class TriangleGeometry(int[] vertexIndices) :
-    ElementGeometry2D(vertexIndices),
-    IVolumeElementGeometry2D
+    VolumeElementGeometry2D(vertexIndices)
 {
     public override IEnumerable<Edge> Edges
     {
@@ -20,7 +19,7 @@ public sealed class TriangleGeometry(int[] vertexIndices) :
 
     public override int EdgeCount => 3;
 
-    public ICoordinateTransform<Vector2D, Vector2D> MasterElementCoordinateSystem =>
+    public override ICoordinateTransform<Vector2D, Vector2D> MasterElementCoordinateSystem =>
         new BarycentricCoordinateSystem(
             Mesh[Vertices[0]], Mesh[Vertices[1]], Mesh[Vertices[2]]
         );
