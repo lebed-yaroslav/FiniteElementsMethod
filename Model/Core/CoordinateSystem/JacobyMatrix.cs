@@ -1,3 +1,15 @@
+global using IJacobyMatrix1x1 = Model.Core.CoordinateSystem.IJacobyMatrix<Telma.Vector1D, Telma.Vector1D>;
+global using IJacobyMatrix2x2 = Model.Core.CoordinateSystem.IJacobyMatrix<Telma.Vector2D, Telma.Vector2D>;
+global using IJacobyMatrix3x3 = Model.Core.CoordinateSystem.IJacobyMatrix<Telma.Vector3D, Telma.Vector3D>;
+global using IJacobyMatrix1x2 = Model.Core.CoordinateSystem.IJacobyMatrix<Telma.Vector1D, Telma.Vector2D>;
+global using IJacobyMatrix2x3 = Model.Core.CoordinateSystem.IJacobyMatrix<Telma.Vector2D, Telma.Vector3D>;
+
+global using ConstantJacobyMatrix1x1 = Model.Core.CoordinateSystem.ConstantJacobyMatrix<Telma.Vector1D, Telma.Vector1D>;
+global using ConstantJacobyMatrix2x2 = Model.Core.CoordinateSystem.ConstantJacobyMatrix<Telma.Vector2D, Telma.Vector2D>;
+global using ConstantJacobyMatrix3x3 = Model.Core.CoordinateSystem.ConstantJacobyMatrix<Telma.Vector3D, Telma.Vector3D>;
+global using ConstantJacobyMatrix1x2 = Model.Core.CoordinateSystem.ConstantJacobyMatrix<Telma.Vector1D, Telma.Vector2D>;
+global using ConstantJacobyMatrix2x3 = Model.Core.CoordinateSystem.ConstantJacobyMatrix<Telma.Vector2D, Telma.Vector3D>;
+
 using System.Diagnostics;
 using Telma;
 using Telma.Extensions;
@@ -47,16 +59,28 @@ public static class IJacobyMatrixExtensions
     }
 }
 
-public sealed class ConstantJacobyMatrix2D(double[,] j) : IJacobyMatrix<Vector2D, Vector2D>
+public class ConstantJacobyMatrix<TSource, TTarget>(double[,] j) : IJacobyMatrix<TSource, TTarget>
+    where TSource : IVectorBase<TSource>
+    where TTarget : IVectorBase<TTarget>
 {
     public static bool IsConstant => true;
-    private readonly double[,] _j = j;
+    protected readonly double[,] _j = j;
 
-    public double this[int i, int j, Vector2D _] => _j[i, j];
+    public double this[int i, int j, TSource _] => _j[i, j];
     public double this[int i, int j] => _j[i, j];
 
-    public double Det(Vector2D _) => _j[0, 0] * _j[1, 1] - _j[0, 1] * _j[1, 0];
+    public virtual double Det(TSource sourcePoint) => this.Det();
 
+    public static TSource operator *(ConstantJacobyMatrix<TSource, TTarget> lhs, TTarget rhs)
+        => lhs.Mul(rhs);
+
+    public static TSource operator *(TTarget lhs, ConstantJacobyMatrix<TSource, TTarget> rhs)
+        => rhs.Mul(lhs);
+}
+
+// FIXME: Use specialization
+public sealed class ConstantJacobyMatrix2D(double[,] j) : ConstantJacobyMatrix2x2(j)
+{
     public ConstantJacobyMatrix2D Inverse()
     {
         var detJ = this.Det(Vector2D.Zero);
@@ -66,11 +90,4 @@ public sealed class ConstantJacobyMatrix2D(double[,] j) : IJacobyMatrix<Vector2D
             {-_j[1, 0] / detJ, _j[0, 0] / detJ}
         });
     }
-
-    // TODO: Generalize IJacobyMatrix operations
-    public static Vector2D operator *(ConstantJacobyMatrix2D a, Vector2D x)
-        => new(
-            a[0, 0] * x.X + a[0, 1] * x.Y,
-            a[1, 0] * x.X + a[1, 1] * x.Y
-        );
 }
