@@ -60,7 +60,7 @@ public sealed class ConstantJacobyMatrix2D(double[,] j) : IJacobyMatrix<Vector2D
     public ConstantJacobyMatrix2D Inverse()
     {
         var detJ = this.Det(Vector2D.Zero);
-        Debug.Assert(detJ >= 1e-14, "The Jacobian matrix is ​​singular at given point");
+        Debug.Assert(Math.Abs(detJ) >= 1e-14, "The Jacobian matrix is ​​singular at given point");
         return new(new[,] {
             {_j[1, 1] / detJ, -_j[0, 1] / detJ},
             {-_j[1, 0] / detJ, _j[0, 0] / detJ}
