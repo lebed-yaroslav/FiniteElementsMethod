@@ -14,8 +14,55 @@ public sealed record CsrILUFactorization : ILUFactorization
     public Span<double> Ggu => _storage.Ggu;
     public Span<double> Di => _storage.Di;
 
-    public static void Factorize(CsrMatrix matrix, double eps)
-        => Factory.Instance.Factorize(matrix, eps);
+    public static CsrILUFactorization Create(CsrMatrix matrix, double eps = 1e-12)
+    {
+        int n = matrix.Size;
+        var lu = new CsrILUFactorization(matrix);
+
+        for (int i = 0; i < n; ++i)
+        {
+            double sumD = 0.0;
+            double d;
+            for (int p = matrix.Ig[i]; p < matrix.Ig[i + 1]; ++p)
+            {
+                int j = matrix.Jg[p];
+
+                double sumL = 0.0;
+                double sumU = 0.0;
+
+                int lp = matrix.Ig[i];
+                int up = matrix.Ig[j];
+
+                while (lp < p && up < matrix.Ig[j + 1])
+                {
+                    int lj = matrix.Jg[lp];
+                    int uj = matrix.Jg[up];
+
+                    if (lj > uj) up++;
+                    else if (lj < uj) lp++;
+                    else
+                    {
+                        sumL += matrix.Ggl[lp] * matrix.Ggu[up];
+                        sumU += matrix.Ggl[up] * matrix.Ggu[lp];
+                        up++; lp++;
+                    }
+                }
+
+                d = lu.Di[j];
+                if (!double.IsFinite(d) || Math.Abs(d) < eps)
+                    throw new ArithmeticException($"Bad diagonal in ILLt: Di[{j}]={d}");
+
+                lu.Ggl[p] = (matrix.Ggl[p] - sumL) / d;
+                lu.Ggu[p] = matrix.Ggu[p] - sumU;
+                sumD += lu.Ggl[p] * lu.Ggu[p];
+            }
+            d = matrix.Di[i] - sumD;
+            if (!double.IsFinite(d) || Math.Abs(d) < eps)
+                throw new ArithmeticException($"Bad diagonal after ILLt: Di[{i}]={d}");
+            lu.Di[i] = d;
+        }
+        return lu;
+    }
 
     private CsrILUFactorization(CsrMatrix storage) { _storage = storage; }
 
@@ -46,62 +93,6 @@ public sealed record CsrILUFactorization : ILUFactorization
                 int j = Jg[p];
                 res[j] -= res[i] * Ggu[p];
             }
-        }
-    }
-
-    public sealed class Factory : ILUFactorizer
-    {
-        public static Factory Instance { get; } = new();
-        private Factory() { }
-
-        public ILUFactorization Factorize(CsrMatrix matrix, double eps)
-        {
-            int n = matrix.Size;
-            var lu = new CsrILUFactorization(matrix);
-
-            for (int i = 0; i < n; ++i)
-            {
-                double sumD = 0.0;
-                double d;
-                for (int p = matrix.Ig[i]; p < matrix.Ig[i + 1]; ++p)
-                {
-                    int j = matrix.Jg[p];
-
-                    double sumL = 0.0;
-                    double sumU = 0.0;
-
-                    int lp = matrix.Ig[i];
-                    int up = matrix.Ig[j];
-
-                    while (lp < p && up < matrix.Ig[j + 1])
-                    {
-                        int lj = matrix.Jg[lp];
-                        int uj = matrix.Jg[up];
-
-                        if (lj > uj) up++;
-                        else if (lj < uj) lp++;
-                        else
-                        {
-                            sumL += matrix.Ggl[lp] * matrix.Ggu[up];
-                            sumU += matrix.Ggl[up] * matrix.Ggu[lp];
-                            up++; lp++;
-                        }
-                    }
-
-                    d = lu.Di[j];
-                    if (!double.IsFinite(d) || Math.Abs(d) < eps)
-                        throw new ArithmeticException($"Bad diagonal in ILLt: Di[{j}]={d}");
-
-                    lu.Ggl[p] = (matrix.Ggl[p] - sumL) / d;
-                    lu.Ggu[p] = matrix.Ggu[p] - sumU;
-                    sumD += lu.Ggl[p] * lu.Ggu[p];
-                }
-                d = matrix.Di[i] - sumD;
-                if (!double.IsFinite(d) || Math.Abs(d) < eps)
-                    throw new ArithmeticException($"Bad diagonal after ILLt: Di[{i}]={d}");
-                lu.Di[i] = d;
-            }
-            return lu;
         }
     }
 }

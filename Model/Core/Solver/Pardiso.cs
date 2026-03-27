@@ -1,20 +1,26 @@
+using System.Diagnostics;
 using Model.Core.Matrix;
 using Quasar.Native;
 
 namespace Model.Core.Solver;
 
+
 [Obsolete("This feature is incomplete and should not be used yet.")]
 public sealed class PardisoSolver : ISolver
 {
-    private readonly Pardiso<double> _solver;
-
-    public PardisoSolver(IGlobalMatrix matrix)
+    private Pardiso<double>? _solver;
+    public IGlobalMatrix? Matrix
     {
-        if (matrix is not IPardisoMatrix<double> pardisoMatrix)
-            throw new ArgumentException($"Expected matrix of type {nameof(IPardisoMatrix<>)}", nameof(matrix));
-        _solver = new(pardisoMatrix);
-        _solver.Analysis();
-        _solver.Factorization();
+        set
+        {
+            if (value is not IPardisoMatrix<double> pardisoMatrix)
+                throw new ArgumentException($"Expected matrix of type {nameof(IPardisoMatrix<>)}", nameof(value));
+            _solver = new(pardisoMatrix);
+            _solver.Analysis();
+            _solver.Factorization();
+            value = field;
+        }
+        private get;
     }
 
     public (double residual, int iterations) Solve(
@@ -23,7 +29,15 @@ public sealed class PardisoSolver : ISolver
         ISolver.SolverParams paramz = default
     )
     {
-        _solver.Solve(rhsVector, solution);
+        if (Matrix == null)
+            throw new InvalidOperationException("Cannot solve system: matrix has not been properly initialized");
+
+        Debug.Assert(rhsVector.Length == Matrix.Size);
+        Debug.Assert(solution.Length == Matrix.Size);
+
+        _solver!.Solve(rhsVector, solution);
         return (-1, -1); // TODO
     }
+
+    public void Dispose() => _solver?.Dispose();
 }

@@ -1,8 +1,12 @@
+using Model.Core.Matrix;
+
 namespace Model.Core.Solver;
 
 
-public interface ISolver
+public interface ISolver : IDisposable
 {
+    public IGlobalMatrix Matrix { set; }
+
     public record struct SolverParams(
         double Eps = 1e-10,
         int MaxIterations = 1000

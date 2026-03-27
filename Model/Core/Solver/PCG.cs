@@ -6,19 +6,33 @@ using Model.Core.Vector;
 namespace Model.Core.Solver;
 
 /// <summary>Preconditioned conjugate gradient solver</summary>
-/// <param name="Matrix">System matrix</param>
-/// <param name="Preconditioner">Matrix preconditioner</param>
 public sealed record PCGSolver(
-    IGlobalMatrix Matrix,
-    IPreconditioner Preconditioner
+    PreconditionerCreator PreconditionerCreator
 ) : ISolver
 {
+    private IPreconditioner? _preconditioner;
+
+    public IGlobalMatrix? Matrix {
+        set
+        {
+            if (field != null)
+                _preconditioner = PreconditionerCreator((IGlobalMatrix)field.Clone());
+            else
+                _preconditioner = null;
+            field = value;
+        }
+        private get;
+    }
+
     public (double residual, int iterations) Solve(
         ReadOnlySpan<double> rhsVector,
         Span<double> solution,
         ISolver.SolverParams paramz = default
     ) 
     {
+        if (Matrix == null)
+            throw new InvalidOperationException("Cannot solve system: matrix has not been properly initialized");
+
         Debug.Assert(rhsVector.Length == Matrix.Size);
         Debug.Assert(solution.Length == Matrix.Size);
 
@@ -41,7 +55,7 @@ public sealed record PCGSolver(
         rhsVector.Sub(r, r);
 
         // p = (M^-1) * (f - ax)
-        Preconditioner.Apply(r, p);
+        _preconditioner!.Apply(r, p);
 
         // z = (M^-1) * r
         Array.Copy(p, z, n);
@@ -62,7 +76,7 @@ public sealed record PCGSolver(
                 return (rNorm, iter);
 
             // z = (M^-1) * r
-            Preconditioner.Apply(r, z);
+            _preconditioner!.Apply(r, z);
 
             double newDotRlR = z.Dot(r);
             double beta = newDotRlR / dotRlR; // b = (z_k, r_k) / (z_{k-1}, r_{k-1})
@@ -72,4 +86,6 @@ public sealed record PCGSolver(
 
         return (rNorm, paramz.MaxIterations);
     }
+
+    public void Dispose() { }
 }
