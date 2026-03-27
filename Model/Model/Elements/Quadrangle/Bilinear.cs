@@ -1,21 +1,21 @@
-﻿using System;
+using System.Diagnostics;
 using Model.Model.Basis;
 using Telma;
 
 
 namespace Model.Model.Elements.Quadrangle
 {
-    public sealed class BilinearQuadraticFactory : IFiniteElementFactory
+    public sealed class BilinearQuadrangleFactory : IFiniteElementFactory2D
     {
-
-        public IFiniteElement Create(IMesh2D mesh, int[] vertices) =>
-            new FiniteElement(
+        public IFiniteElement2D CreateElement(IMesh2D mesh, int[] vertices, int materialIndex)
+            => new FiniteElement2D(
                 Geometry: new QuadrangleGeometry(vertices) { Mesh = mesh },
                 DOF: new Dof(),
-                BasisSet: Basis
-         );
+                BasisSet: Basis,
+                MaterialIndex: materialIndex
+            );
 
-        public static readonly IBasisSet Basis = new BasisSet(
+        public static readonly IBasisSet2D Basis = new BasisSet2D(
             Quadratures.QuadrangleOrder7,
             QuadrangleBasis.Q1
         );
@@ -26,20 +26,15 @@ namespace Model.Model.Elements.Quadrangle
             public override int NumberOfDofOnEdge => 0;
             public override int NumberOfDofOnElement => 0;
 
-
-            public override void SetEdgeDof(int localEdgeIndex, int n, int dofIndex)
-            {
-                if (n != 0) throw new NotSupportedException();
-                if (localEdgeIndex >= 4) throw new NotSupportedException();
-                _dof[4 + localEdgeIndex] = dofIndex;
-            }
-
             public override void SetVertexDof(int localVertexIndex, int n, int dofIndex)
             {
-                if (n != 0) throw new NotSupportedException();
-                if (localVertexIndex >= 4) throw new NotSupportedException();
+                AssertIsValidVertexDofNumber(n);
+                Debug.Assert(0 <= localVertexIndex && localVertexIndex < 4);
                 _dof[localVertexIndex] = dofIndex;
             }
+
+            public override void SetEdgeDof(int localEdgeIndex, bool isOrientationFlipped, int n, int dofIndex)
+                => throw new NotSupportedException();
 
             public override void SetElementDof(int n, int dofIndex)
                 => throw new NotSupportedException();
