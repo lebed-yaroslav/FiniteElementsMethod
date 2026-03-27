@@ -20,9 +20,7 @@ public static partial class DofNumerator<TSpace, TBoundary>
         BoundaryCondition<TSpace>[] boundaryConditions,
         int totalDofCount
     ) => RenumberFixedDof(
-        fixedElementsDof: mesh.BoundaryElements
-            .Where(e => boundaryConditions[e.BoundaryIndex] is BoundaryCondition<TSpace>.Dirichlet)
-            .Select(e => e.DOF),
+        fixedElementsDof: mesh.FixedElementsBy(boundaryConditions).Select(e => e.DOF),
         elementsDof: mesh.AllElementsDof,
         totalDofCount: totalDofCount
     );
