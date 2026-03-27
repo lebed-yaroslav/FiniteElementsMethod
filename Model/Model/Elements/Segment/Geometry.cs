@@ -19,10 +19,10 @@ public class SegmentGeometry<TSpace> :
 
     public sealed class Boundary(int[] vertexIndices) :
         SegmentGeometry<Vector2D>(vertexIndices),
-        IBoundaryElementGeometry<Vector2D, Vector1D>;
+        IBoundaryElementGeometry2D;
 
     // For potential future usage (or for example how to turn triangle into 2D boundary)
     public sealed class Volume(int[] vertexIndices) :
         SegmentGeometry<Vector1D>(vertexIndices),
-        IVolumeElementGeometry<Vector1D>;
+        IVolumeElementGeometry1D;
 }

@@ -5,8 +5,8 @@ namespace Model.Model.Elements.Triangle;
 
 
 public sealed class TriangleGeometry(int[] vertexIndices) :
-    ElementGeometry<Vector2D>(vertexIndices),
-    IVolumeElementGeometry<Vector2D>
+    ElementGeometry2D(vertexIndices),
+    IVolumeElementGeometry2D
 {
     public override IEnumerable<Edge> Edges
     {

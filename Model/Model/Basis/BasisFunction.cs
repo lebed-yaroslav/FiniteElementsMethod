@@ -2,6 +2,10 @@ global using IBasisFunction1D = Model.Model.Basis.IBasisFunction<Telma.Vector1D>
 global using IBasisFunction2D = Model.Model.Basis.IBasisFunction<Telma.Vector2D>;
 global using IBasisFunction3D = Model.Model.Basis.IBasisFunction<Telma.Vector3D>;
 
+global using OrientedBasisFunction1D = Model.Model.Basis.OrientedBasisFunction<Telma.Vector1D>;
+global using OrientedBasisFunction2D = Model.Model.Basis.OrientedBasisFunction<Telma.Vector2D>;
+global using OrientedBasisFunction3D = Model.Model.Basis.OrientedBasisFunction<Telma.Vector3D>;
+
 using Telma;
 using Telma.Extensions;
 

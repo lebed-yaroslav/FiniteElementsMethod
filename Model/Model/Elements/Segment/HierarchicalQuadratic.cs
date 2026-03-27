@@ -6,17 +6,17 @@ using Telma;
 namespace Model.Model.Elements.Segment;
 
 
-public sealed class HierarchicalQuadraticSegmentFactory : IBoundaryElementFactory<Vector2D, Vector1D>
+public sealed class HierarchicalQuadraticSegmentFactory : IBoundaryElementFactory2D
 {
-    public IBoundaryElement<Vector2D, Vector1D> CreateBoundary(IMesh<Vector2D> mesh, int[] vertices, int boundaryIndex)
-        => new BoundaryElement<Vector2D, Vector1D>(
+    public IBoundaryElement2D CreateBoundary(IMesh2D mesh, int[] vertices, int boundaryIndex)
+        => new BoundaryElement2D(
             Geometry: new SegmentGeometry<Vector2D>.Boundary(vertices) { Mesh = mesh },
             DOF: new Dof(),
             BasisSet: Basis,
             BoundaryIndex: boundaryIndex
     );
 
-    public static readonly IBasisSet<Vector1D> Basis = new BasisSet<Vector1D>(
+    public static readonly IBasisSet1D Basis = new BasisSet1D(
         Quadratures.SegmentGaussOrder1,
         SegmentBasis.N0,
         SegmentBasis.N1,

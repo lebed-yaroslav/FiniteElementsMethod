@@ -9,7 +9,7 @@ namespace Model.Model;
 public static class NumericIntegrator
 {
     public static LocalMatrix CalculateLocalStiffness(
-        IFiniteElement<Vector2D> element,
+        IFiniteElement2D element,
         Func<Vector2D, double> lambda
     )
     {
@@ -56,7 +56,7 @@ public static class NumericIntegrator
     }
 
     public static LocalMatrix CalculateLocalMass(
-        IFiniteElement<Vector2D> element,
+        IFiniteElement2D element,
         Func<Vector2D, double> gamma
     )
     {
@@ -88,7 +88,7 @@ public static class NumericIntegrator
     }
 
     public static void CalculateLocalLoad(
-        IFiniteElement<Vector2D> element,
+        IFiniteElement2D element,
         Func<Vector2D, double> source,
         Span<double> load
     )

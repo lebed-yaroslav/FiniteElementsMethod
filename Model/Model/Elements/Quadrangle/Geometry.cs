@@ -16,8 +16,8 @@ namespace Model.Model.Elements.Quadrangle;
 /// </summary>
 /// <param name="vertexIndices">4 indices of vertices in following order</param>
 public sealed class QuadrangleGeometry(int[] vertexIndices) :
-    ElementGeometry<Vector2D>(vertexIndices),
-    IVolumeElementGeometry<Vector2D>
+    ElementGeometry2D(vertexIndices),
+    IVolumeElementGeometry2D
 {
     public override IEnumerable<Edge> Edges
     {

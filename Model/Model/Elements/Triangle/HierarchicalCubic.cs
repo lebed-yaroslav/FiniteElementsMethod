@@ -1,17 +1,16 @@
 using System.Diagnostics;
 using Model.Model.Basis;
-using Model.Model.Mesh;
 using Telma;
 
 namespace Model.Model.Elements.Triangle;
 
 
-public sealed class HierarchicalCubicTriangleFactory : IFiniteElementFactory<Vector2D>
+public sealed class HierarchicalCubicTriangleFactory : IFiniteElementFactory2D
 {
-    public IFiniteElement<Vector2D> CreateElement(IMesh<Vector2D> mesh, int[] vertices, int materialIndex)
+    public IFiniteElement2D CreateElement(IMesh2D mesh, int[] vertices, int materialIndex)
     {
         var basis = DefaultBasis();
-        return new FiniteElement<Vector2D>(
+        return new FiniteElement2D(
             Geometry: new TriangleGeometry(vertices) { Mesh = mesh },
             DOF: new Dof(basis),
             BasisSet: basis,
@@ -19,7 +18,7 @@ public sealed class HierarchicalCubicTriangleFactory : IFiniteElementFactory<Vec
         );
     }
 
-    public static IBasisSet<Vector2D> DefaultBasis() => new BasisSet<Vector2D>(
+    public static IBasisSet2D DefaultBasis() => new BasisSet2D(
         Quadratures.TriangleOrder6,
         TriangleBasis.L3,
         TriangleBasis.L1,
@@ -27,15 +26,15 @@ public sealed class HierarchicalCubicTriangleFactory : IFiniteElementFactory<Vec
         TriangleBasis.L3L1,
         TriangleBasis.L1L2,
         TriangleBasis.L2L3,
-        new OrientedBasisFunction<Vector2D>(TriangleBasis.L1L3L1SubL3),
-        new OrientedBasisFunction<Vector2D>(TriangleBasis.L1L2L2SubL1),
-        new OrientedBasisFunction<Vector2D>(TriangleBasis.L2L3L2SubL3),
+        new OrientedBasisFunction2D(TriangleBasis.L1L3L1SubL3),
+        new OrientedBasisFunction2D(TriangleBasis.L1L2L2SubL1),
+        new OrientedBasisFunction2D(TriangleBasis.L2L3L2SubL3),
         TriangleBasis.L1L2L3
     );
 
-    public sealed class Dof(IBasisSet<Vector2D> basis) : DofManager(dofCount: 10)
+    public sealed class Dof(IBasisSet2D basis) : DofManager(dofCount: 10)
     {
-        private readonly IBasisSet<Vector2D> _basis = basis;
+        private readonly IBasisSet2D _basis = basis;
 
         public override int NumberOfDofOnVertex => 1;
         public override int NumberOfDofOnEdge => 2;
@@ -56,7 +55,7 @@ public sealed class HierarchicalCubicTriangleFactory : IFiniteElementFactory<Vec
             int basisIndex = 3 + 3 * n + localEdgeIndex;
             _dof[basisIndex] = dofIndex;
             if (n == 1)
-                ((OrientedBasisFunction<Vector2D>)_basis.Basis[basisIndex]).IsOrientationFlipped = isOrientationFlipped;
+                ((OrientedBasisFunction2D)_basis.Basis[basisIndex]).IsOrientationFlipped = isOrientationFlipped;
         }
 
         public override void SetElementDof(int n, int dofIndex)

@@ -5,17 +5,17 @@ using Telma;
 
 namespace Model.Model.Elements.Triangle;
 
-public sealed class HierarchicalQuadraticTriangleFactory : IFiniteElementFactory<Vector2D>
+public sealed class HierarchicalQuadraticTriangleFactory : IFiniteElementFactory2D
 {
-    public IFiniteElement<Vector2D> CreateElement(IMesh<Vector2D> mesh, int[] vertices, int materialIndex) =>
-        new FiniteElement<Vector2D>(
+    public IFiniteElement2D CreateElement(IMesh2D mesh, int[] vertices, int materialIndex) =>
+        new FiniteElement2D(
             Geometry: new TriangleGeometry(vertices) { Mesh = mesh },
             DOF: new Dof(),
             BasisSet: Basis,
             MaterialIndex: materialIndex
      );
 
-    public static readonly IBasisSet<Vector2D> Basis = new BasisSet<Vector2D>(
+    public static readonly IBasisSet2D Basis = new BasisSet2D(
         Quadratures.TriangleOrder6,
         TriangleBasis.L3,
         TriangleBasis.L1,
