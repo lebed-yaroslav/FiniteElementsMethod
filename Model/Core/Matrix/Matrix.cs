@@ -13,7 +13,7 @@ public sealed class LocalMatrix(int n) : IMatrix
 }
 
 
-public interface IGlobalMatrix : IMatrix
+public interface IGlobalMatrix : IMatrix, ICloneable
 {
     void AddLocalMatrix(LocalMatrix matrix, ReadOnlySpan<int> indices);
     void MulVec(ReadOnlySpan<double> vec, Span<double> res);

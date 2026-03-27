@@ -52,6 +52,8 @@ public class CsrMatrix(CsrMatrix.Portrait portrait) : IGlobalMatrix
         _ggl = [.. other._ggl];
     }
 
+    public object Clone() => new CsrMatrix(this);
+
     public void AddLocalMatrix(LocalMatrix matrix, ReadOnlySpan<int> indices)
     {
         int m = indices.Length;
