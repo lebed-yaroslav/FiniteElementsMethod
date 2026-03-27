@@ -2,11 +2,15 @@ using Model.Core.CoordinateSystem;
 using Model.Core.Matrix;
 using Model.Model.Elements;
 using Telma;
+using Telma.Extensions;
 
 namespace Model.Model;
 
 
-public static class NumericIntegrator
+[Obsolete("This feature is moving into Integrator folder")]
+public static class NumericIntegrator<TSpace, TBoundary>
+    where TSpace : IVectorBase<TSpace>
+    where TBoundary : IVectorBase<TBoundary>
 {
     public static LocalMatrix CalculateLocalStiffness(
         IFiniteElement2D element,
@@ -56,8 +60,8 @@ public static class NumericIntegrator
     }
 
     public static LocalMatrix CalculateLocalMass(
-        IFiniteElement2D element,
-        Func<Vector2D, double> gamma
+        IFiniteElementBase<TSpace, TBoundary> element,
+        Func<TSpace, double> gamma
     )
     {
         int n = element.DOF.Count;
