@@ -13,9 +13,22 @@ public sealed class LocalMatrix(int n) : IMatrix
 }
 
 
-public interface IGlobalMatrix : IMatrix, ICloneable
+/// <summary>
+/// Global sparse matrix for FEM assembly
+/// </summary>
+public interface IGlobalMatrix : IMatrix, IClonable
 {
+    /// <summary>
+    /// Assembles local matrix into global using index mapping.
+    /// Skips entries where indices[i] < 0 (e.g., constrained DOFs).
+    /// </summary>
+    /// <param name="matrix">Local element matrix</param>
+    /// <param name="indices">Global DOF indices; negative = skip</param>
     void AddLocalMatrix(LocalMatrix matrix, ReadOnlySpan<int> indices);
+
+    /// <summary>
+    /// Matrix-vector multiplication: res = this * vec
+    /// </summary>
     void MulVec(ReadOnlySpan<double> vec, Span<double> res);
 
     /// <summary>
