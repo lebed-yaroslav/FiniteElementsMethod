@@ -12,7 +12,6 @@ public sealed class LocalMatrix(int n) : IMatrix
     public double this[int i, int j] { get => _values[i, j]; set => _values[i, j] = value; }
 }
 
-
 /// <summary>
 /// Global sparse matrix for FEM assembly
 /// </summary>
@@ -36,4 +35,9 @@ public interface IGlobalMatrix : IMatrix, IClonable
     /// (Affect only "Portrait" elements)
     /// </summary>
     void Fill(double value);
+}
+
+public interface IMatrixFactory
+{
+    IGlobalMatrix Create(IList<HashSet<int>> adjacencyList);
 }
