@@ -62,16 +62,18 @@ public class CsrMatrix(CsrMatrix.Portrait portrait) : IGlobalMatrix
         for (int i = 0; i < m; i++)
         {
             int gi = indices[i];
+            if (gi < 0) continue;
             _di[gi] += matrix[i, i];
         }
 
         for (int i = 0; i < m; i++)
         {
             int gi = indices[i];
+            if (gi < 0) continue;
             for (int j = 0; j < m; j++)
             {
                 int gj = indices[j];
-                if (gi <= gj) continue;
+                if (gj < 0 || gi <= gj) continue;
                 int k = FindPosition(row: gi, col: gj);
                 Debug.Assert(k >= 0, "Local matrix does not match the portrait");
                 _ggl[k] += matrix[i, j];
