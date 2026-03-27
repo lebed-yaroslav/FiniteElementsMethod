@@ -49,10 +49,10 @@ public abstract class Mesh<TSpace>(ICoordinateTransform<TSpace, TSpace> coordina
 public sealed class Mesh2D(ICoordinateTransform<Vector2D, Vector2D> coordinateSystem) :
     Mesh<Vector2D>(coordinateSystem), IMeshWithBoundaries<Vector2D, Vector1D>
 {
-    private readonly List<IBoundaryElement<Vector2D, Vector1D>> _boundaryElements = [];
-    public IEnumerable<IBoundaryElement<Vector2D, Vector1D>> BoundaryElements => _boundaryElements;
+    private readonly List<IBoundaryElement2D> _boundaryElements = [];
+    public IEnumerable<IBoundaryElement2D> BoundaryElements => _boundaryElements;
 
-    public void AddBoundary(IBoundaryElementFactory<Vector2D, Vector1D> factory, int[] vertices, int boundaryIndex) =>
+    public void AddBoundary(IBoundaryElementFactory2D factory, int[] vertices, int boundaryIndex) =>
          _boundaryElements.Add(factory.CreateBoundary(this, vertices, boundaryIndex));
 }
 
@@ -60,8 +60,8 @@ public sealed class Mesh2D(ICoordinateTransform<Vector2D, Vector2D> coordinateSy
 public sealed class Mesh3D(ICoordinateTransform<Vector3D, Vector3D> coordinateSystem) :
     Mesh<Vector3D>(coordinateSystem), IMeshWithBoundaries<Vector3D, Vector2D>
 {
-    private readonly List<IBoundaryElement<Vector3D, Vector2D>> _boundaryElements = [];
-    public IEnumerable<IBoundaryElement<Vector3D, Vector2D>> BoundaryElements => _boundaryElements;
-    public void AddBoundary(IBoundaryElementFactory<Vector3D, Vector2D> factory, int[] vertices, int boundaryIndex) =>
+    private readonly List<IBoundaryElement3D> _boundaryElements = [];
+    public IEnumerable<IBoundaryElement3D> BoundaryElements => _boundaryElements;
+    public void AddBoundary(IBoundaryElementFactory3D factory, int[] vertices, int boundaryIndex) =>
          _boundaryElements.Add(factory.CreateBoundary(this, vertices, boundaryIndex));
 }
