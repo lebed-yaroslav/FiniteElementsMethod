@@ -81,6 +81,7 @@ public sealed class ConstantJacobyMatrix<TSource, TTarget, TOps>(double[,] j) : 
     public double this[int i, int j] => _j[i, j];
 
     public double Det(TSource sourcePoint) => TOps.Det(this);
+    public double Det() => TOps.Det(this);
 
     public ConstantJacobyMatrix<TSource, TTarget, TOps> Inverse()
         => TOps.Inverse(this);

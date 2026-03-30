@@ -43,7 +43,7 @@ public class NumericIntegrator<TSpace, TBoundary, TOps> : IIntegrator<TSpace, TB
                     // product = grad(phi_i)^T * J^(-T) * J(-1) * grad(phi_j)
                     var product = (gradPhiI * invJ) * (gradPhiJ * invJ);
 
-                    var jacobian = Math.Abs(1 / invJ.Det(TSpace.Zero));
+                    var jacobian = Math.Abs(1.0 / invJ.Det());
 
                     value += lambda(mp) * product * jacobian * q.Weight;
                 }
