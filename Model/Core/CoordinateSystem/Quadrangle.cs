@@ -77,7 +77,7 @@ public sealed record QuadrangleJacobyMatrix(
 
     public double Det(Vector2D targetPoint) => At(targetPoint).Det(Vector2D.Zero);
 
-    public ConstantJacobyMatrix2D At(Vector2D sourcePoint)
+    public ConstantJacobyMatrix2X2 At(Vector2D sourcePoint)
     {
         var dN00 = N00.Derivatives(sourcePoint); // [dξ, dη]
         var dN10 = N10.Derivatives(sourcePoint); // [dξ, dη]
