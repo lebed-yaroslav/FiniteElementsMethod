@@ -1,17 +1,27 @@
-global using IJacobyMatrix1x1 = Model.Core.CoordinateSystem.IJacobyMatrix<Telma.Vector1D, Telma.Vector1D>;
-global using IJacobyMatrix2x2 = Model.Core.CoordinateSystem.IJacobyMatrix<Telma.Vector2D, Telma.Vector2D>;
-global using IJacobyMatrix3x3 = Model.Core.CoordinateSystem.IJacobyMatrix<Telma.Vector3D, Telma.Vector3D>;
-global using IJacobyMatrix1x2 = Model.Core.CoordinateSystem.IJacobyMatrix<Telma.Vector1D, Telma.Vector2D>;
-global using IJacobyMatrix2x3 = Model.Core.CoordinateSystem.IJacobyMatrix<Telma.Vector2D, Telma.Vector3D>;
+global using IJacobyMatrix1X1 = Model.Core.CoordinateSystem.IJacobyMatrix<Telma.Vector1D, Telma.Vector1D>;
+global using IJacobyMatrix2X2 = Model.Core.CoordinateSystem.IJacobyMatrix<Telma.Vector2D, Telma.Vector2D>;
+global using IJacobyMatrix3X3 = Model.Core.CoordinateSystem.IJacobyMatrix<Telma.Vector3D, Telma.Vector3D>;
+global using IJacobyMatrix1X2 = Model.Core.CoordinateSystem.IJacobyMatrix<Telma.Vector1D, Telma.Vector2D>;
+global using IJacobyMatrix2X3 = Model.Core.CoordinateSystem.IJacobyMatrix<Telma.Vector2D, Telma.Vector3D>;
 
-global using ConstantJacobyMatrix1x1 = Model.Core.CoordinateSystem.ConstantJacobyMatrix<Telma.Vector1D, Telma.Vector1D>;
-global using ConstantJacobyMatrix2x2 = Model.Core.CoordinateSystem.ConstantJacobyMatrix<Telma.Vector2D, Telma.Vector2D>;
-global using ConstantJacobyMatrix3x3 = Model.Core.CoordinateSystem.ConstantJacobyMatrix<Telma.Vector3D, Telma.Vector3D>;
-global using ConstantJacobyMatrix1x2 = Model.Core.CoordinateSystem.ConstantJacobyMatrix<Telma.Vector1D, Telma.Vector2D>;
-global using ConstantJacobyMatrix2x3 = Model.Core.CoordinateSystem.ConstantJacobyMatrix<Telma.Vector2D, Telma.Vector3D>;
+global using ConstantJacobyMatrix1X1 = Model.Core.CoordinateSystem.ConstantJacobyMatrix<
+    Telma.Vector1D, Telma.Vector1D, Model.Core.CoordinateSystem.MatrixOperations.Ops1X1
+>;
+global using ConstantJacobyMatrix2X2 = Model.Core.CoordinateSystem.ConstantJacobyMatrix<
+    Telma.Vector2D, Telma.Vector2D, Model.Core.CoordinateSystem.MatrixOperations.Ops2X2
+>;
+global using ConstantJacobyMatrix3X3 = Model.Core.CoordinateSystem.ConstantJacobyMatrix<
+    Telma.Vector3D, Telma.Vector3D, Model.Core.CoordinateSystem.MatrixOperations.Ops3X3
+>;
+
+global using ConstantJacobyMatrix1X2 = Model.Core.CoordinateSystem.ConstantJacobyMatrix<
+    Telma.Vector1D, Telma.Vector2D, Model.Core.CoordinateSystem.MatrixOperations.Ops1X2
+>;
+global using ConstantJacobyMatrix2X3 = Model.Core.CoordinateSystem.ConstantJacobyMatrix<
+    Telma.Vector2D, Telma.Vector3D, Model.Core.CoordinateSystem.MatrixOperations.Ops2X3
+>;
 
 using System.Diagnostics;
-using Telma;
 using Telma.Extensions;
 
 namespace Model.Core.CoordinateSystem;
@@ -59,9 +69,10 @@ public static class IJacobyMatrixExtensions
     }
 }
 
-public class ConstantJacobyMatrix<TSource, TTarget>(double[,] j) : IJacobyMatrix<TSource, TTarget>
+public sealed class ConstantJacobyMatrix<TSource, TTarget, TOps>(double[,] j) : IJacobyMatrix<TSource, TTarget>
     where TSource : IVectorBase<TSource>
     where TTarget : IVectorBase<TTarget>
+    where TOps : IMatrixOperations<TSource, TTarget, TOps>
 {
     public static bool IsConstant => true;
     protected readonly double[,] _j = j;
@@ -69,25 +80,11 @@ public class ConstantJacobyMatrix<TSource, TTarget>(double[,] j) : IJacobyMatrix
     public double this[int i, int j, TSource _] => _j[i, j];
     public double this[int i, int j] => _j[i, j];
 
-    public virtual double Det(TSource sourcePoint) => this.Det();
+    public double Det(TSource sourcePoint) => TOps.Det(this);
 
-    public static TSource operator *(ConstantJacobyMatrix<TSource, TTarget> lhs, TTarget rhs)
-        => lhs.Mul(rhs);
+    public static TSource operator *(ConstantJacobyMatrix<TSource, TTarget, TOps> lhs, TTarget rhs)
+        => TOps.Mul(lhs, rhs);
 
-    public static TSource operator *(TTarget lhs, ConstantJacobyMatrix<TSource, TTarget> rhs)
-        => rhs.Mul(lhs);
-}
-
-// FIXME: Use specialization
-public sealed class ConstantJacobyMatrix2D(double[,] j) : ConstantJacobyMatrix2x2(j)
-{
-    public ConstantJacobyMatrix2D Inverse()
-    {
-        var detJ = this.Det(Vector2D.Zero);
-        Debug.Assert(Math.Abs(detJ) >= 1e-14, "The Jacobian matrix is ​​singular at given point");
-        return new(new[,] {
-            {_j[1, 1] / detJ, -_j[0, 1] / detJ},
-            {-_j[1, 0] / detJ, _j[0, 0] / detJ}
-        });
-    }
+    public static TTarget operator *(TSource lhs, ConstantJacobyMatrix<TSource, TTarget, TOps> rhs)
+        => TOps.Mul(lhs, rhs);
 }
