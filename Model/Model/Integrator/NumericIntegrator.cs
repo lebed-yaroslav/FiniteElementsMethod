@@ -1,15 +1,58 @@
+using Model.Core.CoordinateSystem;
 using Model.Core.Matrix;
 using Model.Model.Elements;
 using Telma.Extensions;
 
 namespace Model.Model.Integrator;
 
-public class NumericIntegrator<TSpace, TBoundary> : IIntegrator<TSpace, TBoundary>
+public class NumericIntegrator<TSpace, TBoundary, TOps> : IIntegrator<TSpace, TBoundary, TOps>
     where TSpace : IVectorBase<TSpace>
     where TBoundary : IVectorBase<TBoundary>
+    where TOps : IMatrixOperations<TSpace, TSpace, TOps>
 {
-    public static readonly NumericIntegrator<TSpace, TBoundary> Instance = new();
+    public static readonly NumericIntegrator<TSpace, TBoundary, TOps> Instance = new();
     private NumericIntegrator() { }
+
+    public LocalMatrix CalculateLocalStiffness(
+       IFiniteElementBase<TSpace, TSpace> element,
+       Func<TSpace, double> lambda
+    )
+    {
+        int n = element.DOF.Count;
+        var stiffness = new LocalMatrix(n);
+
+        var masterCs = element.MasterElementCoordinateSystem;
+        var meshCs = element.Mesh.CoordinateSystem;
+
+        var masterInvJ = masterCs.InverseJacoby();
+        var meshInvJ = meshCs.InverseJacoby();
+
+        for (int i = 0; i < n; i++)
+        {
+            for (int j = 0; j <= i; j++)
+            {
+                var value = 0.0;
+                foreach (var q in element.Quadratures)
+                {
+                    var ep = q.Point; // master element-space point
+                    var mp = masterCs.InverseTransform(ep); // mesh-space point
+                    var invJ = masterInvJ.MulAt<TSpace, TSpace, TSpace, TOps>(ep, meshInvJ, mp);
+                    var gradPhiI = element.Basis[i].Derivatives(ep);
+                    var gradPhiJ = element.Basis[j].Derivatives(ep);
+
+                    // product = grad(phi_i)^T * J^(-T) * J(-1) * grad(phi_j)
+                    var product = (gradPhiI * invJ) * (gradPhiJ * invJ);
+
+                    var jacobian = Math.Abs(1 / invJ.Det(TSpace.Zero));
+
+                    value += lambda(mp) * product * jacobian * q.Weight;
+                }
+                stiffness[i, j] = value;
+                stiffness[j, i] = value;
+            }
+        }
+        return stiffness;
+    }
 
     public LocalMatrix CalculateLocalMass(
         IFiniteElementBase<TSpace, TBoundary> element,

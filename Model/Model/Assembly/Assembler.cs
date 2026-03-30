@@ -1,3 +1,4 @@
+using Model.Core.CoordinateSystem;
 using Model.Core.Matrix;
 using Model.Core.Solver;
 using Model.Model.Elements;
@@ -8,15 +9,16 @@ using Telma.Extensions;
 namespace Model.Model.Assembly;
 
 
-public sealed record Assembler<TSpace, TBoundary>(
+public sealed record Assembler<TSpace, TBoundary, TOps>(
     IMeshWithBoundaries<TSpace, TBoundary> Mesh,
     DofManager DofManager,
     IMatrixFactory MatrixFactory,
     ISolver Solver,
-    IIntegrator<TSpace, TBoundary> Integrator
+    IIntegrator<TSpace, TBoundary, TOps> Integrator
 )
     where TSpace : IVectorBase<TSpace>
     where TBoundary : IVectorBase<TBoundary>
+    where TOps : IMatrixOperations<TSpace, TSpace, TOps>
 {
     private readonly double[] _solution = new double[DofManager.TotalDofCount];
 
