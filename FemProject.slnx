@@ -3,6 +3,10 @@
     <File Path="README.md" />
     <File Path="TODO.md" />
   </Folder>
+  <Folder Name="/Shared/">
+    <File Path="Directory.Build.props" />
+    <File Path="GlobalUsings.cs" />
+  </Folder>
   <Project Path="Model/Model.csproj" />
   <Project Path="Telma/Telma.csproj" />
   <Project Path="UnitTests/UnitTests.csproj" />

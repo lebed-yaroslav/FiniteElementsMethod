@@ -1,13 +1,3 @@
-global using IElementGeometry1D = Model.Model.Elements.IElementGeometry<Telma.Vector1D>;
-global using IElementGeometry2D = Model.Model.Elements.IElementGeometry<Telma.Vector2D>;
-global using IElementGeometry3D = Model.Model.Elements.IElementGeometry<Telma.Vector3D>;
-global using VolumeElementGeometry1D = Model.Model.Elements.ElementGeometry<Telma.Vector1D, Telma.Vector1D>;
-global using VolumeElementGeometry2D = Model.Model.Elements.ElementGeometry<Telma.Vector2D, Telma.Vector2D>;
-global using VolumeElementGeometry3D = Model.Model.Elements.ElementGeometry<Telma.Vector3D, Telma.Vector3D>;
-
-global using BoundaryElementGeometry2D = Model.Model.Elements.ElementGeometry<Telma.Vector2D, Telma.Vector1D>;
-global using BoundaryElementGeometry3D = Model.Model.Elements.ElementGeometry<Telma.Vector3D, Telma.Vector2D>;
-
 using Model.Core.CoordinateSystem;
 using Model.Model.Mesh;
 using Telma.Extensions;
