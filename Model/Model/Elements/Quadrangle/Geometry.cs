@@ -16,8 +16,7 @@ namespace Model.Model.Elements.Quadrangle;
 /// </summary>
 /// <param name="vertexIndices">4 indices of vertices in following order</param>
 public sealed class QuadrangleGeometry(int[] vertexIndices) :
-    ElementGeometry2D(vertexIndices),
-    IVolumeElementGeometry2D
+    VolumeElementGeometry2D(vertexIndices)
 {
     public override IEnumerable<Edge> Edges
     {
@@ -31,7 +30,7 @@ public sealed class QuadrangleGeometry(int[] vertexIndices) :
     }
     public override int EdgeCount => 4;
 
-    public ICoordinateTransform<Vector2D, Vector2D> MasterElementCoordinateSystem =>
+    public override ICoordinateTransform<Vector2D, Vector2D> MasterElementCoordinateSystem =>
         new QuadrangleCoordinateSystem(
             Mesh[Vertices[0]], Mesh[Vertices[1]], Mesh[Vertices[2]], Mesh[Vertices[3]]
         );

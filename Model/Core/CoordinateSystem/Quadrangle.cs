@@ -57,7 +57,7 @@ public sealed class QuadrangleCoordinateSystem(
     }
 
     public double Jacobian(Vector2D targetPoint) => _j.Det(targetPoint);
-    public IJacobyMatrix<Vector2D, Vector2D> InverseJacoby() => new QuadrangleInverseJacobyMatrix(_j);
+    public IJacobyMatrix2X2 InverseJacoby() => new QuadrangleInverseJacobyMatrix(_j);
 }
 
 
@@ -77,7 +77,7 @@ public sealed record QuadrangleJacobyMatrix(
 
     public double Det(Vector2D targetPoint) => At(targetPoint).Det(Vector2D.Zero);
 
-    public ConstantJacobyMatrix2D At(Vector2D sourcePoint)
+    public ConstantJacobyMatrix2X2 At(Vector2D sourcePoint)
     {
         var dN00 = N00.Derivatives(sourcePoint); // [dξ, dη]
         var dN10 = N10.Derivatives(sourcePoint); // [dξ, dη]
@@ -98,12 +98,12 @@ public sealed record QuadrangleJacobyMatrix(
 
 public sealed class QuadrangleInverseJacobyMatrix(
     QuadrangleJacobyMatrix j
-) : IJacobyMatrix<Vector2D, Vector2D>
+) : IJacobyMatrix2X2
 {
     private readonly QuadrangleJacobyMatrix _j = j;
     public static bool IsConstant => false;
 
-    public double Det(Vector2D sourcePoint) => 1.0 / j.Det(sourcePoint);
+    public double Det(Vector2D sourcePoint) => 1.0 / _j.Det(sourcePoint);
     public double this[int i, int j] => throw new NotSupportedException($"{nameof(QuadrangleInverseJacobyMatrix)} is not constant.");
     public double this[int i, int j, Vector2D sourcePoint]
         => _j.At(sourcePoint).Inverse()[i, j];

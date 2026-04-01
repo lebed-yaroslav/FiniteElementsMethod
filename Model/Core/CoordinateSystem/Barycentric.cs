@@ -8,9 +8,9 @@ public sealed record BarycentricCoordinateSystem : ICoordinateTransform<Vector2D
     public Vector2D B { get; }
     public Vector2D C { get; }
 
-    public readonly ConstantJacobyMatrix2D J;
+    public readonly ConstantJacobyMatrix2X2 J;
 
-    private readonly Lazy<ConstantJacobyMatrix2D> _invJ;
+    private readonly Lazy<ConstantJacobyMatrix2X2> _invJ;
 
     public static bool IsLinear => true;
 

@@ -1,16 +1,21 @@
 using Model.Core.CoordinateSystem;
 using Model.Core.Matrix;
 using Model.Model.Elements;
-using Telma;
+using Telma.Extensions;
 
-namespace Model.Model;
+namespace Model.Model.Integrator;
 
-
-public static class NumericIntegrator
+public class NumericIntegrator<TSpace, TBoundary, TOps> : IIntegrator<TSpace, TBoundary, TOps>
+    where TSpace : IVectorBase<TSpace>
+    where TBoundary : IVectorBase<TBoundary>
+    where TOps : IMatrixOperations<TSpace, TSpace, TOps>
 {
-    public static LocalMatrix CalculateLocalStiffness(
-        IFiniteElement2D element,
-        Func<Vector2D, double> lambda
+    public static readonly NumericIntegrator<TSpace, TBoundary, TOps> Instance = new();
+    private NumericIntegrator() { }
+
+    public LocalMatrix CalculateLocalStiffness(
+       IFiniteElementBase<TSpace, TSpace> element,
+       Func<TSpace, double> lambda
     )
     {
         int n = element.DOF.Count;
@@ -31,20 +36,14 @@ public static class NumericIntegrator
                 {
                     var ep = q.Point; // master element-space point
                     var mp = masterCs.InverseTransform(ep); // mesh-space point
-                    var invJ = masterInvJ.MulAt(ep, meshInvJ, mp); // Jacoby from master to physical
+                    var invJ = masterInvJ.MulAt<TSpace, TSpace, TSpace, TOps>(ep, meshInvJ, mp);
                     var gradPhiI = element.Basis[i].Derivatives(ep);
                     var gradPhiJ = element.Basis[j].Derivatives(ep);
 
                     // product = grad(phi_i)^T * J^(-T) * J(-1) * grad(phi_j)
-                    var product = (
-                        (invJ[0, 0] * invJ[0, 0] + invJ[1, 0] * invJ[1, 0]) * gradPhiI.X +
-                        (invJ[0, 0] * invJ[0, 1] + invJ[1, 0] * invJ[1, 1]) * gradPhiI.Y
-                    ) * gradPhiJ.X + (
-                        (invJ[0, 1] * invJ[0, 1] + invJ[1, 1] * invJ[1, 1]) * gradPhiI.Y +
-                        (invJ[0, 0] * invJ[0, 1] + invJ[1, 0] * invJ[1, 1]) * gradPhiI.X
-                    ) * gradPhiJ.Y;
+                    var product = (gradPhiI * invJ) * (gradPhiJ * invJ);
 
-                    var jacobian = Math.Abs(1 / invJ.Det(Vector2D.Zero));
+                    var jacobian = Math.Abs(1.0 / invJ.Det());
 
                     value += lambda(mp) * product * jacobian * q.Weight;
                 }
@@ -55,10 +54,33 @@ public static class NumericIntegrator
         return stiffness;
     }
 
-    public static LocalMatrix CalculateLocalMass(
-        IFiniteElement2D element,
-        Func<Vector2D, double> gamma
+    public LocalMatrix CalculateLocalMass(
+        IFiniteElementBase<TSpace, TBoundary> element,
+        Func<TSpace, double> gamma
+    ) => CalculateLocalMass<TBoundary>(element, gamma);
+
+    public LocalMatrix CalculateLocalMass(
+        IFiniteElementBase<TSpace, TSpace> element,
+        Func<TSpace, double> gamma
+    ) => CalculateLocalMass<TSpace>(element, gamma);
+
+    public void CalculateLocalLoad(
+        IFiniteElementBase<TSpace, TBoundary> element,
+        Func<TSpace, double> source,
+        Span<double> outLoad
+    ) => CalculateLocalLoad<TBoundary>(element, source, outLoad);
+
+    public void CalculateLocalLoad(
+        IFiniteElementBase<TSpace, TSpace> element,
+        Func<TSpace, double> source,
+        Span<double> outLoad
+    ) => CalculateLocalLoad<TSpace>(element, source, outLoad);
+
+    private static LocalMatrix CalculateLocalMass<TB>(
+         IFiniteElementBase<TSpace, TB> element,
+         Func<TSpace, double> gamma
     )
+        where TB : IVectorBase<TB>
     {
         int n = element.DOF.Count;
         var mass = new LocalMatrix(n);
@@ -87,14 +109,15 @@ public static class NumericIntegrator
         return mass;
     }
 
-    public static void CalculateLocalLoad(
-        IFiniteElement2D element,
-        Func<Vector2D, double> source,
-        Span<double> load
+    private static void CalculateLocalLoad<TB>(
+        IFiniteElementBase<TSpace, TB> element,
+        Func<TSpace, double> source,
+        Span<double> outLoad
     )
+        where TB : IVectorBase<TB>
     {
         int n = element.DOF.Count;
-        var masterCs = element.Geometry.MasterElementCoordinateSystem;
+        var masterCs = element.MasterElementCoordinateSystem;
         var meshCs = element.Mesh.CoordinateSystem;
 
         for (int j = 0; j < n; j++)
@@ -105,10 +128,10 @@ public static class NumericIntegrator
                 var ep = q.Point; // master element-space point
                 var mp = masterCs.InverseTransform(q.Point); // mesh-space point
                 var psiJ = element.Basis[j].Value(ep);
-                var jacobian = Math.Abs(masterCs.Jacobian(ep) * meshCs.Jacobian(mp));
+                var jacobian = Math.Abs(masterCs.Jacobian(ep) * meshCs.Jacobian(mp));  // FIXME: may be optimized (by IsConstant)
                 value += source(mp) * psiJ * q.Weight * jacobian;
             }
-            load[j] = value;
+            outLoad[j] = value;
         }
     }
 }

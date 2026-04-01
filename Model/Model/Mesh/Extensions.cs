@@ -16,5 +16,9 @@ public static class MeshExtensions
         public IEnumerable<IDofManager> AllElementsDof => self.FiniteElements
             .Select(e => e.DOF)
             .Concat(self.BoundaryElements.Select(e => e.DOF));
+
+        public IEnumerable<IBoundaryElement<TSpace, TBoundary>> FixedElementsBy(BoundaryCondition<TSpace>[] boundaryConditions)
+            => self.BoundaryElements
+                .Where(e => boundaryConditions[e.BoundaryIndex] is BoundaryCondition<TSpace>.Dirichlet);
     }
 }

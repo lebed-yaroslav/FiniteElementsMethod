@@ -1,5 +1,4 @@
 using System.Diagnostics;
-using Telma;
 using Telma.Extensions;
 
 namespace Model.Core.CoordinateSystem;
@@ -47,30 +46,26 @@ public static class IJacobyMatrixExtensions
     }
 }
 
-public sealed class ConstantJacobyMatrix2D(double[,] j) : IJacobyMatrix<Vector2D, Vector2D>
+public sealed class ConstantJacobyMatrix<TSource, TTarget, TOps>(double[,] j) : IJacobyMatrix<TSource, TTarget>
+    where TSource : IVectorBase<TSource>
+    where TTarget : IVectorBase<TTarget>
+    where TOps : IMatrixOperations<TSource, TTarget, TOps>
 {
     public static bool IsConstant => true;
     private readonly double[,] _j = j;
 
-    public double this[int i, int j, Vector2D _] => _j[i, j];
+    public double this[int i, int j, TSource _] => _j[i, j];
     public double this[int i, int j] => _j[i, j];
 
-    public double Det(Vector2D _) => _j[0, 0] * _j[1, 1] - _j[0, 1] * _j[1, 0];
+    public double Det(TSource sourcePoint) => TOps.Det(this);
+    public double Det() => TOps.Det(this);
 
-    public ConstantJacobyMatrix2D Inverse()
-    {
-        var detJ = this.Det(Vector2D.Zero);
-        Debug.Assert(Math.Abs(detJ) >= 1e-14, "The Jacobian matrix is ​​singular at given point");
-        return new(new[,] {
-            {_j[1, 1] / detJ, -_j[0, 1] / detJ},
-            {-_j[1, 0] / detJ, _j[0, 0] / detJ}
-        });
-    }
+    public ConstantJacobyMatrix<TSource, TTarget, TOps> Inverse()
+        => TOps.Inverse(this);
 
-    // TODO: Generalize IJacobyMatrix operations
-    public static Vector2D operator *(ConstantJacobyMatrix2D a, Vector2D x)
-        => new(
-            a[0, 0] * x.X + a[0, 1] * x.Y,
-            a[1, 0] * x.X + a[1, 1] * x.Y
-        );
+    public static TSource operator *(ConstantJacobyMatrix<TSource, TTarget, TOps> lhs, TTarget rhs)
+        => TOps.Mul(lhs, rhs);
+
+    public static TTarget operator *(TSource lhs, ConstantJacobyMatrix<TSource, TTarget, TOps> rhs)
+        => TOps.Mul(lhs, rhs);
 }

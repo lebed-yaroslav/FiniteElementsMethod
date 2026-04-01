@@ -12,10 +12,22 @@ public sealed class LocalMatrix(int n) : IMatrix
     public double this[int i, int j] { get => _values[i, j]; set => _values[i, j] = value; }
 }
 
-
+/// <summary>
+/// Global sparse matrix for FEM assembly
+/// </summary>
 public interface IGlobalMatrix : IMatrix, ICloneable
 {
+    /// <summary>
+    /// Assembles local matrix into global using index mapping.
+    /// Skips entries where indices[i] < 0 (e.g., constrained DOFs).
+    /// </summary>
+    /// <param name="matrix">Local element matrix</param>
+    /// <param name="indices">Global DOF indices; negative = skip</param>
     void AddLocalMatrix(LocalMatrix matrix, ReadOnlySpan<int> indices);
+
+    /// <summary>
+    /// Matrix-vector multiplication: res = this * vec
+    /// </summary>
     void MulVec(ReadOnlySpan<double> vec, Span<double> res);
 
     /// <summary>
@@ -23,4 +35,9 @@ public interface IGlobalMatrix : IMatrix, ICloneable
     /// (Affect only "Portrait" elements)
     /// </summary>
     void Fill(double value);
+}
+
+public interface IMatrixFactory
+{
+    IGlobalMatrix Create(IList<HashSet<int>> adjacencyList);
 }

@@ -9,30 +9,6 @@ public class CsrMatrix(CsrMatrix.Portrait portrait) : IGlobalMatrix
     {
         public int Size => Ig.Length - 1;
         public int TriangleElementCount => Ig[^1];
-
-        public static Portrait Create(IList<HashSet<int>> adjacencyList)
-        {
-            int n = adjacencyList.Count;
-
-            // 1. Initialize ig (row indices)
-            int sum = 0;
-            int[] ig = new int[n + 1];
-            for (int i = 0; i < n; i++)
-            {
-                ig[i] = sum;
-                sum += adjacencyList[i].Count;
-            }
-            ig[n] = sum;
-
-            // 2. Initialize jg (col indices)
-            int[] jg = new int[sum];
-            int addr = 0;
-            for (int i = 0; i < n; i++)
-                foreach (var k in adjacencyList[i].OrderBy(j => j))
-                    jg[addr++] = k;
-
-            return new(ig, jg);
-        }
     }
 
     private readonly Portrait _portrait = portrait;
@@ -62,16 +38,18 @@ public class CsrMatrix(CsrMatrix.Portrait portrait) : IGlobalMatrix
         for (int i = 0; i < m; i++)
         {
             int gi = indices[i];
+            if (gi < 0) continue;
             _di[gi] += matrix[i, i];
         }
 
         for (int i = 0; i < m; i++)
         {
             int gi = indices[i];
+            if (gi < 0) continue;
             for (int j = 0; j < m; j++)
             {
                 int gj = indices[j];
-                if (gi <= gj) continue;
+                if (gj < 0 || gi <= gj) continue;
                 int k = FindPosition(row: gi, col: gj);
                 Debug.Assert(k >= 0, "Local matrix does not match the portrait");
                 _ggl[k] += matrix[i, j];
@@ -105,5 +83,33 @@ public class CsrMatrix(CsrMatrix.Portrait portrait) : IGlobalMatrix
     {
         (int start, int end) = (Ig[row], Ig[row + 1]);
         return Array.BinarySearch(_portrait.Jg, start, end - start, col);
+    }
+}
+
+
+public sealed class CsrMatrixFactory : IMatrixFactory
+{
+    public IGlobalMatrix Create(IList<HashSet<int>> adjacencyList)
+    {
+        int n = adjacencyList.Count;
+
+        // 1. Initialize ig (row indices)
+        int sum = 0;
+        int[] ig = new int[n + 1];
+        for (int i = 0; i < n; i++)
+        {
+            ig[i] = sum;
+            sum += adjacencyList[i].Count;
+        }
+        ig[n] = sum;
+
+        // 2. Initialize jg (col indices)
+        int[] jg = new int[sum];
+        int addr = 0;
+        for (int i = 0; i < n; i++)
+            foreach (var k in adjacencyList[i].OrderBy(j => j))
+                jg[addr++] = k;
+
+        return new CsrMatrix(new CsrMatrix.Portrait(ig, jg));
     }
 }
