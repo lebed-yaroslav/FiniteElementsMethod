@@ -28,10 +28,12 @@ namespace UnitTests.Elements.Triangle
             boundaryCondition[0] = new BoundaryCondition<Vector2D>.Dirichlet(x);
             boundaryCondition[1] = new BoundaryCondition<Vector2D>.Dirichlet(x);
 
-
+            //Нумератор + Перенумератор работает корректно
             int DOFcount = DofNumerator<Vector2D, Vector1D>.NumerateDof(init);
             int FreeDOFCount = DofNumerator<Vector2D, Vector1D>.RenumberFixedDof(init, boundaryCondition, DOFcount);
 
+
+            //Списки смежности не собираются, выход за пределы
             var adjacency = PortraitGenerator.CreateAdjacencyList(init.AllElementsDof,0,FreeDOFCount);
             var adjacencyDirichlet = PortraitGenerator.CreateAdjacencyList(init.AllElementsDof, DOFcount, FreeDOFCount);
             var matrix = CsrMatrix.Portrait.Create(adjacency);
