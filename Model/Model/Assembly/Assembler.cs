@@ -4,6 +4,7 @@ using Model.Core.Solver;
 using Model.Model.Elements;
 using Model.Model.Integrator;
 using Model.Model.Mesh;
+using Model.Model.Problem;
 using Telma.Extensions;
 
 namespace Model.Model.Assembly;

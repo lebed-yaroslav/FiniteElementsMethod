@@ -1,10 +1,14 @@
-global using BoundaryCondition1D = Model.Model.BoundaryCondition<Telma.Vector1D>;
-global using BoundaryCondition2D = Model.Model.BoundaryCondition<Telma.Vector2D>;
-global using BoundaryCondition3D = Model.Model.BoundaryCondition<Telma.Vector3D>;
-
 using Telma.Extensions;
 
-namespace Model.Model;
+namespace Model.Model.Problem;
+
+
+public sealed record Material<TSpace>(
+    Func<TSpace, double, double> Lambda,
+    Func<TSpace, double, double> Xi,
+    Func<TSpace, double, double> Sigma,
+    Func<TSpace, double, double> Source
+) where TSpace : IVectorBase<TSpace>;
 
 
 public abstract record BoundaryCondition<TSpace>

@@ -1,4 +1,5 @@
 using Model.Model.Elements;
+using Model.Model.Problem;
 using Telma.Extensions;
 
 namespace Model.Model.Mesh;

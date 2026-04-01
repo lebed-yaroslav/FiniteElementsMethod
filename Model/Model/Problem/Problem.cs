@@ -8,6 +8,8 @@ using Telma.Extensions;
 namespace Model.Model.Problem;
 
 
+// TODO: EllipticSolver/ParabolicSolver/HyperbolicSolver
+
 /// <summary>
 /// Задача вида: χ(∂2u/∂t2)+σ(∂u/∂t)-∇⋅(λ∇u)=f
 /// </summary>

@@ -83,6 +83,16 @@ global using IItegrator3D = Model.Model.Integrator.IIntegrator<Telma.Vector3D, T
 global using NumericItegrator2D = Model.Model.Integrator.NumericIntegrator<Telma.Vector2D, Telma.Vector1D, Model.Core.CoordinateSystem.MatrixOperations.Ops2X2>;
 global using NumbericItegrator3D = Model.Model.Integrator.NumericIntegrator<Telma.Vector3D, Telma.Vector2D, Model.Core.CoordinateSystem.MatrixOperations.Ops3X3>;
 
+// Problem-Related
+
+global using BoundaryCondition1D = Model.Model.Problem.BoundaryCondition<Telma.Vector1D>;
+global using BoundaryCondition2D = Model.Model.Problem.BoundaryCondition<Telma.Vector2D>;
+global using BoundaryCondition3D = Model.Model.Problem.BoundaryCondition<Telma.Vector3D>;
+
+global using Material1D = Model.Model.Problem.Material<Telma.Vector1D>;
+global using Material2D = Model.Model.Problem.Material<Telma.Vector2D>;
+global using Material3D = Model.Model.Problem.Material<Telma.Vector3D>;
+
 // Assembler
 
 global using Assembler2D = Model.Model.Assembly.Assembler<Telma.Vector2D, Telma.Vector1D, Model.Core.CoordinateSystem.MatrixOperations.Ops2X2>;
