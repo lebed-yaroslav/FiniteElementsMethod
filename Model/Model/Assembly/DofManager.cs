@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using Model.Model.Elements;
 using Model.Model.Mesh;
 using Telma.Extensions;
@@ -22,6 +23,34 @@ public sealed class DofManager
         int freeDofCount = DofNumerator<TSpace, TBoundary>.RenumberFixedDof(mesh, boundaryConditions, totalDofCount);
 
         return new() { TotalDofCount = totalDofCount, FreeDofCount = freeDofCount };
+    }
+
+    /// <summary>
+    /// Create index mapping for free dof system, to use in
+    /// <see cref="Core.Matrix.IGlobalMatrix.AddLocalMatrix(Core.Matrix.LocalMatrix, ReadOnlySpan{int})"/>
+    /// </summary>
+    /// <param name="elementDof">Element which indices is mapped</param>
+    /// <param name="outIndices">Output parameter</param>
+    public void CreateFreeLocalToGlobalIndexMapping(IDofManager elementDof, Span<int> outIndices) {
+        Debug.Assert(outIndices.Length == elementDof.Count); 
+        for (int i = 0; i < elementDof.Count; ++i)
+        {
+            var dof = elementDof.Dof[i];
+            outIndices[i] = (dof < FreeDofCount) ? dof : -1; // IGlobalMatrix.AddLocalMatrix ignores negative indices
+        }
+    }
+
+    /// <summary>
+    /// Create index mapping for fixed dof system, to use in
+    /// <see cref="Core.Matrix.IGlobalMatrix.AddLocalMatrix(Core.Matrix.LocalMatrix, ReadOnlySpan{int})"/>
+    /// </summary>
+    /// <param name="elementDof">Element which indices is mapped</param>
+    /// <param name="outIndices">Output parameter</param>
+    public void CreateFixedLocalToGlobalIndexMapping(IDofManager elementDof, Span<int> outIndices)
+    {
+        Debug.Assert(outIndices.Length == elementDof.Count);
+        for (int i = 0; i < outIndices.Length; ++i)
+            outIndices[i] = elementDof.Dof[i] - FreeDofCount; // IGlobalMatrix.AddLocalMatrix ignores negative indices
     }
 }
 

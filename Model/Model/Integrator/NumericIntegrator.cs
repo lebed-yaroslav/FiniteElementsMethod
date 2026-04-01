@@ -89,8 +89,22 @@ public class NumericIntegrator<TSpace, TBoundary, TOps> : IIntegrator<TSpace, TB
     public void CalculateLocalLoad(
         IFiniteElementBase<TSpace, TBoundary> element,
         Func<TSpace, double> source,
-        Span<double> load
+        Span<double> outLoad
+    ) => CalculateLocalLoad<TSpace, TBoundary>(element, source, outLoad);
+
+    public void CalculateLocalLoad(
+        IFiniteElementBase<TSpace, TSpace> element,
+        Func<TSpace, double> source,
+        Span<double> outLoad
+    ) => CalculateLocalLoad<TSpace, TSpace>(element, source, outLoad);
+
+    private static void CalculateLocalLoad<TS, TB>(
+        IFiniteElementBase<TS, TB> element,
+        Func<TS, double> source,
+        Span<double> outLoad
     )
+        where TS : IVectorBase<TS>
+        where TB : IVectorBase<TB>
     {
         int n = element.DOF.Count;
         var masterCs = element.MasterElementCoordinateSystem;
@@ -107,7 +121,7 @@ public class NumericIntegrator<TSpace, TBoundary, TOps> : IIntegrator<TSpace, TB
                 var jacobian = Math.Abs(masterCs.Jacobian(ep) * meshCs.Jacobian(mp));  // FIXME: may be optimized (by IsConstant)
                 value += source(mp) * psiJ * q.Weight * jacobian;
             }
-            load[j] = value;
+            outLoad[j] = value;
         }
     }
 }
