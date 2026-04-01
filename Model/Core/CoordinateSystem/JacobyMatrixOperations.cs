@@ -59,8 +59,8 @@ public static class MatrixOperations
     public sealed class Ops3X3 : IMatrixOperations<Vector3D, Vector3D, Ops3X3>
     {
         public static double Det(ConstantJacobyMatrix3X3 m) =>
-            + m[0, 0] * (m[1, 1] * m[2, 2] - m[1, 2] * m[2, 1]) 
-            - m[0, 1] * (m[1, 0] * m[2, 2] - m[1, 2] * m[2, 0]) 
+            +m[0, 0] * (m[1, 1] * m[2, 2] - m[1, 2] * m[2, 1])
+            - m[0, 1] * (m[1, 0] * m[2, 2] - m[1, 2] * m[2, 0])
             + m[0, 2] * (m[1, 0] * m[2, 1] - m[1, 1] * m[2, 0]);
 
         public static Vector3D Mul(ConstantJacobyMatrix3X3 lhs, Vector3D rhs)

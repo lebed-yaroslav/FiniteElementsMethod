@@ -208,7 +208,7 @@ public sealed record Assembler<TSpace, TBoundary, TOps>(
     {
         foreach (var element in Mesh.BoundaryElements)
         {
-            switch(boundaryConditions[element.BoundaryIndex])
+            switch (boundaryConditions[element.BoundaryIndex])
             {
                 case BoundaryCondition<TSpace>.Neumann(var flux):
                     var load2 = new double[element.DOF.Count];

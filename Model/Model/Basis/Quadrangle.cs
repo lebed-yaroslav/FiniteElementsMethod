@@ -1,6 +1,6 @@
 using Telma;
-using Lagrange1D = Model.Model.Basis.SegmentBasis.Lagrange1D;
 using Hermite1D = Model.Model.Basis.SegmentBasis.Hermite1D;
+using Lagrange1D = Model.Model.Basis.SegmentBasis.Lagrange1D;
 
 namespace Model.Model.Basis;
 
@@ -64,10 +64,10 @@ public static class QuadrangleBasis
                     new Lagrange1D(nodes, j)
                 );
             }
-        
+
         return basisFunctions;
     }
-    
+
     /// <summary>
     /// Эрмитовы базисные функции для квадрата, построенные как тензорное произведение одномерных эрмитовых базисов.
     /// </summary>

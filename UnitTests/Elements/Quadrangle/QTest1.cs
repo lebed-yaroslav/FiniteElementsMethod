@@ -29,7 +29,7 @@ public class QTest1
         Assert.Equal(p2, p2_res);
         Assert.Equal(p3, p3_res);
         Assert.Equal(p4, p4_res);
-    
+
     }
 
     [Fact]

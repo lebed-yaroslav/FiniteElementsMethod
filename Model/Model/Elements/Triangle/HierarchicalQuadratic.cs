@@ -41,7 +41,7 @@ public sealed class HierarchicalQuadraticTriangleFactory : IFiniteElementFactory
         public override void SetEdgeDof(int localEdgeIndex, bool isOrientationFlipped, int n, int dofIndex)
         {
             AssertIsValidEdgeDofNumber(n);
-            Debug.Assert(0 <= localEdgeIndex  && localEdgeIndex < 3);
+            Debug.Assert(0 <= localEdgeIndex && localEdgeIndex < 3);
             _dof[3 + localEdgeIndex] = dofIndex;
         }
 

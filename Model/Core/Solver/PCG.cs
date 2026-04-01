@@ -12,7 +12,8 @@ public sealed record PCGSolver(
 {
     private IPreconditioner? _preconditioner;
 
-    public IGlobalMatrix? Matrix {
+    public IGlobalMatrix? Matrix
+    {
         set
         {
             if (field != null)
@@ -39,7 +40,7 @@ public sealed record PCGSolver(
         ReadOnlySpan<double> rhsVector,
         Span<double> solution,
         ISolver.Params paramz = default
-    ) 
+    )
     {
         if (Matrix == null)
             throw new InvalidOperationException("Cannot solve system: matrix has not been properly initialized");

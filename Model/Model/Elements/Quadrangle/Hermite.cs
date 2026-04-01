@@ -28,14 +28,14 @@ public sealed class HermiteQuadrangleFactory : IFiniteElementFactory2D
         public override void SetVertexDof(int localVertexIndex, int n, int dofIndex)
         {
             AssertIsValidVertexDofNumber(n);
-            Debug.Assert(0 <= localVertexIndex && localVertexIndex < 4); 
+            Debug.Assert(0 <= localVertexIndex && localVertexIndex < 4);
             _dof[localVertexIndex * 4 + n] = dofIndex;
         }
 
         public override void SetEdgeDof(int localEdgeIndex, bool isOrientationFlipped, int n, int dofIndex)
             => throw new NotSupportedException();
 
-        
+
         public override void SetElementDof(int n, int dofIndex)
             => throw new NotSupportedException();
     }

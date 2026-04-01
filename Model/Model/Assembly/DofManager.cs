@@ -32,8 +32,9 @@ public sealed class DofManager
     /// </summary>
     /// <param name="elementDof">Element which indices is mapped</param>
     /// <param name="outIndices">Output parameter</param>
-    public void CreateFreeLocalToGlobalIndexMapping(IDofManager elementDof, Span<int> outIndices) {
-        Debug.Assert(outIndices.Length == elementDof.Count); 
+    public void CreateFreeLocalToGlobalIndexMapping(IDofManager elementDof, Span<int> outIndices)
+    {
+        Debug.Assert(outIndices.Length == elementDof.Count);
         for (int i = 0; i < elementDof.Count; ++i)
         {
             var dof = elementDof.Dof[i];

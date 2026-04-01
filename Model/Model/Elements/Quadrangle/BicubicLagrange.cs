@@ -29,7 +29,8 @@ public sealed class BicubicLagrangeQuadrangleFactory : IFiniteElementFactory2D
         public override void SetVertexDof(int localVertexIndex, int n, int dofIndex)
         {
             AssertIsValidVertexDofNumber(n);
-            var basisIndex = localVertexIndex switch {
+            var basisIndex = localVertexIndex switch
+            {
                 0 => 0,
                 1 => 3,
                 2 => 15,
