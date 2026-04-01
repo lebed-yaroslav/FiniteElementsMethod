@@ -10,7 +10,7 @@ namespace UnitTests.Elements.Triangle
     public class HierarchicalTriangle
     {
         [Fact]
-        public void Hierrarchical() 
+        public void HierarchicalInit() 
         {
             string path = @"C:\Users\Lossky\Documents\GitHub\FiniteElementsMethod\test.txt";
 
