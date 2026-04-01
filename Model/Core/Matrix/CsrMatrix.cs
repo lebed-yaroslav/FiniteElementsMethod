@@ -79,6 +79,14 @@ public class CsrMatrix(CsrMatrix.Portrait portrait) : IGlobalMatrix
         Array.Fill(_ggl, value);
     }
 
+    public void Scale(double factor)
+    {
+        for (int i = 0; i < _di.Length; ++i)
+            _di[i] *= factor;
+        for (int i = 0; i < _ggl.Length; ++i)
+            _ggl[i] *= factor;
+    }
+
     private int FindPosition(int row, int col)
     {
         (int start, int end) = (Ig[row], Ig[row + 1]);

@@ -32,6 +32,11 @@ public sealed class PardisoMatrix(PardisoMatrix.Portrait portrait) : IPardisoMat
     public void AddLocalMatrix(LocalMatrix matrix, ReadOnlySpan<int> indices) => throw new NotImplementedException();
     public void MulVec(ReadOnlySpan<double> vec, Span<double> res) => throw new NotImplementedException();
     public void Fill(double value) => Array.Fill(_a, value);
+    public void Scale(double factor)
+    {
+        for (int i = 0; i < _a.Length; ++i)
+            _a[i] *= factor;
+    }
 }
 
 

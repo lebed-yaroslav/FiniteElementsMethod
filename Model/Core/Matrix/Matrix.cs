@@ -35,6 +35,11 @@ public interface IGlobalMatrix : IMatrix, ICloneable
     /// (Affect only "Portrait" elements)
     /// </summary>
     void Fill(double value);
+
+    /// <summary>
+    /// Scales matrix by given factor
+    /// </summary>
+    void Scale(double factor);
 }
 
 public interface IMatrixFactory
