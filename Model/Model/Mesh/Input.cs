@@ -11,8 +11,8 @@ public static class MeshInput
     {
         public Mesh2D ReadMesh(
             ICoordinateTransform<Vector2D, Vector2D> coordinateSystem,
-            IFiniteElementFactory<Vector2D> finiteElementFactory,
-            IBoundaryElementFactory<Vector2D, Vector1D> boundaryElementFactory
+            IFiniteElementFactory2D finiteElementFactory,
+            IBoundaryElementFactory2D boundaryElementFactory
         )
         {
             var mesh = new Mesh2D(coordinateSystem);
@@ -24,7 +24,7 @@ public static class MeshInput
             for (int i = 0; i < n; ++i)
             {
                 str = self.ReadLine() ?? throw new Exception("Некоректное кол-во узлов!");
-                var vertex = (double[])str.Split(' ', StringSplitOptions.RemoveEmptyEntries).Select(double.Parse);
+                double[] vertex = [.. str.Split(' ', StringSplitOptions.RemoveEmptyEntries).Select(double.Parse)];
                 if (vertex.Length != 2) throw new Exception("Введена не двумерная сетка!");
                 mesh.AddVertex(new(vertex[0], vertex[1]));
             }
@@ -45,7 +45,7 @@ public static class MeshInput
             for (int i = 0; i < n; ++i)
             {
                 str = self.ReadLine() ?? throw new Exception("Неправильная структура входных данных!");
-                var buf = str.Split(' ', StringSplitOptions.RemoveEmptyEntries).Select(int.Parse).ToArray();
+                int[] buf = [.. str.Split(' ', StringSplitOptions.RemoveEmptyEntries).Select(int.Parse)];
                 mesh.AddBoundary(boundaryElementFactory, vertices: buf[0..2], boundaryIndex: buf[2]);
             }
 
