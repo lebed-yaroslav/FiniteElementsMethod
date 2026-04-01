@@ -73,3 +73,8 @@ global using IItegrator3D = Model.Model.Integrator.IIntegrator<Telma.Vector3D, T
 
 global using NumericItegrator2D = Model.Model.Integrator.NumericIntegrator<Telma.Vector2D, Telma.Vector1D, Model.Core.CoordinateSystem.MatrixOperations.Ops2X2>;
 global using NumbericItegrator3D = Model.Model.Integrator.NumericIntegrator<Telma.Vector3D, Telma.Vector2D, Model.Core.CoordinateSystem.MatrixOperations.Ops3X3>;
+
+// Assembler
+
+global using Assembler2D = Model.Model.Assembly.Assembler<Telma.Vector2D, Telma.Vector1D, Model.Core.CoordinateSystem.MatrixOperations.Ops2X2>;
+global using Assembler3D = Model.Model.Assembly.Assembler<Telma.Vector3D, Telma.Vector2D, Model.Core.CoordinateSystem.MatrixOperations.Ops3X3>;
