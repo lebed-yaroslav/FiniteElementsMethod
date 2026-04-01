@@ -17,4 +17,10 @@ public interface IGlobalMatrix : IMatrix, ICloneable
 {
     void AddLocalMatrix(LocalMatrix matrix, ReadOnlySpan<int> indices);
     void MulVec(ReadOnlySpan<double> vec, Span<double> res);
+
+    /// <summary>
+    /// Fills all stored elements with given value.
+    /// (Affect only "Portrait" elements)
+    /// </summary>
+    void Fill(double value);
 }

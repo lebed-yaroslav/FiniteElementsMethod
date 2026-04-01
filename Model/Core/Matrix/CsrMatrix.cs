@@ -95,6 +95,12 @@ public class CsrMatrix(CsrMatrix.Portrait portrait) : IGlobalMatrix
         }
     }
 
+    public void Fill(double value)
+    {
+        Array.Fill(_di, value);
+        Array.Fill(_ggl, value);
+    }
+
     private int FindPosition(int row, int col)
     {
         (int start, int end) = (Ig[row], Ig[row + 1]);

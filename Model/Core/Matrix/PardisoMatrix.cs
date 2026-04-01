@@ -60,4 +60,5 @@ public sealed class PardisoMatrix(Portrait adjacencyList) : IPardisoMatrix<doubl
     // TODO: Implement IGlobalMatrix
     public void AddLocalMatrix(LocalMatrix matrix, ReadOnlySpan<int> indices) => throw new NotImplementedException();
     public void MulVec(ReadOnlySpan<double> vec, Span<double> res) => throw new NotImplementedException();
+    public void Fill(double value) => Array.Fill(_a, value);
 }
