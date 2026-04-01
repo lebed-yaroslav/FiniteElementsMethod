@@ -1,10 +1,5 @@
-global using IMesh1D = Model.Model.Mesh.IMesh<Telma.Vector1D>;
-global using IMesh2D = Model.Model.Mesh.IMesh<Telma.Vector2D>;
-global using IMesh3D = Model.Model.Mesh.IMesh<Telma.Vector3D>;
-
 using Model.Core.CoordinateSystem;
 using Model.Model.Elements;
-using Telma;
 using Telma.Extensions;
 
 namespace Model.Model.Mesh;
@@ -29,40 +24,30 @@ public interface IMeshWithBoundaries<TSpace, TBoundary> : IMesh<TSpace>
 }
 
 
-public abstract class Mesh<TSpace>(ICoordinateTransform<TSpace, TSpace> coordinateSystem) :
-    IMesh<TSpace>
+public sealed class Mesh<TSpace, TBoundary>(ICoordinateTransform<TSpace, TSpace> coordinateSystem) :
+    IMesh<TSpace>, IMeshWithBoundaries<TSpace, TBoundary>
     where TSpace : IVectorBase<TSpace>
+    where TBoundary : IVectorBase<TBoundary>
 {
     private readonly List<TSpace> _vertices = [];
-    private readonly List<IFiniteElement<TSpace>> _finiteElements = [];
+    private readonly List<IFiniteElement<TSpace>> _finiteElements;
+    private readonly List<IBoundaryElement<TSpace, TBoundary>> _boundaryElements;
 
     public TSpace this[int i] => _vertices[i];
     public int VertexCount => _vertices.Count;
-    public ICoordinateTransform<TSpace, TSpace> CoordinateSystem { get; } = coordinateSystem;
+
     public IEnumerable<IFiniteElement<TSpace>> FiniteElements => _finiteElements;
+    public IEnumerable<IBoundaryElement<TSpace, TBoundary>> BoundaryElements => _boundaryElements;
+
+    public ICoordinateTransform<TSpace, TSpace> CoordinateSystem { get; } = coordinateSystem;
+
+    // Mesh construction:
 
     public void AddVertex(TSpace vertex) => _vertices.Add(vertex);
+
     public void AddElement(IFiniteElementFactory<TSpace> factory, int[] vertices, int materialIndex) =>
          _finiteElements.Add(factory.CreateElement(this, vertices, materialIndex));
-}
 
-
-public sealed class Mesh2D(ICoordinateTransform<Vector2D, Vector2D> coordinateSystem) :
-    Mesh<Vector2D>(coordinateSystem), IMeshWithBoundaries<Vector2D, Vector1D>
-{
-    private readonly List<IBoundaryElement2D> _boundaryElements = [];
-    public IEnumerable<IBoundaryElement2D> BoundaryElements => _boundaryElements;
-
-    public void AddBoundary(IBoundaryElementFactory2D factory, int[] vertices, int boundaryIndex) =>
-         _boundaryElements.Add(factory.CreateBoundary(this, vertices, boundaryIndex));
-}
-
-
-public sealed class Mesh3D(ICoordinateTransform<Vector3D, Vector3D> coordinateSystem) :
-    Mesh<Vector3D>(coordinateSystem), IMeshWithBoundaries<Vector3D, Vector2D>
-{
-    private readonly List<IBoundaryElement3D> _boundaryElements = [];
-    public IEnumerable<IBoundaryElement3D> BoundaryElements => _boundaryElements;
-    public void AddBoundary(IBoundaryElementFactory3D factory, int[] vertices, int boundaryIndex) =>
+    public void AddBoundary(IBoundaryElementFactory<TSpace, TBoundary> factory, int[] vertices, int boundaryIndex) =>
          _boundaryElements.Add(factory.CreateBoundary(this, vertices, boundaryIndex));
 }

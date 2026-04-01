@@ -66,6 +66,15 @@ global using VolumeElementGeometry3D = Model.Model.Elements.ElementGeometry<Telm
 global using BoundaryElementGeometry2D = Model.Model.Elements.ElementGeometry<Telma.Vector2D, Telma.Vector1D>;
 global using BoundaryElementGeometry3D = Model.Model.Elements.ElementGeometry<Telma.Vector3D, Telma.Vector2D>;
 
+// Mesh
+
+global using IMesh1D = Model.Model.Mesh.IMesh<Telma.Vector1D>;
+global using IMesh2D = Model.Model.Mesh.IMesh<Telma.Vector2D>;
+global using IMesh3D = Model.Model.Mesh.IMesh<Telma.Vector3D>;
+
+global using Mesh2D = Model.Model.Mesh.Mesh<Telma.Vector2D, Telma.Vector1D>;
+global using Mesh3D = Model.Model.Mesh.Mesh<Telma.Vector3D, Telma.Vector2D>;
+
 // Integrator
 
 global using IItegrator2D = Model.Model.Integrator.IIntegrator<Telma.Vector2D, Telma.Vector1D, Model.Core.CoordinateSystem.MatrixOperations.Ops2X2>;
