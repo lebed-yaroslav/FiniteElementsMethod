@@ -7,10 +7,10 @@ public interface ISolver : IDisposable
 {
     public IGlobalMatrix Matrix { set; }
 
-    public record struct SolverParams(
+    public record struct Params(
         double Eps = 1e-10,
         int MaxIterations = 1000
     );
 
-    (double residual, int iterations) Solve(ReadOnlySpan<double> rhsVector, Span<double> solution, SolverParams paramz = default);
+    (double residual, int iterations) Solve(ReadOnlySpan<double> rhsVector, Span<double> solution, Params paramz = default);
 }

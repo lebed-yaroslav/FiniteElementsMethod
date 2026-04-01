@@ -38,7 +38,7 @@ public sealed record PCGSolver(
     public (double residual, int iterations) Solve(
         ReadOnlySpan<double> rhsVector,
         Span<double> solution,
-        ISolver.SolverParams paramz = default
+        ISolver.Params paramz = default
     ) 
     {
         if (Matrix == null)
