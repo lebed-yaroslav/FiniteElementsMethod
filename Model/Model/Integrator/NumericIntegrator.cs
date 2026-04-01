@@ -57,7 +57,30 @@ public class NumericIntegrator<TSpace, TBoundary, TOps> : IIntegrator<TSpace, TB
     public LocalMatrix CalculateLocalMass(
         IFiniteElementBase<TSpace, TBoundary> element,
         Func<TSpace, double> gamma
+    ) => CalculateLocalMass<TBoundary>(element, gamma);
+
+    public LocalMatrix CalculateLocalMass(
+        IFiniteElementBase<TSpace, TSpace> element,
+        Func<TSpace, double> gamma
+    ) => CalculateLocalMass<TSpace>(element, gamma);
+
+    public void CalculateLocalLoad(
+        IFiniteElementBase<TSpace, TBoundary> element,
+        Func<TSpace, double> source,
+        Span<double> outLoad
+    ) => CalculateLocalLoad<TBoundary>(element, source, outLoad);
+
+    public void CalculateLocalLoad(
+        IFiniteElementBase<TSpace, TSpace> element,
+        Func<TSpace, double> source,
+        Span<double> outLoad
+    ) => CalculateLocalLoad<TSpace>(element, source, outLoad);
+
+    private static LocalMatrix CalculateLocalMass<TB>(
+         IFiniteElementBase<TSpace, TB> element,
+         Func<TSpace, double> gamma
     )
+        where TB : IVectorBase<TB>
     {
         int n = element.DOF.Count;
         var mass = new LocalMatrix(n);
@@ -86,24 +109,11 @@ public class NumericIntegrator<TSpace, TBoundary, TOps> : IIntegrator<TSpace, TB
         return mass;
     }
 
-    public void CalculateLocalLoad(
-        IFiniteElementBase<TSpace, TBoundary> element,
+    private static void CalculateLocalLoad<TB>(
+        IFiniteElementBase<TSpace, TB> element,
         Func<TSpace, double> source,
-        Span<double> outLoad
-    ) => CalculateLocalLoad<TSpace, TBoundary>(element, source, outLoad);
-
-    public void CalculateLocalLoad(
-        IFiniteElementBase<TSpace, TSpace> element,
-        Func<TSpace, double> source,
-        Span<double> outLoad
-    ) => CalculateLocalLoad<TSpace, TSpace>(element, source, outLoad);
-
-    private static void CalculateLocalLoad<TS, TB>(
-        IFiniteElementBase<TS, TB> element,
-        Func<TS, double> source,
         Span<double> outLoad
     )
-        where TS : IVectorBase<TS>
         where TB : IVectorBase<TB>
     {
         int n = element.DOF.Count;

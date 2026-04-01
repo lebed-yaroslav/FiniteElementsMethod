@@ -9,6 +9,26 @@ using Telma.Extensions;
 namespace Model.Model.Assembly;
 
 
+/// <summary>
+/// Assembles the global finite element system: A·u = f, with support for Dirichlet, Neumann, and Robin boundary conditions.
+/// Handles the separation between free and fixed degrees of freedom, where fixed DOFs are eliminated from the main system
+/// and their contributions are moved to the right-hand side.
+/// </summary>
+/// <typeparam name="TSpace">Domain function space type</typeparam>
+/// <typeparam name="TBoundary">Boundary function space type</typeparam>
+/// <typeparam name="TOps">Matrix operations type for the function space</typeparam>
+/// <remarks>
+/// The assembler builds the global system:
+/// <code>
+/// [A_ff  A_fd] [q_f] = [q_f]
+/// [A_df  A_dd] [q_d]   [q_d]
+/// </code>
+/// where subscript 'f' denotes free DOFs and 'd' denotes fixed (Dirichlet) DOFs.
+/// The fixed DOFs are solved separately, and their contributions are added to the free system:
+/// <code>
+/// A_ff·u_f = f_f - A_fd·u_d
+/// </code>
+/// </remarks>
 public sealed record Assembler<TSpace, TBoundary, TOps>(
     IMeshWithBoundaries<TSpace, TBoundary> Mesh,
     DofManager DofManager,
@@ -22,22 +42,61 @@ public sealed record Assembler<TSpace, TBoundary, TOps>(
     private readonly double[] _rhsVector = new double[DofManager.FreeDofCount];
     private readonly double[] _fixedSolution = new double[DofManager.FixedDofCount];
 
+    /// <summary>
+    /// Gets the global stiffness/mass matrix for free degrees of freedom (A_ff).
+    /// This matrix is assembled incrementally by calling <see cref="CalculateStiffness"/>,
+    /// <see cref="CalculateMass"/>, and <see cref="CalculateRobinMassContribution"/>
+    /// </summary>
     public IGlobalMatrix Matrix { get; } = MatrixFactory.Create(PortraitGenerator.CreateAdjacencyList(
         Mesh.AllElementsDof, minDofIndex: 0, maxDofIndex: DofManager.FreeDofCount - 1
     ));
+
+    /// <summary>
+    /// Gets the right-hand side vector for free degrees of freedom (f_f).
+    /// This includes contributions from:
+    /// <list type="bullet">
+    /// <item>Domain loads (source terms)</item>
+    /// <item>Neumann boundary fluxes</item>
+    /// <item>Robin boundary contributions (β·u_β)</item>
+    /// <item>Fixed DOF contributions (-A_fd·u_d)</item>
+    /// </list>
+    /// </summary>
     public ReadOnlySpan<double> RhsVector => _rhsVector;
+
+    /// <summary>
+    /// Gets the solution values for fixed (Dirichlet) degrees of freedom (u_d).
+    /// These are computed by <see cref="CalculateFixedElements"/> and used to
+    /// compute the -A_fd·u_d contribution to the free RHS
+    /// </summary>
     public ReadOnlySpan<double> FixedSolution => _fixedSolution;
 
+    /// <summary>Resets all fixed DOF solution values to zero</summary>
     public void ResetFixedElements() => Array.Fill(_fixedSolution, 0);
+
+    /// <summary>Resets the global system matrix to zero</summary>
     public void ResetSystemMatrix() => Matrix.Fill(0);
+
+    /// <summary>Resets the right-hand side vector to zero</summary>
     public void ResetLoadVector() => Array.Fill(_rhsVector, 0);
 
     /// <summary>
-    /// 
+    /// Solves for the fixed (Dirichlet) degrees of freedom by assembling and solving a separate system.
     /// </summary>
-    /// <param name="boundaryConditions"></param>
-    /// <param name="time"></param>
-    /// <param name="paramz"></param>
+    /// <param name="boundaryConditions">
+    /// Array of boundary conditions indexed by <see cref="IBoundaryElement.BoundaryIndex"/>.
+    /// Only <see cref="BoundaryCondition{TSpace}.Dirichlet"/> conditions are processed.
+    /// </param>
+    /// <param name="time">Current simulation time, passed to Dirichlet condition evaluation.</param>
+    /// <param name="solver">Solver instance used to solve the fixed DOF system.</param>
+    /// <param name="paramz">Optional solver parameters.</param>
+    /// <remarks>
+    /// The fixed DOF system solves:
+    /// <code>
+    /// A_dd·u_d = f_d
+    /// </code>
+    /// where A_dd is assembled from Dirichlet boundary elements and f_d comes from the Dirichlet values.
+    /// After solving, u_d is stored in <see cref="FixedSolution"/>.
+    /// </remarks>
     public void CalculateFixedElements(BoundaryCondition<TSpace>[] boundaryConditions, double time, ISolver solver, ISolver.Params paramz = default)
     {
         var adjacencyList = PortraitGenerator.CreateAdjacencyList(
@@ -62,6 +121,20 @@ public sealed record Assembler<TSpace, TBoundary, TOps>(
         solver.Solve(rhsVector, _fixedSolution, paramz);
     }
 
+    /// <summary>
+    /// Assembles the stiffness matrix contribution: G_ij = ∫_Ω λ(∇φ_i)·(∇φ_j) dΩ.
+    /// </summary>
+    /// <param name="lambdaByMaterialIndex">
+    /// Function returning the material property λ(x) for a given material index.
+    /// Property is defined in mesh-space coordinates.
+    /// </param>
+    /// <remarks>
+    /// The local element stiffness matrices are:
+    /// <list type="bullet">
+    /// <item>Added to the global matrix <see cref="Matrix"/> (A_ff part)</item>
+    /// <item>Used to compute -A_fd·u_d contributions to <see cref="RhsVector"/> from fixed DOFs</item>
+    /// </list>
+    /// </remarks>
     public void CalculateStiffness(Func<int, Func<TSpace, double>> lambdaByMaterialIndex)
     {
         foreach (var element in Mesh.FiniteElements)
@@ -72,16 +145,38 @@ public sealed record Assembler<TSpace, TBoundary, TOps>(
         }
     }
 
+    /// <summary>
+    /// Assembles the mass matrix contribution: M_ij = ∫_Ω γ φ_i φ_j dΩ.
+    /// </summary>
+    /// <param name="gammaByMaterialIndex">
+    /// Function returning the material property γ(x) for a given material index.
+    /// Property is defined in mesh-space coordinates.
+    /// </param>
+    /// <remarks>
+    /// The local element mass matrices are:
+    /// <list type="bullet">
+    /// <item>Added to the global matrix <see cref="Matrix"/> (A_ff part)</item>
+    /// <item>Used to compute -A_fd·u_d contributions to <see cref="RhsVector"/> from fixed DOFs</item>
+    /// </list>
+    /// </remarks>
     public void CalculateMass(Func<int, Func<TSpace, double>> gammaByMaterialIndex)
     {
         foreach (var element in Mesh.FiniteElements)
         {
             var gamma = gammaByMaterialIndex(element.MaterialIndex);
-            var stiffness = Integrator.CalculateLocalMass((IFiniteElementBase<TSpace, TBoundary>)element, gamma);
+            var stiffness = Integrator.CalculateLocalMass(element, gamma);
             AddLocalMatrixWithFixedLoadContribution(stiffness, element.DOF);
         }
     }
 
+    /// <summary>
+    /// Assembles the domain load vector: f_i = ∫_Ω s φ_i dΩ.
+    /// </summary>
+    /// <param name="sourceByMaterialIndex">
+    /// Function returning the source term s(x) for a given material index.
+    /// Function is defined in mesh-space coordinates.
+    /// </param>
+    /// <remarks>Local load vectors adds up to <see cref="RhsVector"/></remarks>
     public void CalculateLoad(Func<int, Func<TSpace, double>> sourceByMaterialIndex)
     {
         foreach (var element in Mesh.FiniteElements)
@@ -93,6 +188,21 @@ public sealed record Assembler<TSpace, TBoundary, TOps>(
         }
     }
 
+    /// <summary>
+    /// Assembles boundary load contributions from Neumann and Robin conditions.
+    /// </summary>
+    /// <param name="boundaryConditions">
+    /// Array of boundary conditions indexed by <see cref="IBoundaryElement.BoundaryIndex"/>.
+    /// Processes <see cref="BoundaryCondition{TSpace}.Neumann"/> and <see cref="BoundaryCondition{TSpace}.Robin"/>.
+    /// </param>
+    /// <param name="time">Current simulation time, passed to boundary condition evaluation.</param>
+    /// <remarks>
+    /// Adds contributions do <see cref="RhsVector"/>:
+    /// <list type="bullet">
+    /// <item>Neumann: f_i = ∫_S2 θ φ_i dS</item>
+    /// <item>Robin: f_i = ∫_S3 β·u_β φ_i dS</item>
+    /// </list>
+    /// </remarks>
     public void CalculateBoundaryLoadContribution(BoundaryCondition<TSpace>[] boundaryConditions, double time)
     {
         foreach (var element in Mesh.BoundaryElements)
@@ -113,6 +223,21 @@ public sealed record Assembler<TSpace, TBoundary, TOps>(
         }
     }
 
+    /// <summary>
+    /// Assembles the Robin boundary mass matrix: MS3_ij = ∫_S3 β φ_i φ_j dS.
+    /// </summary>
+    /// <param name="boundaryConditions">
+    /// Array of boundary conditions indexed by <see cref="IBoundaryElement.BoundaryIndex"/>.
+    /// Only <see cref="BoundaryCondition{TSpace}.Robin"/> conditions are processed.
+    /// </param>
+    /// <param name="time">Current simulation time, passed to β evaluation.</param>
+    /// <remarks>
+    /// The local element mass matrices are:
+    /// <list type="bullet">
+    /// <item>Added to the global matrix <see cref="Matrix"/> (A_ff part)</item>
+    /// <item>Used to compute -A_fd·u_d contributions to <see cref="RhsVector"/> from fixed DOFs</item>
+    /// </list>
+    /// </remarks>
     public void CalculateRobinMassContribution(BoundaryCondition<TSpace>[] boundaryConditions, double time)
     {
         foreach (var element in Mesh.BoundaryElements)
