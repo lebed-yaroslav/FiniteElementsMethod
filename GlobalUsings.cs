@@ -93,6 +93,12 @@ global using Material1D = Model.Model.Problem.Material<Telma.Vector1D>;
 global using Material2D = Model.Model.Problem.Material<Telma.Vector2D>;
 global using Material3D = Model.Model.Problem.Material<Telma.Vector3D>;
 
+global using HyperbolicProblem1D = Model.Model.Problem.HyperbolicProblem<Telma.Vector1D>;
+global using HyperbolicProblem2D = Model.Model.Problem.HyperbolicProblem<Telma.Vector2D>;
+global using HyperbolicProblem3D = Model.Model.Problem.HyperbolicProblem<Telma.Vector3D>;
+
+global using EllipticSolver2D = Model.Model.Problem.EllipticSolver<Telma.Vector2D, Telma.Vector1D, Model.Core.CoordinateSystem.MatrixOperations.Ops2X2>;
+global using EllipticSolver3D = Model.Model.Problem.EllipticSolver<Telma.Vector3D, Telma.Vector2D, Model.Core.CoordinateSystem.MatrixOperations.Ops3X3>;
 // Assembler
 
 global using Assembler2D = Model.Model.Assembly.Assembler<Telma.Vector2D, Telma.Vector1D, Model.Core.CoordinateSystem.MatrixOperations.Ops2X2>;
