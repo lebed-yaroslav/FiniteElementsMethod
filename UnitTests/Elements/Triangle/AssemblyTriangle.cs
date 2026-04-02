@@ -20,7 +20,7 @@ public class AssemblyTriangleTest
         static double U(Vector2D p) => 5.0;
         //var mesh = Build2UnitsMesh();
         var cartesianCS = IdentityTransform<Vector2D>.Instance;
-        var reader = new StringReader(TwoTrianglesWithDirchletNeumann);
+        var reader = new StringReader(TwoTrianglesWithDirchlet);
         var elementfactory = FiniteElements.Triangle.HierarchicalQuadratic;
         var boundaryFactory = new HierarchicalQuadraticSegmentFactory();
 
@@ -35,8 +35,8 @@ public class AssemblyTriangleTest
                new (
                     Lambda: static (_, _) => 1.0,
                     Xi: static (_, _) => 0.0,
-                    Sigma: static (_, _) => 1.0, //gamma
-                    Source: (p, _) => U(p)
+                    Sigma: static (_, _) => 0.0, //gamma
+                    Source: (p, _) => 0
                 )
            ],
            BoundaryConditions:
@@ -44,12 +44,12 @@ public class AssemblyTriangleTest
                // [0,1]:
                new BoundaryCondition2D.Dirichlet((p, _) => U(p)),
                 // [0,2]
-                new BoundaryCondition2D.Neumann(static (_, _) => 0.0),
+                new BoundaryCondition2D.Dirichlet((p, _) => U(p)),
                 //[2,3]
                 new BoundaryCondition2D.Dirichlet((p,_) => U(p)),
                
                 //[1,3]: 
-                new BoundaryCondition2D.Neumann(static (_, _) => 0.0)
+                new BoundaryCondition2D.Dirichlet((p, _) => U(p))
            ],
            Mesh: mesh
        );
@@ -62,15 +62,12 @@ public class AssemblyTriangleTest
         double[] solution = ellipticSolver.Solve(problem, paramz);
         for (int i = 0; i < solution.Length; i++)
         {
-            Console.WriteLine(solution[i]);
+            Console.WriteLine($"{solution[i]}");
         }
-        //foreach (var val in solution)
-        //{
-        //    Assert.Equal(5.0, val, 1e-10);
-        //}
+        
     }
 
-    private static string TwoTrianglesWithDirchletNeumann => """
+    private static string TwoTrianglesWithDirchlet => """
         4
         0 0
         1 0 
@@ -81,10 +78,11 @@ public class AssemblyTriangleTest
         1 2 3 0
         4
         0 1 1 
-        0 2 2 
+        0 2 1 
         2 3 1 
-        1 3 2 
+        1 3 1 
         """;
+
     private static Mesh2D Build2UnitsMesh()
     {
         var cartesianCS = IdentityTransform<Vector2D>.Instance;
