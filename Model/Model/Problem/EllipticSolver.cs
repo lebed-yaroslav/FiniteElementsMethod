@@ -1,7 +1,7 @@
 using Model.Core.CoordinateSystem;
 using Model.Core.Solver;
 using Model.Model.Assembly;
-
+using Model.Model.Mesh;
 using Telma.Extensions;
 
 namespace Model.Model.Problem;
@@ -23,7 +23,7 @@ public class EllipticSolver<TSpace, TBoundary, TOps>
     public double[] Solve(HyperbolicProblem<TSpace> problem)
     {
         const double time = 0.0; // Время равно 0, так как задача стационарная
-       
+
         _assembler.ResetSystemMatrix();
         _assembler.ResetLoadVector();
         _assembler.ResetFixedElements();
