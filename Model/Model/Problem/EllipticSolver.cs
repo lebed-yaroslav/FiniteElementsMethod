@@ -20,8 +20,12 @@ public class EllipticSolver<TSpace, TBoundary, TOps>
         _algebraicSolver = algebraicSolver;
     }
 
-    public double[] Solve(HyperbolicProblem<TSpace> problem)
+    public double[] Solve(HyperbolicProblem<TSpace> problem, ISolver.Params solverParams = default)
     {
+        if (solverParams.MaxIterations == 0)
+        {
+            solverParams = new ISolver.Params();
+        }
         const double time = 0.0; // Время равно 0, так как задача стационарная
 
         _assembler.ResetSystemMatrix();
@@ -29,7 +33,7 @@ public class EllipticSolver<TSpace, TBoundary, TOps>
         _assembler.ResetFixedElements();
         
         // Граничные условия Дирихле 
-        _assembler.CalculateFixedElements(problem.BoundaryConditions, time, _algebraicSolver);
+        _assembler.CalculateFixedElements(problem.BoundaryConditions, time, _algebraicSolver,solverParams);
 
         // Сборка глобальной матрицы
         // Добавляем матрицу жесткости G
@@ -51,7 +55,7 @@ public class EllipticSolver<TSpace, TBoundary, TOps>
         // Решение СЛАУ
         var freeSolution = new double[_assembler.DofManager.FreeDofCount];
         _algebraicSolver.Matrix = _assembler.Matrix;
-        _algebraicSolver.Solve(_assembler.RhsVector, freeSolution);
+        _algebraicSolver.Solve(_assembler.RhsVector, freeSolution,solverParams);
 
         // Формирование итогового ответа 
         return GetFullSolution(freeSolution, _assembler.FixedSolution, _assembler.DofManager);
