@@ -1,15 +1,15 @@
-﻿using Model.Model.Basis;
-using Model.Model.Mesh;
+using Model.Model.Basis;
 using Telma;
 
 namespace Model.Model.Elements.Triangle;
 
-public sealed class LagrangeCubicTriangleFactory : IFiniteElementFactory<Vector2D>
+
+public sealed class LagrangeCubicTriangleFactory : IFiniteElementFactory2D
 {
-    public IFiniteElement<Vector2D> CreateElement(IMesh<Vector2D> mesh, int[] vertices, int materialIndex)
+    public IFiniteElement2D CreateElement(IMesh2D mesh, int[] vertices, int materialIndex)
     {
         var basis = (MutableBasisSet<Vector2D>)DefaultBasis();
-        return new FiniteElement<Vector2D>(
+        return new FiniteElement2D(
             Geometry: new TriangleGeometry(vertices) { Mesh = mesh },
             DOF: new Dof(basis),
             BasisSet: basis,
@@ -18,7 +18,7 @@ public sealed class LagrangeCubicTriangleFactory : IFiniteElementFactory<Vector2
     }
 
     // базис должен быть изменяемым как и в иерархическом (функции нужно менять местами)
-    public static IBasisSet<Vector2D> DefaultBasis() => new MutableBasisSet<Vector2D>(
+    public static IBasisSet2D DefaultBasis() => new MutableBasisSet<Vector2D>(
         Quadratures.TriangleOrder18,
         TriangleBasis.Lagrange.L3L3L3,
         TriangleBasis.Lagrange.L1L1L1,
