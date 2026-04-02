@@ -17,10 +17,10 @@ public class AssemblyTriangleTest
     [Fact]
     public void CorrectAssembly()
     {
-        static double U(Vector2D p) => 5.0;
+        static double U(Vector2D p) => p.X;
         //var mesh = Build2UnitsMesh();
         var cartesianCS = IdentityTransform<Vector2D>.Instance;
-        var reader = new StringReader(TwoTrianglesWithDirchlet);
+        var reader = new StringReader(MasterElementWithAllDirichlets);
         var elementfactory = FiniteElements.Triangle.HierarchicalQuadratic;
         var boundaryFactory = new HierarchicalQuadraticSegmentFactory();
 
@@ -35,21 +35,21 @@ public class AssemblyTriangleTest
                new (
                     Lambda: static (_, _) => 1.0,
                     Xi: static (_, _) => 0.0,
-                    Sigma: static (_, _) => 0.0, //gamma
-                    Source: (p, _) => 0
+                    Sigma: static (_, _) => 1.0, //gamma
+                    Source: (p, _) => p.X
                 )
            ],
            BoundaryConditions:
            [
                // [0,1]:
-               new BoundaryCondition2D.Dirichlet((p, _) => U(p)),
+                new BoundaryCondition2D.Dirichlet((p, _) => U(p)),
                 // [0,2]
                 new BoundaryCondition2D.Dirichlet((p, _) => U(p)),
                 //[2,3]
                 new BoundaryCondition2D.Dirichlet((p,_) => U(p)),
                
-                //[1,3]: 
-                new BoundaryCondition2D.Dirichlet((p, _) => U(p))
+                ////[1,3]: 
+                //new BoundaryCondition2D.Dirichlet((p, _) => U(p))
            ],
            Mesh: mesh
        );
@@ -64,23 +64,35 @@ public class AssemblyTriangleTest
         {
             Console.WriteLine($"{solution[i]}");
         }
-        
+        //Посчитало 0 2 2 0 0 0 , а должно быть одна единица и остальное нули.
     }
 
-    private static string TwoTrianglesWithDirchlet => """
-        4
+    //private static string TwoTrianglesWithDirchlet => """
+    //    4
+    //    0 0
+    //    1 0 
+    //    0 1
+    //    1 1
+    //    2
+    //    0 1 2 0
+    //    1 2 3 0
+    //    4
+    //    0 1 1 
+    //    0 2 1 
+    //    2 3 1 
+    //    1 3 1 
+    //    """;
+    private static string MasterElementWithAllDirichlets => """
+        3
         0 0
-        1 0 
+        1 0
         0 1
-        1 1
-        2
+        1
         0 1 2 0
-        1 2 3 0
-        4
-        0 1 1 
-        0 2 1 
-        2 3 1 
-        1 3 1 
+        3
+        0 1 1 0
+        0 2 1 1
+        1 2 1 2
         """;
 
     private static Mesh2D Build2UnitsMesh()
