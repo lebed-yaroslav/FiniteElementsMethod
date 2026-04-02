@@ -1,4 +1,5 @@
 
+using System.Diagnostics;
 using Model.Core.CoordinateSystem;
 using Model.Core.Matrix;
 using Model.Core.Solver;
@@ -29,7 +30,7 @@ public class AssemblyTriangleTest
         var boundaryFactory = new HierarchicalQuadraticSegmentFactory();
 
         var mesh = MeshInput.ReadMesh(reader, cartesianCS, elementfactory, boundaryFactory);
-        var dofManager = new DofManager();
+       
         var matrixFactory = new CsrMatrixFactory();
         var integrator = NumericItegrator2D.Instance;
 
@@ -57,6 +58,8 @@ public class AssemblyTriangleTest
            ],
            Mesh: mesh
        );
+        
+        var dofManager = DofManager.NumerateDof((IMeshWithBoundaries<Vector2D,Vector1D>)problem.Mesh, problem.BoundaryConditions);
         var assembler = new Assembler2D(mesh, dofManager, matrixFactory, integrator);
         var algebraicSolver = new PCGSolver(
         PreconditionerCreator: matrix => CsrILUFactorization.Create((CsrMatrix)matrix)
@@ -79,10 +82,10 @@ public class AssemblyTriangleTest
         0 1 2 10
         1 2 3 10
         4
-        0 1 1 0
-        0 2 2 1
-        2 3 1 2
-        1 3 2 3
+        0 1 1 
+        0 2 2 
+        2 3 1 
+        1 3 2 
         """;
     private static Mesh2D Build2UnitsMesh()
     {
