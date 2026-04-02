@@ -4,15 +4,10 @@ using Model.Core.CoordinateSystem;
 using Model.Core.Matrix;
 using Model.Core.Solver;
 using Model.Core.Solver.Precondition;
-using Model.Model;
-using Model.Model.Assembly;
 using Model.Model.Elements;
 using Model.Model.Elements.Segment;
-using Model.Model.Integrator;
 using Model.Model.Mesh;
-using Model.Model.Problem;
 using Telma;
-using DofManager = Model.Model.Assembly.DofManager;
 
 namespace UnitTests.Elements.Triangle;
 
@@ -58,16 +53,13 @@ public class AssemblyTriangleTest
            ],
            Mesh: mesh
        );
-        
-        var dofManager = DofManager.NumerateDof((IMeshWithBoundaries<Vector2D,Vector1D>)problem.Mesh, problem.BoundaryConditions);
-        var assembler = new Assembler2D(mesh, dofManager, matrixFactory, integrator);
         var algebraicSolver = new PCGSolver(
-        PreconditionerCreator: matrix => CsrILUFactorization.Create((CsrMatrix)matrix)
-    );
+            PreconditionerCreator: matrix => CsrILUFactorization.Create((CsrMatrix)matrix)
+        );
         
-        var ellipticSolver = new EllipticSolver2D(assembler, algebraicSolver);
+        var ellipticSolver = new EllipticSolver2D(matrixFactory, integrator, algebraicSolver);
         var paramz = new ISolver.Params(Eps: 1e-12,MaxIterations: 1200);
-        double[] solution = ellipticSolver.Solve(problem,paramz);
+        double[] solution = ellipticSolver.Solve(problem, paramz);
         for (int i = 0; i < solution.Length; i++)
         {
             Console.WriteLine(solution[i]);

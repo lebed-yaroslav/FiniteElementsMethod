@@ -1,77 +1,71 @@
 using Model.Core.CoordinateSystem;
+using Model.Core.Matrix;
 using Model.Core.Solver;
 using Model.Model.Assembly;
+using Model.Model.Integrator;
 using Model.Model.Mesh;
 using Telma.Extensions;
 
 namespace Model.Model.Problem;
 
-public class EllipticSolver<TSpace, TBoundary, TOps>
+public class EllipticSolver<TSpace, TBoundary, TOps>(
+    IMatrixFactory matrixFactory,
+    IIntegrator<TSpace, TBoundary, TOps> integrator,
+    ISolver algebraicSolver
+)
     where TSpace : IVectorBase<TSpace>
     where TBoundary : IVectorBase<TBoundary>
     where TOps : IMatrixOperations<TSpace, TSpace, TOps>
 {
-    private readonly Assembler<TSpace, TBoundary, TOps> _assembler;
-    private readonly ISolver _algebraicSolver;
+    private readonly IMatrixFactory _matrixFactory = matrixFactory;
+    private readonly IIntegrator<TSpace, TBoundary, TOps> _integrator = integrator;
+    private readonly ISolver _algebraicSolver = algebraicSolver;
 
-    public EllipticSolver(Assembler<TSpace, TBoundary, TOps> assembler, ISolver algebraicSolver)
+    public double[] Solve(
+        HyperbolicProblem<TSpace> problem,
+        ISolver.Params solverParams = default
+    )
     {
-        _assembler = assembler;
-        _algebraicSolver = algebraicSolver;
-    }
-
-    public double[] Solve(HyperbolicProblem<TSpace> problem, ISolver.Params solverParams = default)
-    {
-        if (solverParams.MaxIterations == 0)
-        {
-            solverParams = new ISolver.Params();
-        }
         const double time = 0.0; // Время равно 0, так как задача стационарная
+        var mesh = (IMeshWithBoundaries<TSpace, TBoundary>)problem.Mesh;
+        var dofManager = DofManager.NumerateDof(mesh, problem.BoundaryConditions);
+        var assembler = new Assembler<TSpace, TBoundary, TOps>(mesh, dofManager, _matrixFactory, _integrator);
 
-        _assembler.ResetSystemMatrix();
-        _assembler.ResetLoadVector();
-        _assembler.ResetFixedElements();
-        
-        // Граничные условия Дирихле 
-        _assembler.CalculateFixedElements(problem.BoundaryConditions, time, _algebraicSolver,solverParams);
+        // Учитываем условия Дирихле
+        assembler.CalculateFixedElements(problem.BoundaryConditions, time, _algebraicSolver,solverParams);
 
         // Сборка глобальной матрицы
         // Добавляем матрицу жесткости G
-        _assembler.CalculateStiffness(matId => p => problem.Materials[matId].Lambda(p,time));
+        assembler.CalculateStiffness(matId => p => problem.Materials[matId].Lambda(p, time));
 
         // Добавляем матрицу масс M 
-        _assembler.CalculateMass(matId => p => problem.Materials[matId].Sigma(p,time)); //здесь сигма это гамма
+        assembler.CalculateMass(matId => p => problem.Materials[matId].Sigma(p, time)); //здесь сигма это гамма
 
         // Добавляем вклад от 3го краевого в матрицу
-        _assembler.CalculateRobinMassContribution(problem.BoundaryConditions, time);
+        assembler.CalculateRobinMassContribution(problem.BoundaryConditions, time);
 
         // Сборка правой части уравнения 
         // Добавляем источники (f)
-        _assembler.CalculateLoad(matId => p => problem.Materials[matId].Source(p,time));
+        assembler.CalculateLoad(matId => p => problem.Materials[matId].Source(p, time));
 
         // Добавляем потоки (условия Неймана и Робина)
-        _assembler.CalculateBoundaryLoadContribution(problem.BoundaryConditions, time);
+        assembler.CalculateBoundaryLoadContribution(problem.BoundaryConditions, time);
 
         // Решение СЛАУ
-        var freeSolution = new double[_assembler.DofManager.FreeDofCount];
-        _algebraicSolver.Matrix = _assembler.Matrix;
-        _algebraicSolver.Solve(_assembler.RhsVector, freeSolution,solverParams);
+        var freeSolution = new double[assembler.DofManager.FreeDofCount];
+        _algebraicSolver.Matrix = assembler.Matrix;
+        _algebraicSolver.Solve(assembler.RhsVector, freeSolution,solverParams);
 
         // Формирование итогового ответа 
-        return GetFullSolution(freeSolution, _assembler.FixedSolution, _assembler.DofManager);
+        return GetFullSolution(freeSolution, assembler.FixedSolution, assembler.DofManager);
     }
 
     
     private static double[] GetFullSolution(ReadOnlySpan<double> freeSolution, ReadOnlySpan<double> fixedSolution, DofManager dofManager)
     {
         var result = new double[dofManager.TotalDofCount];
-        for (int i = 0; i < dofManager.TotalDofCount; i++)
-        {
-            if (i < dofManager.FreeDofCount)
-                result[i] = freeSolution[i];
-            else
-                result[i] = fixedSolution[i - dofManager.FreeDofCount];
-        }
+        freeSolution.CopyTo(result);
+        fixedSolution.CopyTo(result.AsSpan(start: dofManager.FreeDofCount));
         return result;
     }
 }
