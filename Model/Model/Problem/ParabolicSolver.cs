@@ -8,15 +8,6 @@ using Telma.Extensions;
 
 namespace Model.Model.Problem;
 
-/// <summary>
-/// Перечисление схемы по времени
-/// </summary>
-public enum TimeScheme
-{
-    Implicit3Layer, // Неявная 3-х слойная схема
-    Explicit3Layer  // Явная 3-х слойная схема
-}
-
 public class ParabolicSolver<TSpace, TBoundary, TOps>
     where TSpace : IVectorBase<TSpace>
     where TBoundary : IVectorBase<TBoundary>
