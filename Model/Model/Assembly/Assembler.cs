@@ -271,7 +271,7 @@ public sealed record Assembler<TSpace, TBoundary, TOps>(
         for (int i = 0; i < n; ++i)
         {
             int gi = element.DOF.Dof[i] - DofManager.FreeDofCount;
-            if (gi >= 0) rhsVector[gi] = load[i]; // Ignore free dof
+            if (gi >= 0) rhsVector[gi] += load[i]; // Ignore free dof
         }
     }
 
