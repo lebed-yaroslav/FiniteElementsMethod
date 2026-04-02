@@ -60,12 +60,18 @@ public sealed class QuadrangleCoordinateSystem(
     public IJacobyMatrix2X2 InverseJacoby() => new QuadrangleInverseJacobyMatrix(_j);
 }
 
-
+/// <summary>
+/// квадратура для отображения произвольного четырехугольника с вершинами:
+/// </summary>
+/// <param name="P00"> Точка (0, 0) в локальной системе координат</param>
+/// <param name="P10"> Точка (1, 0) в локальной системе координат</param>
+/// <param name="P11"> Точка (1, 1) в локальной системе координат</param>
+/// <param name="P01"> Точка (0, 1) в локальной системе координат</param>
 public sealed record QuadrangleJacobyMatrix(
     Vector2D P00,
     Vector2D P10,
-    Vector2D P01,
-    Vector2D P11
+    Vector2D P11,
+    Vector2D P01
 ) : IJacobyMatrix<Vector2D, Vector2D>
 {
     public static bool IsConstant => false;
