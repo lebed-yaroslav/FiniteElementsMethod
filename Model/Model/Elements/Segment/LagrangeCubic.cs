@@ -1,21 +1,21 @@
+using System.Diagnostics;
 using Model.Model.Basis;
-using Model.Model.Mesh;
 using Telma;
 
 namespace Model.Model.Elements.Segment;
 
 
-public sealed class CubicLagrangeSegmentFactory : IBoundaryElementFactory<Vector2D, Vector1D>
+public sealed class LagrangeCubicSegmentFactory : IBoundaryElementFactory2D
 {
-    public IBoundaryElement<Vector2D, Vector1D> CreateBoundary(IMesh<Vector2D> mesh, int[] vertices, int boundaryIndex)
-        => new BoundaryElement<Vector2D, Vector1D>(
-            Geometry: new SegmentGeometry<Vector2D>.Boundary(vertices) { Mesh = mesh },
+    public IBoundaryElement2D CreateBoundary(IMesh2D mesh, int[] vertices, int boundaryIndex)
+        => new BoundaryElement2D(
+            Geometry: new SegmentGeometry<Vector2D>(vertices) { Mesh = mesh },
             DOF: new Dof(),
             BasisSet: Basis,
             BoundaryIndex: boundaryIndex
     );
 
-    public static readonly IBasisSet<Vector1D> Basis = new BasisSet<Vector1D>(
+    public static readonly IBasisSet1D Basis = new BasisSet1D(
         Quadratures.SegmentGaussOrder3,
         SegmentBasis.Lagrange1D.Create(3, 0),
         SegmentBasis.Lagrange1D.Create(3, 3),
@@ -31,15 +31,15 @@ public sealed class CubicLagrangeSegmentFactory : IBoundaryElementFactory<Vector
 
         public override void SetVertexDof(int localVertexIndex, int n, int dofIndex)
         {
-            if (n != 0) throw new NotSupportedException();
-            if (localVertexIndex < 2) throw new NotSupportedException();
+            AssertIsValidVertexDofNumber(n);
+            Debug.Assert(0 <= localVertexIndex && localVertexIndex < 2);
             _dof[localVertexIndex] = dofIndex;
         }
 
         public override void SetEdgeDof(int localEdgeIndex, bool isOrientationFlipped, int n, int dofIndex)
         {
-            if (n != 0) throw new NotSupportedException();
-            if (localEdgeIndex >= 2) throw new NotSupportedException();
+            AssertIsValidEdgeDofNumber(n);
+            Debug.Assert(localEdgeIndex == 0);
             _dof[localEdgeIndex + 2] = dofIndex;
         }
 
