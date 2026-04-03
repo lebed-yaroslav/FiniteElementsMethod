@@ -1,3 +1,5 @@
+using System.Diagnostics;
+using System.Globalization;
 using Model.Core.CoordinateSystem;
 using Model.Model.Elements;
 using Telma;
@@ -31,40 +33,115 @@ public static class MeshInput
             where TBoundary : IVectorBase<TBoundary>
         {
             var mesh = new Mesh<TSpace, TBoundary>(coordinateSystem);
+            int currentLine = 0; // Used for detailed exceptions messages
 
-            // 1. Read vertices
-            if (!int.TryParse(self.ReadLine(), out int n))
-                throw new Exception("Некорректные входные данные (первая строка должна содержать кол-во узлов (n))!");
-            string? str;
-            for (int i = 0; i < n; ++i)
-            {
-                str = self.ReadLine() ?? throw new Exception("Некоректное кол-во узлов!");
-                double[] vertex = [.. str.Split(' ', StringSplitOptions.RemoveEmptyEntries).Select(double.Parse)];
-                if (vertex.Length != TSpace.Dimensions) throw new Exception($"Неверное количество вершин {vertex.Length}, ожидалось {TSpace.Dimensions}");
-                mesh.AddVertex(TSpace.FromSpan(vertex));
-            }
-
-            // 2. Read elements
-            if (!int.TryParse(self.ReadLine(), out n))
-                throw new Exception("Некорректные входные данные (строка n+1 должна содержать кол-во элементов)!");
-            for (int i = 0; i < n; ++i)
-            {
-                str = self.ReadLine() ?? throw new Exception("Неправильная структура входных данных!");
-                int[] buf = [.. str.Split(' ', StringSplitOptions.RemoveEmptyEntries).Select(int.Parse)];
-                mesh.AddElement(finiteElementFactory, vertices: buf[..^1], materialIndex: buf[^1]);
-            }
-
-            // 3. Read boundary elements
-            if (!int.TryParse(self.ReadLine(), out n))
-                throw new Exception("Некорректные входные данные (первая строка должна содержать кол-во узлов (n))!");
-            for (int i = 0; i < n; ++i)
-            {
-                str = self.ReadLine() ?? throw new Exception("Неправильная структура входных данных!");
-                int[] buf = [.. str.Split(' ', StringSplitOptions.RemoveEmptyEntries).Select(int.Parse)];
-                mesh.AddBoundary(boundaryElementFactory, vertices: buf[0..^1], boundaryIndex: buf[^1]);
-            }
+            self.ReadVertices(mesh, ref currentLine);
+            self.ReadElements(mesh, finiteElementFactory, ref currentLine);
+            self.ReadBoundaryElements(mesh, boundaryElementFactory, ref currentLine);
 
             return mesh;
+        }
+
+        private void ReadVertices<TSpace, TBoundary>(Mesh<TSpace, TBoundary> mesh, ref int currentLine)
+            where TSpace : IVectorBase<TSpace>
+            where TBoundary : IVectorBase<TBoundary>
+        {
+            ++currentLine;
+            if (!int.TryParse(self.ReadLine(), out int vertexCount))
+                throw new FormatException("Expected vertex count at line 1");
+            for (int i = 1; i <= vertexCount; ++i)
+            {
+                ++currentLine;
+                string str = self.ReadLine() ??
+                    throw new FormatException($"Expected vertex at line {currentLine}");
+                double[] vertices = ParseDoubles(str, i + 1);
+                if (vertices.Length != TSpace.Dimensions)
+                    throw new FormatException($"Invalid coordinates count {vertices.Length} at line {currentLine}, expected {TSpace.Dimensions}");
+                mesh.AddVertex(TSpace.FromSpan(vertices));
+            }
+        }
+
+        private void ReadElements<TSpace, TBoundary>(
+            Mesh<TSpace, TBoundary> mesh,
+            IFiniteElementFactory<TSpace> finiteElementFactory,
+            ref int currentLine
+        )
+            where TSpace : IVectorBase<TSpace>
+            where TBoundary : IVectorBase<TBoundary>
+        {
+            ++currentLine;
+            if (!int.TryParse(self.ReadLine(), out int elementCount))
+                throw new FormatException($"Expected element count at line {currentLine}");
+            for (int i = 1; i <= elementCount; ++i)
+            {
+                ++currentLine;
+                string str = self.ReadLine() ??
+                    throw new FormatException($"Expected element at line {currentLine}");
+
+                int[] buf = ParseIntegers(str, currentLine);
+
+                try
+                {
+                    mesh.AddElement(finiteElementFactory, vertices: buf[..^1], materialIndex: buf[^1]);
+                }
+                catch (ArgumentException ex)
+                {
+                    throw new FormatException($"Exception at line {currentLine}: {ex.Message}", ex);
+                }
+            }
+        }
+
+        private void ReadBoundaryElements<TSpace, TBoundary>(
+            Mesh<TSpace, TBoundary> mesh,
+            IBoundaryElementFactory<TSpace, TBoundary> boundaryElementFactory,
+            ref int currentLine
+        )
+            where TSpace : IVectorBase<TSpace>
+            where TBoundary : IVectorBase<TBoundary>
+        {
+            ++currentLine;
+            if (!int.TryParse(self.ReadLine(), out int boundaryElementCount))
+                throw new FormatException($"Expected boundary element count at line {currentLine}");
+            for (int i = 1; i <= boundaryElementCount; ++i)
+            {
+                ++currentLine;
+                string str = self.ReadLine() ??
+                    throw new FormatException($"Expected boundary element at line {currentLine}");
+                int[] buf = ParseIntegers(str, currentLine);
+
+                try
+                {
+                    mesh.AddBoundary(boundaryElementFactory, vertices: buf[..^1], boundaryIndex: buf[^1]);
+                }
+                catch (ArgumentException ex)
+                {
+                    throw new FormatException($"Exception at line {currentLine}: {ex.Message}", ex);
+                }
+            }
+        }
+    }
+
+    private static int[] ParseIntegers(string line, int lineNumber)
+    {
+        try
+        {
+            return [.. line.Split(' ', StringSplitOptions.RemoveEmptyEntries).Select(s => int.Parse(s, CultureInfo.InvariantCulture))];
+        }
+        catch (FormatException ex)
+        {
+            throw new FormatException($"Failed to parse int[] at line {lineNumber}", ex);
+        }
+    }
+
+    private static double[] ParseDoubles(string line, int lineNumber)
+    {
+        try
+        {
+            return [.. line.Split(' ', StringSplitOptions.RemoveEmptyEntries).Select(s => double.Parse(s, CultureInfo.InvariantCulture))];
+        }
+        catch (FormatException ex)
+        {
+            throw new FormatException($"Failed to parse double[] at line {lineNumber}", ex);
         }
     }
 }
