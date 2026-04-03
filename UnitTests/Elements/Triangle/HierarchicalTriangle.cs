@@ -1,10 +1,9 @@
 
-using System.Diagnostics;
 using Model.Core.CoordinateSystem;
 using Model.Core.Matrix;
-using Model.Model;
 using Model.Model.Assembly;
-using Model.Model.Basis;
+using Model.Model.Elements;
+
 //using Model.Model.Elements;
 using Model.Model.Elements.Segment;
 using Model.Model.Elements.Triangle;
@@ -21,10 +20,30 @@ namespace UnitTests.Elements.Triangle
         [Fact]
         public void HierarchicalInit() 
         {
-            string path = @"C:\Users\Lossky\Documents\GitHub\FiniteElementsMethod\test.txt";
+            string input =
+            """
+            5
+            1 7
+            4 7
+            2 3
+            4 3
+            1 3
+            3
+            4 0 2 0
+            0 1 2 0
+            1 3 2 0
+            2
+            1 3 0
+            4 0 1
+            """;
 
-            Mesh2D init = MeshInput.ReadMesh(File.OpenText(path), PolarCoordinateSystem.Instance,new HierarchicalQuadraticTriangleFactory(),new HierarchicalQuadraticSegmentFactory());
-            var a = init.BoundaryElements;
+            Mesh2D mesh = MeshInput.ReadMesh(
+                new StringReader(input), 
+                PolarCoordinateSystem.Instance,
+                FiniteElements.Triangle.HierarchicalQuadratic,
+                FiniteElements.Segment.HierarchicalQuadratic
+            );
+            var a = mesh.BoundaryElements;
 
             BoundaryCondition<Vector2D>[] boundaryCondition = new BoundaryCondition<Vector2D>[2];
             Func<Vector2D, double, double> x = (y,d) => y.X;
@@ -33,11 +52,11 @@ namespace UnitTests.Elements.Triangle
             boundaryCondition[1] = new BoundaryCondition<Vector2D>.Dirichlet(x);
 
             //Нумератор + Перенумератор работает корректно
-            int DOFcount = DofNumerator<Vector2D, Vector1D>.PreNumerateDof(init);
+            int DOFcount = DofNumerator<Vector2D, Vector1D>.PreNumerateDof(mesh);
 
             NumericItegrator2D Integrator = NumericIntegrator<Vector2D, Vector1D, Ops2X2>.Instance;
 
-            var element = init.FiniteElements.First();
+            var element = mesh.FiniteElements.First();
             System.Func<Telma.Vector2D, double> lambda = x => 1;
             var stiffness = Integrator.CalculateLocalStiffness(element, lambda);
             var mass = Integrator.CalculateLocalMass(element, lambda);
@@ -79,11 +98,7 @@ namespace UnitTests.Elements.Triangle
                 }
             }
 
-
-
-
-
-            var DOF = DofManager.NumerateDof(init,boundaryCondition);
+            var DOF = Model.Model.Assembly.DofManager.NumerateDof(mesh,boundaryCondition);
  
             Assert.Equal(DOF.TotalDofCount, 12);
 
@@ -100,7 +115,7 @@ namespace UnitTests.Elements.Triangle
             trueAdjacency.Add([0,4]);
 
             //Списки смежности не собираются, выход за пределы  PS: Исправлено
-            var adjacency = PortraitGenerator.CreateAdjacencyList(init.AllElementsDof,0, DOF.FreeDofCount);
+            var adjacency = PortraitGenerator.CreateAdjacencyList(mesh.AllElementsDof,0, DOF.FreeDofCount);
 
             Assert.Equal(adjacency, trueAdjacency);
 
@@ -113,7 +128,7 @@ namespace UnitTests.Elements.Triangle
             trueAdjacencyDirichlet.Add([2, 1]);
 
             //Лишний элемент в портрете
-            var adjacencyDirichlet = PortraitGenerator.CreateAdjacencyList(init.BoundaryElements
+            var adjacencyDirichlet = PortraitGenerator.CreateAdjacencyList(mesh.BoundaryElements
             .Where(e => boundaryCondition[e.BoundaryIndex] is BoundaryCondition<Vector2D>.Dirichlet)
             .Select(e => e.DOF), DOF.FreeDofCount, DOF.TotalDofCount);
             Assert.Equal(adjacencyDirichlet, trueAdjacencyDirichlet);
