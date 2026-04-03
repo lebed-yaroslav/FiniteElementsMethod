@@ -1,15 +1,26 @@
+using Model.Model.Mesh;
 using Telma.Extensions;
 
 namespace Model.Model.Problem;
 
+/// <summary>
+/// Material coefficients for elliptic problem: -∇⋅(λ∇u) + γu = f
+/// </summary>
+public sealed record EllipticMaterial<TSpace>(
+    Func<TSpace, double> Lambda,
+    Func<TSpace, double> Gamma,
+    Func<TSpace, double> Source
+) where TSpace : IVectorBase<TSpace>;
 
-public sealed record Material<TSpace>(
+/// <summary>
+/// Material coefficients for hyperbolic/elliptic problem: χ(∂2u/∂t2) + σ(∂u/∂t) - ∇⋅(λ∇u)=f
+/// </summary>
+public sealed record HyperbolicMaterial<TSpace>(
     Func<TSpace, double, double> Lambda,
     Func<TSpace, double, double> Xi,
     Func<TSpace, double, double> Sigma,
     Func<TSpace, double, double> Source
 ) where TSpace : IVectorBase<TSpace>;
-
 
 public abstract record BoundaryCondition<TSpace>
     where TSpace : IVectorBase<TSpace>
@@ -45,3 +56,24 @@ public abstract record BoundaryCondition<TSpace>
         Func<TSpace, double, double> UBeta
     ) : BoundaryCondition<TSpace>();
 }
+
+
+/// <summary>
+/// Problem: -∇⋅(λ∇u) + γu = f
+/// </summary>
+public sealed record EllipticProblem<TSpace>
+(
+    EllipticMaterial<TSpace>[] Materials,
+    BoundaryCondition<TSpace>[] BoundaryConditions,
+    IMesh<TSpace> Mesh
+) where TSpace : IVectorBase<TSpace>;
+
+/// <summary>
+/// Problem: χ(∂2u/∂t2)+σ(∂u/∂t)-∇⋅(λ∇u)=f
+/// </summary>
+public sealed record HyperbolicProblem<TSpace>
+(
+    HyperbolicMaterial<TSpace>[] Materials,
+    BoundaryCondition<TSpace>[] BoundaryConditions,
+    IMesh<TSpace> Mesh
+) where TSpace : IVectorBase<TSpace>;

@@ -89,13 +89,21 @@ global using BoundaryCondition1D = Model.Model.Problem.BoundaryCondition<Telma.V
 global using BoundaryCondition2D = Model.Model.Problem.BoundaryCondition<Telma.Vector2D>;
 global using BoundaryCondition3D = Model.Model.Problem.BoundaryCondition<Telma.Vector3D>;
 
-global using Material1D = Model.Model.Problem.Material<Telma.Vector1D>;
-global using Material2D = Model.Model.Problem.Material<Telma.Vector2D>;
-global using Material3D = Model.Model.Problem.Material<Telma.Vector3D>;
+global using EllipticMaterial1D = Model.Model.Problem.HyperbolicMaterial<Telma.Vector1D>;
+global using EllipticMaterial2D = Model.Model.Problem.HyperbolicMaterial<Telma.Vector2D>;
+global using EllipticMaterial3D = Model.Model.Problem.HyperbolicMaterial<Telma.Vector3D>;
+
+global using HyperbolicMaterial1D = Model.Model.Problem.HyperbolicMaterial<Telma.Vector1D>;
+global using HyperbolicMaterial2D = Model.Model.Problem.HyperbolicMaterial<Telma.Vector2D>;
+global using HyperbolicMaterial3D = Model.Model.Problem.HyperbolicMaterial<Telma.Vector3D>;
 
 global using HyperbolicProblem1D = Model.Model.Problem.HyperbolicProblem<Telma.Vector1D>;
 global using HyperbolicProblem2D = Model.Model.Problem.HyperbolicProblem<Telma.Vector2D>;
 global using HyperbolicProblem3D = Model.Model.Problem.HyperbolicProblem<Telma.Vector3D>;
+
+global using EllipticProblem1D = Model.Model.Problem.EllipticProblem<Telma.Vector1D>;
+global using EllipticProblem2D = Model.Model.Problem.EllipticProblem<Telma.Vector2D>;
+global using EllipticProblem3D = Model.Model.Problem.EllipticProblem<Telma.Vector3D>;
 
 global using EllipticSolver2D = Model.Model.Problem.EllipticSolver<Telma.Vector2D, Telma.Vector1D, Model.Core.CoordinateSystem.MatrixOperations.Ops2X2>;
 global using EllipticSolver3D = Model.Model.Problem.EllipticSolver<Telma.Vector3D, Telma.Vector2D, Model.Core.CoordinateSystem.MatrixOperations.Ops3X3>;

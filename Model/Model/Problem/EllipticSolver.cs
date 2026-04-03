@@ -8,6 +8,12 @@ using Telma.Extensions;
 
 namespace Model.Model.Problem;
 
+/// <summary>
+/// Solves problem: -∇⋅(λ∇u) + γu = f
+/// </summary>
+/// <typeparam name="TSpace">Domain function space type</typeparam>
+/// <typeparam name="TBoundary">Boundary function space type</typeparam>
+/// <typeparam name="TOps">Matrix operations type for the function space</typeparam>
 public class EllipticSolver<TSpace, TBoundary, TOps>(
     IMatrixFactory matrixFactory,
     IIntegrator<TSpace, TBoundary, TOps> integrator,
@@ -22,7 +28,7 @@ public class EllipticSolver<TSpace, TBoundary, TOps>(
     private readonly ISolver _algebraicSolver = algebraicSolver;
 
     public double[] Solve(
-        HyperbolicProblem<TSpace> problem,
+        EllipticProblem<TSpace> problem,
         ISolver.Params solverParams = default
     )
     {
@@ -36,17 +42,17 @@ public class EllipticSolver<TSpace, TBoundary, TOps>(
 
         // Сборка глобальной матрицы
         // Добавляем матрицу жесткости G
-        assembler.CalculateStiffness(matId => p => problem.Materials[matId].Lambda(p, time));
+        assembler.CalculateStiffness(matId => problem.Materials[matId].Lambda);
 
         // Добавляем матрицу масс M 
-        assembler.CalculateMass(matId => p => problem.Materials[matId].Sigma(p, time)); //здесь сигма это гамма
+        assembler.CalculateMass(matId => problem.Materials[matId].Gamma);
 
         // Добавляем вклад от 3го краевого в матрицу
         assembler.CalculateRobinMassContribution(problem.BoundaryConditions, time);
 
         // Сборка правой части уравнения 
         // Добавляем источники (f)
-        assembler.CalculateLoad(matId => p => problem.Materials[matId].Source(p, time));
+        assembler.CalculateLoad(matId => problem.Materials[matId].Source);
 
         // Добавляем потоки (условия Неймана и Робина)
         assembler.CalculateBoundaryLoadContribution(problem.BoundaryConditions, time);
@@ -60,7 +66,6 @@ public class EllipticSolver<TSpace, TBoundary, TOps>(
         return GetFullSolution(freeSolution, assembler.FixedSolution, assembler.DofManager);
     }
 
-    
     private static double[] GetFullSolution(ReadOnlySpan<double> freeSolution, ReadOnlySpan<double> fixedSolution, DofManager dofManager)
     {
         var result = new double[dofManager.TotalDofCount];
@@ -69,6 +74,3 @@ public class EllipticSolver<TSpace, TBoundary, TOps>(
         return result;
     }
 }
-
-
-

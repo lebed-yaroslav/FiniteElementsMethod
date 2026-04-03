@@ -29,14 +29,13 @@ public class AssemblyTriangleTest
         var matrixFactory = new CsrMatrixFactory();
         var integrator = NumericItegrator2D.Instance;
 
-        var problem = new HyperbolicProblem2D(
+        var problem = new EllipticProblem2D(
            Materials:
            [
                new (
-                    Lambda: static (_, _) => 1.0,
-                    Xi: static (_, _) => 0.0,
-                    Sigma: static (_, _) => 1.0, //gamma
-                    Source: (p, _) => p.X
+                    Lambda: static _ => 1.0,
+                    Gamma: static _ => 1.0,
+                    Source: p => p.X
                 )
            ],
            BoundaryConditions:
