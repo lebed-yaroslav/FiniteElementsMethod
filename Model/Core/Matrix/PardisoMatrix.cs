@@ -5,6 +5,8 @@ namespace Model.Core.Matrix;
 [Obsolete("This feature is incomplete and should not be used yet.")]
 public sealed class PardisoMatrix(PardisoMatrix.Portrait portrait) : IPardisoMatrix<double>, IGlobalMatrix
 {
+    public static IMatrixFactory Factory { get; } = new PardisoMatrixFactory();
+
     public sealed record Portrait(int[] Ia, int[] Ja)
     {
         public int Size => Ia.Length - 1;

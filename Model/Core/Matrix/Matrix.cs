@@ -17,6 +17,8 @@ public sealed class LocalMatrix(int n) : IMatrix
 /// </summary>
 public interface IGlobalMatrix : IMatrix, ICloneable
 {
+    static abstract IMatrixFactory Factory { get; }
+
     /// <summary>
     /// Assembles local matrix into global using index mapping.
     /// Skips entries where indices[i] < 0 (e.g., constrained DOFs).

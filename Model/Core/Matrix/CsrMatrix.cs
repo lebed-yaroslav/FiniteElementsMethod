@@ -5,6 +5,8 @@ namespace Model.Core.Matrix;
 
 public class CsrMatrix(CsrMatrix.Portrait portrait) : IGlobalMatrix
 {
+    public static IMatrixFactory Factory { get; } = new CsrMatrixFactory();
+
     public sealed record Portrait(int[] Ig, int[] Jg)
     {
         public int Size => Ig.Length - 1;
