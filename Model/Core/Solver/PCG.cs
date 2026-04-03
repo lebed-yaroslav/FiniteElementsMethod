@@ -16,10 +16,10 @@ public sealed record PCGSolver(
     {
         set
         {
-            if (field != null)
+            if (value != null)
             {
-                _preconditioner = PreconditionerCreator((IGlobalMatrix)field.Clone());
-                int n = field.Size;
+                _preconditioner = PreconditionerCreator((IGlobalMatrix)value.Clone());
+                int n = value.Size;
                 _r = new double[n];
                 _p = new double[n];
                 _ap = new double[n];
@@ -39,7 +39,7 @@ public sealed record PCGSolver(
     public (double residual, int iterations) Solve(
         ReadOnlySpan<double> rhsVector,
         Span<double> solution,
-        ISolver.Params paramz = default
+        ISolver.Params paramz = new()
     )
     {
         if (Matrix == null)

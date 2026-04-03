@@ -26,7 +26,7 @@ public sealed class PardisoSolver : ISolver
     public (double residual, int iterations) Solve(
         ReadOnlySpan<double> rhsVector,
         Span<double> solution,
-        ISolver.Params paramz = default
+        ISolver.Params paramz = new()
     )
     {
         if (Matrix == null)
