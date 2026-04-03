@@ -1,18 +1,11 @@
 using Model.Core.CoordinateSystem;
 using Telma;
-using Xunit;
 
 namespace UnitTests.Core.CoordinateSystem;
 
 public class BarycentricCoordinateSystemTests
 {
     private const double Eps = 1e-10;
-
-    private static void AssertVectorEqual(Vector2D expected, Vector2D actual)
-    {
-        Assert.True(Math.Abs(expected.X - actual.X) < Eps);
-        Assert.True(Math.Abs(expected.Y - actual.Y) < Eps);
-    }
 
     [Fact]
     public void InverseTransform_Vertices()
@@ -23,9 +16,9 @@ public class BarycentricCoordinateSystemTests
 
         var cs = new BarycentricCoordinateSystem(a, b, c);
 
-        AssertVectorEqual(a, cs.InverseTransform(new Vector2D(0, 0)));
-        AssertVectorEqual(b, cs.InverseTransform(new Vector2D(1, 0)));
-        AssertVectorEqual(c, cs.InverseTransform(new Vector2D(0, 1)));
+        Assert.Equal(a, cs.InverseTransform(new Vector2D(0, 0)), Eps);
+        Assert.Equal(b, cs.InverseTransform(new Vector2D(1, 0)), Eps);
+        Assert.Equal(c, cs.InverseTransform(new Vector2D(0, 1)), Eps);
     }
 
     [Fact]
@@ -37,9 +30,9 @@ public class BarycentricCoordinateSystemTests
 
         var cs = new BarycentricCoordinateSystem(a, b, c);
 
-        AssertVectorEqual(new Vector2D(0, 0), cs.Transform(a));
-        AssertVectorEqual(new Vector2D(1, 0), cs.Transform(b));
-        AssertVectorEqual(new Vector2D(0, 1), cs.Transform(c));
+        Assert.Equal(new Vector2D(0, 0), cs.Transform(a), Eps);
+        Assert.Equal(new Vector2D(1, 0), cs.Transform(b), Eps);
+        Assert.Equal(new Vector2D(0, 1), cs.Transform(c), Eps);
     }
 
     [Fact]
@@ -55,7 +48,7 @@ public class BarycentricCoordinateSystemTests
         var physicalPoint = cs.InverseTransform(localPoint);
         var restoredPoint = cs.Transform(physicalPoint);
 
-        AssertVectorEqual(localPoint, restoredPoint);
+        Assert.Equal(localPoint, restoredPoint, Eps);
     }
 
     [Fact]
@@ -75,7 +68,7 @@ public class BarycentricCoordinateSystemTests
 
         var actual = cs.InverseTransform(localCentroid);
 
-        AssertVectorEqual(expected, actual);
+        Assert.Equal(expected, actual, Eps);
     }
 
     [Fact]
@@ -91,20 +84,14 @@ public class BarycentricCoordinateSystemTests
         var j2 = cs.Jacobian(new Vector2D(0.2, 0.3));
         var j3 = cs.Jacobian(new Vector2D(0.4, 0.1));
 
-        Assert.True(Math.Abs(j1 - j2) < Eps);
-        Assert.True(Math.Abs(j2 - j3) < Eps);
+        Assert.Equal(j1, j2, Eps);
+        Assert.Equal(j2, j3, Eps);
     }
 }
 
 public class QuadrangleCoordinateSystemTests
 {
     private const double Eps = 1e-9;
-
-    private static void AssertVectorEqual(Vector2D expected, Vector2D actual)
-    {
-        Assert.True(Math.Abs(expected.X - actual.X) < Eps);
-        Assert.True(Math.Abs(expected.Y - actual.Y) < Eps);
-    }
 
     [Fact]
     public void InverseTransform_Corners()
@@ -116,10 +103,10 @@ public class QuadrangleCoordinateSystemTests
 
         var cs = new QuadrangleCoordinateSystem(p00, p10, p11, p01);
 
-        AssertVectorEqual(p00, cs.InverseTransform(new Vector2D(0, 0)));
-        AssertVectorEqual(p10, cs.InverseTransform(new Vector2D(1, 0)));
-        AssertVectorEqual(p11, cs.InverseTransform(new Vector2D(1, 1)));
-        AssertVectorEqual(p01, cs.InverseTransform(new Vector2D(0, 1)));
+        Assert.Equal(p00, cs.InverseTransform(new Vector2D(0, 0)), Eps);
+        Assert.Equal(p10, cs.InverseTransform(new Vector2D(1, 0)), Eps);
+        Assert.Equal(p11, cs.InverseTransform(new Vector2D(1, 1)), Eps);
+        Assert.Equal(p01, cs.InverseTransform(new Vector2D(0, 1)), Eps);
     }
 
     [Fact]
@@ -132,10 +119,10 @@ public class QuadrangleCoordinateSystemTests
 
         var cs = new QuadrangleCoordinateSystem(p00, p10, p11, p01);
 
-        AssertVectorEqual(new Vector2D(0, 0), cs.Transform(p00));
-        AssertVectorEqual(new Vector2D(1, 0), cs.Transform(p10));
-        AssertVectorEqual(new Vector2D(1, 1), cs.Transform(p11));
-        AssertVectorEqual(new Vector2D(0, 1), cs.Transform(p01));
+        Assert.Equal(new Vector2D(0, 0), cs.Transform(p00), Eps);
+        Assert.Equal(new Vector2D(1, 0), cs.Transform(p10), Eps);
+        Assert.Equal(new Vector2D(1, 1), cs.Transform(p11), Eps);
+        Assert.Equal(new Vector2D(0, 1), cs.Transform(p01), Eps);
     }
 
     [Fact]
@@ -152,7 +139,7 @@ public class QuadrangleCoordinateSystemTests
         var physicalPoint = cs.InverseTransform(localPoint);
         var restoredPoint = cs.Transform(physicalPoint);
 
-        AssertVectorEqual(localPoint, restoredPoint);
+        Assert.Equal(localPoint, restoredPoint, Eps);
     }
 
     [Fact]
@@ -167,8 +154,8 @@ public class QuadrangleCoordinateSystemTests
 
         var point = new Vector2D(0.25, 0.75);
 
-        AssertVectorEqual(point, cs.Transform(point));
-        AssertVectorEqual(point, cs.InverseTransform(point));
+        Assert.Equal(point, cs.Transform(point), Eps);
+        Assert.Equal(point, cs.InverseTransform(point), Eps);
     }
 
     [Fact]
