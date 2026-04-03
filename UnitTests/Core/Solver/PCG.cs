@@ -20,7 +20,7 @@ public class PCGSolverTests
         double[] rhs = [6, 7];
         double[] solution = [0, 0];
 
-        var solver = new PCGSolver(m => new IdentityPreconditioner())
+        var solver = new PCGSolver(_ => IdentityPreconditioner.Instance)
         {
             Matrix = matrix
         };
@@ -43,7 +43,7 @@ public class PCGSolverTests
         double[] rhs = [0, 0];
         double[] solution = [5, -3];
 
-        var solver = new PCGSolver(m => new IdentityPreconditioner())
+        var solver = new PCGSolver(_ => IdentityPreconditioner.Instance)
         {
             Matrix = matrix
         };
@@ -68,7 +68,7 @@ public class PCGSolverTests
         double[] rhs = [6, 7];
         double[] solution = [0, 0];
 
-        var solver = new PCGSolver(_ => new IdentityPreconditioner())
+        var solver = new PCGSolver(_ => IdentityPreconditioner.Instance)
         {
             Matrix = matrix
         };
@@ -91,7 +91,7 @@ public class PCGSolverTests
         double[] rhs = [6, 7];
         double[] solution = [0.9, 2.1];
 
-        var solver = new PCGSolver(_ => new IdentityPreconditioner())
+        var solver = new PCGSolver(_ => IdentityPreconditioner.Instance)
         {
             Matrix = matrix
         };
@@ -114,7 +114,7 @@ public class PCGSolverTests
         double[] rhs = [6, 7];
         double[] solution = [0, 0];
 
-        var solver = new PCGSolver(_ => new IdentityPreconditioner())
+        var solver = new PCGSolver(_ => IdentityPreconditioner.Instance)
         {
             Matrix = matrix
         };
@@ -123,14 +123,5 @@ public class PCGSolverTests
 
         Assert.True(iterations <= 1,
             $"Iterations: {iterations}");
-    }
-
-    private class IdentityPreconditioner : IPreconditioner
-    {
-        public void Apply(ReadOnlySpan<double> input, Span<double> output)
-        {
-            for (int i = 0; i < input.Length; i++)
-                output[i] = input[i];
-        }
     }
 }
