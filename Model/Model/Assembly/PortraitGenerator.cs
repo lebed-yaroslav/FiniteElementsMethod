@@ -31,13 +31,13 @@ public static class PortraitGenerator
             foreach (var dofI in dof)
             {
                 int row = dofI - minDofIndex;
-                if (row < 0 || row > n) continue;
+                if (row < 0 || row >= n) continue;
 
                 var rowAdjacent = adjacencyList[row];
                 foreach (var dofJ in dof)
                 {
                     int col = dofJ - minDofIndex;
-                    if (col < 0 || col > n) continue;
+                    if (col < 0 || col >= n) continue;
                     if (row <= col) continue; // Build portrait by lower triangle
                     rowAdjacent.Add(col);
                 }

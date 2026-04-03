@@ -30,8 +30,8 @@ public sealed class Mesh<TSpace, TBoundary>(ICoordinateTransform<TSpace, TSpace>
     where TBoundary : IVectorBase<TBoundary>
 {
     private readonly List<TSpace> _vertices = [];
-    private readonly List<IFiniteElement<TSpace>> _finiteElements;
-    private readonly List<IBoundaryElement<TSpace, TBoundary>> _boundaryElements;
+    private readonly List<IFiniteElement<TSpace>> _finiteElements = [];
+    private readonly List<IBoundaryElement<TSpace, TBoundary>> _boundaryElements = [];
 
     public TSpace this[int i] => _vertices[i];
     public int VertexCount => _vertices.Count;
