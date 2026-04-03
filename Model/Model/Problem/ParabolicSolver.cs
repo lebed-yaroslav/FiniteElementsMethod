@@ -26,7 +26,7 @@ public class ParabolicSolver<TSpace, TBoundary, TOps>(
     /// Решение параболической задачи.
     /// Sigma - коэффициент при du/dt (матрица масс M_sigma)
     /// Lambda - коэффициент диффузии (матрица жесткости G)
-    /// Xi - коэффициент при u (матрица масс M_gamma) 
+    /// Xi - коэффициент при u (матрица масс M_gamma)
     /// Source - правая часть (f)
     /// </summary>
     public double[] Solve(HyperbolicProblem<TSpace> problem, double tStart, double tEnd, double dt, bool isImplicit)
