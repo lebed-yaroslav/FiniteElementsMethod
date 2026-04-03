@@ -46,6 +46,9 @@ public static class VectorExtensions
         public TVector Normalize() => self / self.Norm;
 
         public static IEqualityComparer<TVector> CreateComparer(int digits) => new EqualityComparer<TVector>(digits);
+
+        public bool AreNearlyEquals(TVector other, double epsilon = 1e-12)
+            => (self - other).MaxNorm <= epsilon;
     }
 
     extension<TVector>(TVector self) where TVector : struct, IVectorBase<TVector>

@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using Telma.Extensions;
 
@@ -30,10 +31,7 @@ public readonly struct Vector1D(double x) : IVectorBase<Vector1D>
     #region Constructors
     public static Vector1D FromSpan(ReadOnlySpan<double> span)
     {
-#if DEBUG
-        if (span.Length != Dimensions)
-            throw new ArgumentException($"Unable to create {nameof(Vector1D)} from span of length {span.Length}");
-#endif
+        Debug.Assert(span.Length == Dimensions);
         return span[0];
     }
     #endregion
@@ -83,10 +81,7 @@ public readonly struct Vector2D(double x, double y) : IVectorBase<Vector2D>
     #region Constructors
     public static Vector2D FromSpan(ReadOnlySpan<double> span)
     {
-#if DEBUG
-        if (span.Length != Dimensions)
-            throw new ArgumentException($"Unable to create {nameof(Vector2D)} from span of length {span.Length}");
-#endif
+        Debug.Assert(span.Length == Dimensions);
         return new(span[0], span[1]);
     }
     #endregion
@@ -175,10 +170,7 @@ public readonly struct Vector3D(double x, double y, double z) : IVectorBase<Vect
     public Vector3D(double x, Vector2D vec) : this(x, vec.X, vec.Y) { }
     public static Vector3D FromSpan(ReadOnlySpan<double> span)
     {
-#if DEBUG
-        if (span.Length != Dimensions)
-            throw new ArgumentException($"Unable to create {nameof(Vector3D)} from span of length {span.Length}");
-#endif
+        Debug.Assert(span.Length == Dimensions);
         return new(span[0], span[1], span[2]);
     }
     #endregion
