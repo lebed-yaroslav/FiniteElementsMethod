@@ -54,7 +54,7 @@ public class AssemblyTriangleTest
            Mesh: mesh
        );
         var algebraicSolver = new PCGSolver(
-            PreconditionerCreator: matrix => CsrILUFactorization.Create((CsrMatrix)matrix)
+            PreconditionerCreator: matrix => CsrILUFactorization.Create((CsrMatrix)matrix.Clone())
         );
         
         var ellipticSolver = new EllipticSolver2D(matrixFactory, integrator, algebraicSolver);
@@ -90,9 +90,9 @@ public class AssemblyTriangleTest
         1
         0 1 2 0
         3
-        0 1 1 0
-        0 2 1 1
-        1 2 1 2
+        0 1 0
+        0 2 1
+        1 2 2
         """;
 
     private static Mesh2D Build2UnitsMesh()
