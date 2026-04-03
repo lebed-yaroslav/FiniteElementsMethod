@@ -4,9 +4,14 @@ using Telma;
 namespace Model.Model.Elements.Triangle;
 
 
-public sealed class TriangleGeometry(int[] vertexIndices) :
-    VolumeElementGeometry2D(vertexIndices)
+public sealed class TriangleGeometry : VolumeElementGeometry2D
 {
+    public TriangleGeometry(int[] vertexIndices) : base(vertexIndices)
+    {
+        if (vertexIndices.Length != 3)
+            throw new ArgumentException($"Expected 3 vertices for {nameof(TriangleGeometry)} but got {vertexIndices.Length}");
+    }
+
     public override IEnumerable<Edge> Edges
     {
         get

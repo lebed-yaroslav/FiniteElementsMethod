@@ -1,4 +1,5 @@
 using Model.Core.CoordinateSystem;
+using Model.Model.Elements.Triangle;
 using Telma;
 
 namespace Model.Model.Elements.Quadrangle;
@@ -15,9 +16,14 @@ namespace Model.Model.Elements.Quadrangle;
 /// </code>
 /// </summary>
 /// <param name="vertexIndices">4 indices of vertices in following order</param>
-public sealed class QuadrangleGeometry(int[] vertexIndices) :
-    VolumeElementGeometry2D(vertexIndices)
+public sealed class QuadrangleGeometry : VolumeElementGeometry2D
 {
+    public QuadrangleGeometry(int[] vertexIndices) : base(vertexIndices)
+    {
+        if (vertexIndices.Length != 4)
+            throw new ArgumentException($"Expected 4 vertices for {nameof(QuadrangleGeometry)} but got {vertexIndices.Length}");
+    }
+
     public override IEnumerable<Edge> Edges
     {
         get
