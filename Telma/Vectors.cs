@@ -47,6 +47,12 @@ public readonly struct Vector1D(double x) : IVectorBase<Vector1D>
     public static Vector1D operator /(Vector1D a, double v) => a.X / v;
     public static bool operator ==(Vector1D a, Vector1D b) => a.X == b.X;
     public static bool operator !=(Vector1D a, Vector1D b) => a.X != b.X;
+
+    public static bool operator >(Vector1D a, Vector1D b) => a.X > b.X;
+    public static bool operator >=(Vector1D a, Vector1D b) => a.X >= b.X;
+    public static bool operator <(Vector1D a, Vector1D b) => a.X < b.X;
+    public static bool operator <=(Vector1D a, Vector1D b) => a.X <= b.X;
+
     public static Vector1D Min(Vector1D a, Vector1D b) => Math.Min(a.X, b.X);
     public static Vector1D Max(Vector1D a, Vector1D b) => Math.Max(a.X, b.X);
     #endregion
@@ -128,6 +134,12 @@ public readonly struct Vector2D(double x, double y) : IVectorBase<Vector2D>
     public static double operator *(Vector2D a, Vector2D b) => a.X * b.X + a.Y * b.Y;
     public static bool operator ==(Vector2D a, Vector2D b) => a.X == b.X && a.Y == b.Y;
     public static bool operator !=(Vector2D a, Vector2D b) => a.X != b.X || a.Y != b.Y;
+
+    public static bool operator >(Vector2D a, Vector2D b) => a.X > b.X && a.Y > b.Y;
+    public static bool operator >=(Vector2D a, Vector2D b) => a.X >= b.X && a.Y >= b.Y;
+    public static bool operator <(Vector2D a, Vector2D b) => b > a;
+    public static bool operator <=(Vector2D a, Vector2D b) => b >= a;
+
     public static Vector2D Min(Vector2D a, Vector2D b) => new(Math.Min(a.X, b.X), Math.Min(a.Y, b.Y));
     public static Vector2D Max(Vector2D a, Vector2D b) => new(Math.Max(a.X, b.X), Math.Max(a.Y, b.Y));
     public static Vector2D Cross(Vector2D a) => new(a.Y, -a.X);
@@ -242,6 +254,18 @@ public readonly struct Vector3D(double x, double y, double z) : IVectorBase<Vect
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static bool operator !=(Vector3D a, Vector3D b) => a.X != b.X || a.Y != b.Y || a.Z != b.Z;
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static bool operator >(Vector3D a, Vector3D b) => a.X > b.X && a.Y > b.Y && a.Z > b.Z;
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static bool operator >=(Vector3D a, Vector3D b) => a.X >= b.X && a.Y >= b.Y && a.Z >= b.Z;
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static bool operator <(Vector3D a, Vector3D b) => b > a;
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static bool operator <=(Vector3D a, Vector3D b) => b >= a;
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static Vector3D Cross(Vector3D v1, Vector3D v2) =>

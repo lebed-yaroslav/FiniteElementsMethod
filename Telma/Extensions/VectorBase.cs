@@ -14,6 +14,7 @@ public interface IVectorBase<TSelf> :
     IMultiplyOperators<TSelf, double, TSelf>,
     IDivisionOperators<TSelf, double, TSelf>,
     IEqualityOperators<TSelf, TSelf, bool>,
+    IComparisonOperators<TSelf, TSelf, bool>,
     IEquatable<TSelf>
     where TSelf : IVectorBase<TSelf>
 {
