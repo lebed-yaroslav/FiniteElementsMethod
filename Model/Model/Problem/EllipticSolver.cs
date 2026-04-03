@@ -29,7 +29,7 @@ public class EllipticSolver<TSpace, TBoundary, TOps>(
 
     public double[] Solve(
         EllipticProblem<TSpace> problem,
-        ISolver.Params solverParams = default
+        ISolver.Params solverParams = new()
     )
     {
         const double time = 0.0; // Время равно 0, так как задача стационарная
@@ -38,7 +38,7 @@ public class EllipticSolver<TSpace, TBoundary, TOps>(
         var assembler = new Assembler<TSpace, TBoundary, TOps>(mesh, dofManager, _matrixFactory, _integrator);
 
         // Учитываем условия Дирихле
-        assembler.CalculateFixedElements(problem.BoundaryConditions, time, _algebraicSolver,solverParams);
+        assembler.CalculateFixedElements(problem.BoundaryConditions, time, _algebraicSolver, solverParams);
 
         // Сборка глобальной матрицы
         // Добавляем матрицу жесткости G
@@ -60,7 +60,7 @@ public class EllipticSolver<TSpace, TBoundary, TOps>(
         // Решение СЛАУ
         var freeSolution = new double[assembler.DofManager.FreeDofCount];
         _algebraicSolver.Matrix = assembler.Matrix;
-        _algebraicSolver.Solve(assembler.RhsVector, freeSolution,solverParams);
+        _algebraicSolver.Solve(assembler.RhsVector, freeSolution, solverParams);
 
         // Формирование итогового ответа 
         return GetFullSolution(freeSolution, assembler.FixedSolution, assembler.DofManager);
