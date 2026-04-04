@@ -12,6 +12,8 @@ public class QuadrangleGeometryTests
         mesh.AddVertex(p10);
         mesh.AddVertex(p11);
         mesh.AddVertex(p01);
+        mesh.AddVertex(p11);
+        mesh.AddVertex(p10);
         return mesh.AddElement(FiniteElements.Quadrangle.Bilinear, [0, 1, 2, 3], 0);
     }
 
