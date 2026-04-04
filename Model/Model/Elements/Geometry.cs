@@ -32,6 +32,8 @@ public interface IElementGeometryBase<TSpace>
     ReadOnlySpan<int> Vertices { get; }
     IEnumerable<Edge> Edges { get; }
     int EdgeCount { get; }
+
+    bool ContainsPoint(TSpace point, double epsilon = 1e-12);
 }
 
 public interface IElementGeometry<TSpace, TBoundary> : IElementGeometryBase<TSpace>
@@ -52,5 +54,6 @@ public abstract class ElementGeometry<TSpace, TBoundary>(int[] vertexIndices) : 
     public abstract IEnumerable<Edge> Edges { get; }
     public abstract int EdgeCount { get; }
 
+    public abstract bool ContainsPoint(TSpace point, double epsilon = 1e-12);
     public abstract ICoordinateTransform<TSpace, TBoundary> MasterElementCoordinateSystem { get; }
 }
