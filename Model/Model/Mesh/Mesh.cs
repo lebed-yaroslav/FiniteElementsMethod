@@ -41,13 +41,23 @@ public sealed class Mesh<TSpace, TBoundary>(ICoordinateTransform<TSpace, TSpace>
 
     public ICoordinateTransform<TSpace, TSpace> CoordinateSystem { get; } = coordinateSystem;
 
+    public Mesh() : this(coordinateSystem: IdentityTransform<TSpace>.Instance) { }
+
     // Mesh construction:
 
     public void AddVertex(TSpace vertex) => _vertices.Add(vertex);
 
-    public void AddElement(IFiniteElementFactory<TSpace> factory, int[] vertices, int materialIndex) =>
-         _finiteElements.Add(factory.CreateElement(this, vertices, materialIndex));
+    public IFiniteElement<TSpace> AddElement(IFiniteElementFactory<TSpace> factory, int[] vertices, int materialIndex)
+    {
+        var element = factory.CreateElement(this, vertices, materialIndex);
+        _finiteElements.Add(element);
+        return element;
+    }
 
-    public void AddBoundary(IBoundaryElementFactory<TSpace, TBoundary> factory, int[] vertices, int boundaryIndex) =>
-         _boundaryElements.Add(factory.CreateBoundary(this, vertices, boundaryIndex));
+    public IBoundaryElement<TSpace, TBoundary> AddBoundary(IBoundaryElementFactory<TSpace, TBoundary> factory, int[] vertices, int boundaryIndex)
+    {
+        var element = factory.CreateBoundary(this, vertices, boundaryIndex);
+        _boundaryElements.Add(element);
+        return element;
+    }
 }
