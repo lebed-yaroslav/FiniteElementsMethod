@@ -78,6 +78,8 @@ public readonly struct Vector2D(double x, double y) : IVectorBase<Vector2D>
     public Vector2D As2D() => this;
     public Vector3D As3D() => new(X, Y, 0);
 
+    public double Cross(Vector2D other) => X * other.Y - Y * other.X;
+
     public bool Equals(Vector2D b) => X == b.X && Y == b.Y;
     public override bool Equals(object? obj) => obj is Vector2D vec && Equals(vec);
     public override int GetHashCode() => HashCode.Combine(X, Y);
@@ -142,8 +144,6 @@ public readonly struct Vector2D(double x, double y) : IVectorBase<Vector2D>
 
     public static Vector2D Min(Vector2D a, Vector2D b) => new(Math.Min(a.X, b.X), Math.Min(a.Y, b.Y));
     public static Vector2D Max(Vector2D a, Vector2D b) => new(Math.Max(a.X, b.X), Math.Max(a.Y, b.Y));
-    public static Vector2D Cross(Vector2D a) => new(a.Y, -a.X);
-    public static double Mixed(Vector2D a, Vector2D b) => a.Y * b.X - a.X * b.Y;
     #endregion
 }
 
@@ -169,6 +169,12 @@ public readonly struct Vector3D(double x, double y, double z) : IVectorBase<Vect
     public Vector1D As1D() => X;
     public Vector2D As2D() => new(X, Y);
     public Vector3D As3D() => this;
+
+    public Vector3D Cross(Vector3D other) => new(
+        Y * other.Z - Z * other.Y,
+        - X * other.Z + Z * other.X,
+        X * other.Y - Y * other.X
+    );
 
     public bool Equals(Vector3D b) => b.X == X && b.Y == Y && b.Z == Z;
     public override bool Equals(object? obj) => obj is Vector3D v && Equals(v);
