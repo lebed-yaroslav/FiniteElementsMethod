@@ -36,6 +36,15 @@ public sealed class QuadrangleGeometry : VolumeElementGeometry2D
     }
     public override int EdgeCount => 4;
 
+    public override bool ContainsPoint(Vector2D point, double epsilon = 1E-12) {
+        var (xi, eta) = MasterElementCoordinateSystem.Transform(point);
+        return
+            xi >= -epsilon &&
+            xi <= 1 + epsilon &&
+            eta >= -epsilon &&
+            eta <= 1 + epsilon;
+    }
+
     public override ICoordinateTransform<Vector2D, Vector2D> MasterElementCoordinateSystem =>
         new QuadrangleCoordinateSystem(
             Mesh[Vertices[0]], Mesh[Vertices[1]], Mesh[Vertices[2]], Mesh[Vertices[3]]

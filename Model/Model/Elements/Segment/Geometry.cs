@@ -1,5 +1,4 @@
 using Model.Core.CoordinateSystem;
-using Model.Model.Elements.Quadrangle;
 using Telma;
 using Telma.Extensions;
 
@@ -17,6 +16,13 @@ public class SegmentGeometry<TSpace> : ElementGeometry<TSpace, Vector1D>
 
     public override IEnumerable<Edge> Edges => [new(Vertices[0], Vertices[1])];
     public override int EdgeCount => 1;
+
+    public override bool ContainsPoint(TSpace point, double epsilon = 1E-12)
+    {
+        if (TSpace.Dimensions != 1) return false;
+        var xi = MasterElementCoordinateSystem.Transform(point);
+        return -epsilon <= xi && xi <= 1 + epsilon;
+    }
 
     public override ICoordinateTransform<TSpace, Vector1D> MasterElementCoordinateSystem =>
         new SegmentParametrization<TSpace>(Mesh[Vertices[0]], Mesh[Vertices[1]]);
