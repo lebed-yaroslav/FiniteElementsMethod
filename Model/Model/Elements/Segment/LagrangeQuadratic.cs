@@ -1,11 +1,13 @@
+using System;
+using System.Collections.Generic;
 using System.Diagnostics;
+using System.Text;
 using Model.Model.Basis;
 using Telma;
 
 namespace Model.Model.Elements.Segment;
 
-
-public sealed class LinearSegmentFactory : IBoundaryElementFactory2D
+public sealed class LagrangeQuadraticSegmentFactory : IBoundaryElementFactory2D
 {
     public IBoundaryElement2D CreateBoundary(IMesh2D mesh, int[] vertices, int boundaryIndex)
         => new BoundaryElement2D(
@@ -13,18 +15,20 @@ public sealed class LinearSegmentFactory : IBoundaryElementFactory2D
             DOF: new Dof(),
             BasisSet: Basis,
             BoundaryIndex: boundaryIndex
-        );
+    );
 
     public static readonly IBasisSet1D Basis = new BasisSet1D(
         Quadratures.SegmentGaussOrder3,
-        SegmentBasis.N0,
-        SegmentBasis.N1
-   );
+        SegmentBasis.Lagrange1D.Create(2, 0),
+        SegmentBasis.Lagrange1D.Create(2, 1),
+        SegmentBasis.Lagrange1D.Create(2, 2)
+    );
 
-    public sealed class Dof() : DofManager(dofCount: 2)
+    public sealed class Dof() : DofManager(dofCount: 3)
     {
+        //|-----|-----|
         public override int NumberOfDofOnVertex => 1;
-        public override int NumberOfDofOnEdge => 0;
+        public override int NumberOfDofOnEdge => 1;
         public override int NumberOfDofOnElement => 0;
 
         public override void SetVertexDof(int localVertexIndex, int n, int dofIndex)
@@ -34,8 +38,12 @@ public sealed class LinearSegmentFactory : IBoundaryElementFactory2D
             _dof[localVertexIndex] = dofIndex;
         }
 
-        public override void SetEdgeDof(int localEdgeIndex, bool isOrientationFlipped, int n, int dofIndex) =>
-            throw new NotSupportedException();
+        public override void SetEdgeDof(int localEdgeIndex, bool isOrientationFlipped, int n, int dofIndex)
+        {
+            AssertIsValidEdgeDofNumber(n);
+            Debug.Assert(localEdgeIndex == 0);
+            _dof[localEdgeIndex + 2] = dofIndex;
+        }
 
         public override void SetElementDof(int n, int dofIndex) =>
             throw new NotSupportedException();
