@@ -11,6 +11,7 @@ public static class FiniteElements
         public static readonly IBoundaryElementFactory2D Linear = new LinearSegmentFactory();
         public static readonly IBoundaryElementFactory2D HierarchicalQuadratic = new HierarchicalQuadraticSegmentFactory();
         public static readonly IBoundaryElementFactory2D LagrangeCubic = new LagrangeCubicSegmentFactory();
+        public static readonly IBoundaryElementFactory2D LagrangeQuadratic = new LagrangeQuadraticSegmentFactory();
     }
 
     public static class Triangle
