@@ -24,7 +24,7 @@ public sealed class QuadrangleCoordinateSystem(
 {
     public static bool IsLinear => false;
     private readonly QuadrangleJacobyMatrix _j = new(p00, p10, p11, p01);
-
+    public QuadrangleJacobyMatrix J_Matrix => _j;
     public Vector2D Transform(Vector2D sourcePoint)
     {
         // Performs Newton method to solve non-linear system
@@ -75,7 +75,7 @@ public sealed record QuadrangleJacobyMatrix(
 ) : IJacobyMatrix<Vector2D, Vector2D>
 {
     public static bool IsConstant => false;
-
+    public Vector2D MixedDerivative => P00 - P10 + P11 - P01;
     public double this[int i, int j] =>
         throw new NotSupportedException($"{nameof(QuadrangleInverseJacobyMatrix)} is not constant.");
 
