@@ -1,4 +1,5 @@
 using System.Numerics;
+using System.Runtime.CompilerServices;
 using Model.Core.CoordinateSystem;
 using Model.Core.Matrix;
 using Model.Core.Solver;
@@ -25,9 +26,9 @@ public class EllipticProblemTriangleTests
     2 0 0
     """;
 
-
     [Fact]
-    public void Test1() {
+    public void Test1()
+    {
         // x * x
         var mesh = new StringReader(TestMesh1).ReadMesh2D(
             coordinateSystem: IdentityTransform<Vector2D>.Instance,
@@ -59,4 +60,220 @@ public class EllipticProblemTriangleTests
         Assert.Equal(9.0, solution[1], 1e-10);
         Assert.Equal(0.0, solution[2], 1e-10);
     }
+
+    [Fact]
+    public void LinearTriangleWithDirichletsWithLinearFunc() {
+        
+        var mesh = new StringReader(TestMesh1).ReadMesh2D(
+            coordinateSystem: IdentityTransform<Vector2D>.Instance,
+            FiniteElements.Triangle.Linear,
+            FiniteElements.Segment.Linear
+        );
+        static double u(Vector2D p) => p.X;
+        var problem = new EllipticProblem2D(
+            Materials: [new(
+                Lambda: _ => 1.0,
+                Gamma: _ => 1.0,
+                Source: p => p.X
+            )],
+            BoundaryConditions: [
+                new BoundaryCondition2D.Dirichlet(Value: (p, _) => u(p))
+            ],
+            mesh
+        );
+
+        var solver = new EllipticSolver2D(
+            DenseMatrix.Factory,
+            NumericItegrator2D.Instance,
+            new PCGSolver(m => IdentityPreconditioner.Instance)
+        );
+
+        var solution = solver.Solve(problem, new ISolver.Params(1e-12, 10000));
+
+        Assert.Equal(0.0, solution[0], 1e-10);
+        Assert.Equal(3.0, solution[1], 1e-10);
+        Assert.Equal(0.0, solution[2], 1e-10);
+    }
+
+    private static string TriangleWithDirichletNeumann => """
+        3
+        0 0
+        3 0
+        0 1
+        1
+        0 1 2 0
+        3
+        0 1 0
+        1 2 0
+        0 2 1
+        """;
+
+    [Fact]
+    public void LinearTriangleWithDirichletNeumannWithLinearFunc()
+    {
+        var mesh = new StringReader(TriangleWithDirichletNeumann).ReadMesh2D(
+            coordinateSystem: IdentityTransform<Vector2D>.Instance,
+            FiniteElements.Triangle.Linear,
+            FiniteElements.Segment.Linear
+        );
+        static double u(Vector2D p) => p.X;
+        var problem = new EllipticProblem2D(
+            Materials: [new(
+                Lambda: _ => 1.0,
+                Gamma: _ => 1.0,
+                Source: p => p.X
+            )],
+            BoundaryConditions: [
+                new BoundaryCondition2D.Dirichlet(Value: (p,_) => u(p)),
+                new BoundaryCondition2D.Neumann(Flux: (p,_) => -1.0)
+            ],
+            mesh
+        );
+
+        var solver = new EllipticSolver2D(
+            DenseMatrix.Factory,
+            NumericItegrator2D.Instance,
+            new PCGSolver(m => IdentityPreconditioner.Instance)
+        );
+
+        var solution = solver.Solve(problem, new ISolver.Params(1e-12, 10000));
+
+        Assert.Equal(0.0, solution[0], 1e-10);
+        Assert.Equal(3.0, solution[1], 1e-10);
+        Assert.Equal(0.0, solution[2], 1e-10);
+    }
+
+    private static string TriangleWithDirichletNeumann2 => """
+        3
+        0 0
+        3 0
+        0 1
+        1
+        0 1 2 0
+        3
+        0 1 0
+        1 2 1
+        0 2 0
+        """;
+
+    [Fact]
+    public void LinearTriangleWithDirichletNeumannWithLinearFunc2()
+    {
+        var mesh = new StringReader(TriangleWithDirichletNeumann2).ReadMesh2D(
+            coordinateSystem: IdentityTransform<Vector2D>.Instance,
+            FiniteElements.Triangle.Linear,
+            FiniteElements.Segment.Linear
+        );
+        static double u(Vector2D p) => p.X;
+        var problem = new EllipticProblem2D(
+            Materials: [new(
+                Lambda: _ => 1.0,
+                Gamma: _ => 1.0,
+                Source: p => p.X
+            )],
+            BoundaryConditions: [
+                new BoundaryCondition2D.Dirichlet(Value: (p,_) => u(p)),
+                new BoundaryCondition2D.Neumann(Flux: (p,_) => 1.0/Math.Sqrt(10))
+            ],
+            mesh
+        );
+
+        var solver = new EllipticSolver2D(
+            DenseMatrix.Factory,
+            NumericItegrator2D.Instance,
+            new PCGSolver(m => IdentityPreconditioner.Instance)
+        );
+
+        var solution = solver.Solve(problem, new ISolver.Params(1e-12, 10000));
+
+        Assert.Equal(0.0, solution[0], 1e-10);
+        Assert.Equal(3.0, solution[1], 1e-10);
+        Assert.Equal(0.0, solution[2], 1e-10);
+    }
+
+    private static string TriangleWithDirichletNeumannRobin => """
+        3
+        0 0
+        3 0
+        0 1
+        1
+        0 1 2 0
+        3
+        0 1 0
+        1 2 1
+        0 2 2
+        """;
+    [Fact]
+    public void LinearTriangleWithDirichletNeumannRobinWithLinearFunc()
+    {
+        var mesh = new StringReader(TriangleWithDirichletNeumannRobin).ReadMesh2D(
+            coordinateSystem: IdentityTransform<Vector2D>.Instance,
+            FiniteElements.Triangle.Linear,
+            FiniteElements.Segment.Linear
+        );
+        static double u(Vector2D p) => p.X;
+        var problem = new EllipticProblem2D(
+            Materials: [new(
+                Lambda: _ => 1.0,
+                Gamma: _ => 1.0,
+                Source: p => p.X
+            )],
+            BoundaryConditions: [
+                new BoundaryCondition2D.Dirichlet(Value: (p,_) => u(p)),
+                new BoundaryCondition2D.Neumann(Flux: (p,_) => 1.0/Math.Sqrt(10)),
+                new BoundaryCondition2D.Robin(Beta: (p,_) => 2.0,UBeta: (p,_) => -0.5)
+            ],
+            mesh
+        );
+
+        var solver = new EllipticSolver2D(
+            DenseMatrix.Factory,
+            NumericItegrator2D.Instance,
+            new PCGSolver(m => IdentityPreconditioner.Instance)
+        );
+
+        var solution = solver.Solve(problem, new ISolver.Params(1e-12, 10000));
+
+        Assert.Equal(0.0, solution[0], 1e-10);
+        Assert.Equal(3.0, solution[1], 1e-10);
+        Assert.Equal(0.0, solution[2], 1e-10);
+    }
+    [Fact]
+    public void LinearTriangleWithDirichletNeumannRobinWithLinearFunc2()
+    {
+        var mesh = new StringReader(TriangleWithDirichletNeumannRobin).ReadMesh2D(
+            coordinateSystem: IdentityTransform<Vector2D>.Instance,
+            FiniteElements.Triangle.Linear,
+            FiniteElements.Segment.Linear
+        );
+        static double u(Vector2D p) => p.X;
+        var problem = new EllipticProblem2D(
+            Materials: [new(
+                Lambda: _ => 1.0,
+                Gamma: _ => 1.0,
+                Source: p => p.X
+            )],
+            BoundaryConditions: [
+                new BoundaryCondition2D.Dirichlet(Value: (p,_) => u(p)),
+                new BoundaryCondition2D.Neumann(Flux: (p,_) => 1.0/Math.Sqrt(10)),
+                new BoundaryCondition2D.Robin(Beta: (p,_) => 1.0,UBeta: (p,_) => -1.0)
+            ],
+            mesh
+        );
+
+        var solver = new EllipticSolver2D(
+            DenseMatrix.Factory,
+            NumericItegrator2D.Instance,
+            new PCGSolver(m => IdentityPreconditioner.Instance)
+        );
+
+        var solution = solver.Solve(problem, new ISolver.Params(1e-12, 10000));
+
+        Assert.Equal(0.0, solution[0], 1e-10);
+        Assert.Equal(3.0, solution[1], 1e-10);
+        Assert.Equal(0.0, solution[2], 1e-10);
+    }
 }
+
+
+
