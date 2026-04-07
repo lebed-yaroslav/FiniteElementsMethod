@@ -18,10 +18,10 @@ public sealed class LagrangeQuadraticSegmentFactory : IBoundaryElementFactory2D
     );
 
     public static readonly IBasisSet1D Basis = new BasisSet1D(
-        Quadratures.SegmentGaussOrder3,
+        Quadratures.SegmentGaussOrder5,
         SegmentBasis.Lagrange1D.Create(2, 0),
-        SegmentBasis.Lagrange1D.Create(2, 1),
-        SegmentBasis.Lagrange1D.Create(2, 2)
+        SegmentBasis.Lagrange1D.Create(2, 2),
+        SegmentBasis.Lagrange1D.Create(2, 1)
     );
 
     public sealed class Dof() : DofManager(dofCount: 3)
