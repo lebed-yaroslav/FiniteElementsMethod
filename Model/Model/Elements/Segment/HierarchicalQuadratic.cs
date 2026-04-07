@@ -17,7 +17,7 @@ public sealed class HierarchicalQuadraticSegmentFactory : IBoundaryElementFactor
     );
 
     public static readonly IBasisSet1D Basis = new BasisSet1D(
-        Quadratures.SegmentGaussOrder3,
+        Quadratures.SegmentGaussOrder5,
         SegmentBasis.N0,
         SegmentBasis.N1,
         SegmentBasis.N0N1

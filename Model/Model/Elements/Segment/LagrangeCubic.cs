@@ -16,7 +16,7 @@ public sealed class LagrangeCubicSegmentFactory : IBoundaryElementFactory2D
     );
 
     public static readonly IBasisSet1D Basis = new BasisSet1D(
-        Quadratures.SegmentGaussOrder3,
+        Quadratures.SegmentGaussOrder7,
         SegmentBasis.Lagrange1D.Create(3, 0),
         SegmentBasis.Lagrange1D.Create(3, 3),
         SegmentBasis.Lagrange1D.Create(3, 1),
