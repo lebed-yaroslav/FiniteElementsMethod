@@ -32,8 +32,8 @@ public sealed class BiQuadraticLagrangeQuadrangleFactory : IFiniteElementFactory
             {
                 0 => 0,
                 1 => 2,
-                2 => 6,
-                3 => 8,
+                2 => 8,
+                3 => 6,
                 _ => throw new NotSupportedException()
             };
             _dof[basisIndex] = dofIndex;
