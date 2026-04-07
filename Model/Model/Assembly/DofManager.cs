@@ -131,7 +131,8 @@ public static partial class DofNumerator<TSpace, TBoundary>
                     dofCount += dofCountByEdge[edge];
                 }
                 for (int i = 0; i < element.DOF.NumberOfDofOnEdge; i++)
-                    element.DOF.SetEdgeDof(localEdgeIndex++, isOrientationFlipped, i, first++);
+                    element.DOF.SetEdgeDof(localEdgeIndex, isOrientationFlipped, i, first++);
+                localEdgeIndex++;
             }
         }
     }
