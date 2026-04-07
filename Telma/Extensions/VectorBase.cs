@@ -35,6 +35,8 @@ public interface IVectorBase<TSelf> :
 
     double this[int i] { get; }
 
+    TSelf WithComponent(int i, double value);
+
     static abstract double operator *(TSelf a, TSelf b);
     static abstract TSelf Min(TSelf a, TSelf b);
     static abstract TSelf Max(TSelf a, TSelf b);
