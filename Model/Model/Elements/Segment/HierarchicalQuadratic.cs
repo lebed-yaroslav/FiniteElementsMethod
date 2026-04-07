@@ -38,7 +38,7 @@ public sealed class HierarchicalQuadraticSegmentFactory : IBoundaryElementFactor
 
         public override void SetEdgeDof(int localEdgeIndex, bool isOrientationFlipped, int n, int dofIndex)
         {
-            AssertIsValidElementDofNumber(n);
+            AssertIsValidEdgeDofNumber(n);
             Debug.Assert(localEdgeIndex == 0);
             _dof[2] = dofIndex;
         }
