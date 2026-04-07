@@ -110,7 +110,7 @@ public class ParabolicSolver<TSpace, TBoundary, TOps>(
             }
             // Решение СЛАУ
             _algebraicSolver.Matrix = assembler.Matrix;
-            _algebraicSolver.Solve(b_eff, q_curr);
+            _algebraicSolver.Solve(b_eff, q_curr, solverParams);
 
             Array.Copy(q_prev1, q_prev2, dofCount);
             Array.Copy(q_curr, q_prev1, dofCount);
