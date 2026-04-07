@@ -28,8 +28,14 @@ public class ParabolicSolver<TSpace, TBoundary, TOps>(
     /// Lambda - коэффициент диффузии (матрица жесткости G)
     /// Xi - коэффициент при u (матрица масс M_gamma)
     /// Source - правая часть (f)
-    /// </summary>
-    public double[] Solve(HyperbolicProblem<TSpace> problem, double tStart, double tEnd, double dt, bool isImplicit)
+    /// </summary> 
+    public double[] Solve(
+        HyperbolicProblem<TSpace> problem, 
+        double tStart, 
+        double tEnd, 
+        double dt, 
+        bool isImplicit,
+        ISolver.Params solverParams = new())
     {
         var mesh = (IMeshWithBoundaries<TSpace, TBoundary>)problem.Mesh;
         var dofManager = DofManager.NumerateDof(mesh, problem.BoundaryConditions);
@@ -52,7 +58,7 @@ public class ParabolicSolver<TSpace, TBoundary, TOps>(
             assembler.ResetFixedElements();
 
             // Граничные условия Дирихле 
-            assembler.CalculateFixedElements(problem.BoundaryConditions, time, _algebraicSolver);
+            assembler.CalculateFixedElements(problem.BoundaryConditions, 0, _algebraicSolver, solverParams);
 
             // Сборка глобальной матрицы
             // Добавляем матрицу жесткости G + M_sigma + M_gamma
