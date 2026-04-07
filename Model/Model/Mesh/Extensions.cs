@@ -22,4 +22,15 @@ public static class MeshExtensions
             => self.BoundaryElements
                 .Where(e => boundaryConditions[e.BoundaryIndex] is BoundaryCondition<TSpace>.Dirichlet);
     }
+
+    extension<TSpace, TBoundary>(Mesh<TSpace, TBoundary> self)
+        where TSpace : IVectorBase<TSpace>
+        where TBoundary : IVectorBase<TBoundary>
+    {
+        public void AddVertices(params IEnumerable<TSpace> vertices)
+        {
+            foreach (var vertex in vertices)
+                self.AddVertex(vertex);
+        }
+    }
 }

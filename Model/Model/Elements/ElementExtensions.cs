@@ -54,6 +54,14 @@ public static class FiniteElementComposition
 
         public IEnumerable<Quadratures.Node<TBoundary>> Quadratures => self.BasisSet.Quadratures;
         public ReadOnlySpan<IBasisFunction<TBoundary>> Basis => self.BasisSet.Basis;
+
+        public IEnumerable<TSpace> VertexCoords {
+            get
+            {
+                for (int i = 0; i < self.Vertices.Length; ++i)
+                    yield return self.Mesh[self.Vertices[i]];
+            }
+        }
     }
 
     extension<TSpace, TBoundary>(IBoundaryElement<TSpace, TBoundary> self)
