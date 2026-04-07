@@ -165,8 +165,8 @@ public sealed record Assembler<TSpace, TBoundary, TOps>(
         foreach (var element in Mesh.FiniteElements)
         {
             var gamma = gammaByMaterialIndex(element.MaterialIndex);
-            var stiffness = Integrator.CalculateLocalMass(element, gamma);
-            AddLocalMatrixWithFixedLoadContribution(stiffness, element.DOF);
+            var mass = Integrator.CalculateLocalMass(element, gamma);
+            AddLocalMatrixWithFixedLoadContribution(mass, element.DOF);
         }
     }
 

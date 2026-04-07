@@ -53,7 +53,7 @@ public class EllipticSolver<TSpace, TBoundary, TOps>(
         // Сборка правой части уравнения 
         // Добавляем источники (f)
         assembler.CalculateLoad(matId => problem.Materials[matId].Source);
-
+        
         // Добавляем потоки (условия Неймана и Робина)
         assembler.CalculateBoundaryLoadContribution(problem.BoundaryConditions, time);
 
