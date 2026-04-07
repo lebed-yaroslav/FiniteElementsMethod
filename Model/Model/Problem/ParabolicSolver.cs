@@ -58,7 +58,7 @@ public class ParabolicSolver<TSpace, TBoundary, TOps>(
             assembler.ResetFixedElements();
 
             // Граничные условия Дирихле 
-            assembler.CalculateFixedElements(problem.BoundaryConditions, 0, _algebraicSolver, solverParams);
+            assembler.CalculateFixedElements(problem.BoundaryConditions, time, _algebraicSolver, solverParams);
 
             // Сборка глобальной матрицы
             // Добавляем матрицу жесткости G + M_sigma + M_gamma
