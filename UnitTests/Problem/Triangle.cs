@@ -419,6 +419,43 @@ public class EllipticProblemTriangleTests
         Assert.Equal(9.0, solution[4], 1e-10);
         Assert.Equal(0.0, solution[5], 1e-10);
     }
+    [Fact]
+    public void HierarchicalQuadraticWithDirichletNeumannWithLinearFunc2()
+    {
+        var mesh = new StringReader(TriangleWithDirichletNeumann2).ReadMesh2D(
+            coordinateSystem: IdentityTransform<Vector2D>.Instance,
+            FiniteElements.Triangle.HierarchicalQuadratic,
+            FiniteElements.Segment.HierarchicalQuadratic
+        );
+        static double u(Vector2D p) => p.X;
+        var problem = new EllipticProblem2D(
+            Materials: [new(
+                Lambda: _ => 1.0,
+                Gamma: _ => 1.0,
+                Source: p => p.X
+            )],
+            BoundaryConditions: [
+                new BoundaryCondition2D.Dirichlet(Value: (p,_) => u(p)),
+                new BoundaryCondition2D.Neumann(Flux: (p,_) => 1/Math.Sqrt(10))
+            ],
+            mesh
+        );
+
+        var solver = new EllipticSolver2D(
+            DenseMatrix.Factory,
+            NumericItegrator2D.Instance,
+            new PCGSolver(m => IdentityPreconditioner.Instance)
+        );
+
+        var solution = solver.Solve(problem, new ISolver.Params(1e-12, 10000));
+
+        Assert.Equal(0.0, solution[0], 1e-10);
+        Assert.Equal(0.0, solution[1], 1e-10);
+        Assert.Equal(0.0, solution[2], 1e-10);
+        Assert.Equal(0.0, solution[3], 1e-10);
+        Assert.Equal(3.0, solution[4], 1e-10);
+        Assert.Equal(0.0, solution[5], 1e-10);
+    }
 }
 
 
