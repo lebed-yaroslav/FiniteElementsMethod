@@ -98,7 +98,10 @@ public sealed record Assembler<TSpace, TBoundary, TOps>(
     /// where A_dd is assembled from Dirichlet boundary elements and f_d comes from the Dirichlet values.
     /// After solving, u_d is stored in <see cref="FixedSolution"/>.
     /// </remarks>
-    public void CalculateFixedElements(BoundaryCondition<TSpace>[] boundaryConditions, double time, ISolver solver, ISolver.Params paramz = default)
+    public void CalculateFixedElements(
+        BoundaryCondition<TSpace>[] boundaryConditions, 
+        double time, ISolver solver, 
+        ISolver.Params paramz = default)
     {
         var adjacencyList = PortraitGenerator.CreateAdjacencyList(
             Mesh.AllElementsDof,
