@@ -121,17 +121,18 @@ public static partial class DofNumerator<TSpace, TBoundary>
         foreach (var element in mesh.AllElements)
         {
             int localEdgeIndex = 0;
-            foreach (var iter in element.Geometry.Edges)
+            foreach (var edge in element.Geometry.Edges)
             {
-                var edge = iter.Sorted(out var isOrientationFlipped);
-                if (!dofNumberByEdge.TryGetValue(edge, out var first))
+                var sortedEdge = edge.Sorted(out var isOrientationFlipped);
+                if (!dofNumberByEdge.TryGetValue(sortedEdge, out var dofIndex))
                 {
-                    first = dofCount;
-                    dofNumberByEdge.Add(edge, first);
-                    dofCount += dofCountByEdge[edge];
+                    dofIndex = dofCount;
+                    dofNumberByEdge.Add(sortedEdge, dofIndex);
+                    dofCount += dofCountByEdge[sortedEdge];
                 }
                 for (int i = 0; i < element.DOF.NumberOfDofOnEdge; i++)
-                    element.DOF.SetEdgeDof(localEdgeIndex++, isOrientationFlipped, i, first++);
+                    element.DOF.SetEdgeDof(localEdgeIndex, isOrientationFlipped, i, dofIndex++);
+                localEdgeIndex++;
             }
         }
     }

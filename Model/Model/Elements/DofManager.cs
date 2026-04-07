@@ -44,5 +44,5 @@ public abstract class DofManager(
         => Debug.Assert(0 <= n && n < NumberOfDofOnEdge);
 
     protected void AssertIsValidElementDofNumber(int n)
-        => Debug.Assert(0 <= n && n < NumberOfDofOnVertex);
+        => Debug.Assert(0 <= n && n < NumberOfDofOnElement);
 }
