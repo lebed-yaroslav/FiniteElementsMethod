@@ -33,6 +33,8 @@ public interface IVectorBase<TSelf> :
     Vector2D As2D();
     Vector3D As3D();
 
+    double this[int i] { get; }
+
     static abstract double operator *(TSelf a, TSelf b);
     static abstract TSelf Min(TSelf a, TSelf b);
     static abstract TSelf Max(TSelf a, TSelf b);

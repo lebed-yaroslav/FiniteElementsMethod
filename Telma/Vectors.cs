@@ -24,6 +24,12 @@ public readonly struct Vector1D(double x) : IVectorBase<Vector1D>
     public Vector2D As2D() => new(X, 0);
     public Vector3D As3D() => new(X, 0, 0);
 
+    public double this[int i] => i switch
+    {
+        0 => X,
+        _ => throw new IndexOutOfRangeException($"Index i = {i}, out of range 0..={Dimensions - 1}")
+    };
+
     public bool Equals(Vector1D b) => X == b.X;
     public override bool Equals(object? obj) => obj is Vector1D vec && Equals(vec);
     public override int GetHashCode() => X.GetHashCode();
@@ -77,6 +83,13 @@ public readonly struct Vector2D(double x, double y) : IVectorBase<Vector2D>
     public Vector1D As1D() => X;
     public Vector2D As2D() => this;
     public Vector3D As3D() => new(X, Y, 0);
+
+    public double this[int i] => i switch
+    {
+        0 => X,
+        1 => Y,
+        _ => throw new IndexOutOfRangeException($"Index i = {i}, out of range 0..={Dimensions - 1}")
+    };
 
     public double Cross(Vector2D other) => X * other.Y - Y * other.X;
 
@@ -169,6 +182,13 @@ public readonly struct Vector3D(double x, double y, double z) : IVectorBase<Vect
     public Vector1D As1D() => X;
     public Vector2D As2D() => new(X, Y);
     public Vector3D As3D() => this;
+
+    public double this[int i] => i switch {
+        0 => X,
+        1 => Y,
+        2 => Z,
+        _ => throw new IndexOutOfRangeException($"Index i = {i}, out of range 0..={Dimensions - 1}")
+    };
 
     public Vector3D Cross(Vector3D other) => new(
         Y * other.Z - Z * other.Y,
