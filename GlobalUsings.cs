@@ -107,6 +107,9 @@ global using EllipticProblem3D = Model.Model.Problem.EllipticProblem<Telma.Vecto
 
 global using EllipticSolver2D = Model.Model.Problem.EllipticSolver<Telma.Vector2D, Telma.Vector1D, Model.Core.CoordinateSystem.MatrixOperations.Ops2X2>;
 global using EllipticSolver3D = Model.Model.Problem.EllipticSolver<Telma.Vector3D, Telma.Vector2D, Model.Core.CoordinateSystem.MatrixOperations.Ops3X3>;
+
+global using HyperbolicSolver2D = Model.Model.Problem.ParabolicSolver<Telma.Vector2D, Telma.Vector1D, Model.Core.CoordinateSystem.MatrixOperations.Ops2X2>;
+global using HyperbolicSolver3D = Model.Model.Problem.ParabolicSolver<Telma.Vector3D, Telma.Vector2D, Model.Core.CoordinateSystem.MatrixOperations.Ops3X3>;
 // Assembler
 
 global using Assembler2D = Model.Model.Assembly.Assembler<Telma.Vector2D, Telma.Vector1D, Model.Core.CoordinateSystem.MatrixOperations.Ops2X2>;
