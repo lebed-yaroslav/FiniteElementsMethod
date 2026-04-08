@@ -27,7 +27,7 @@ public sealed class SegmentParametrization<TSource>(TSource a, TSource b) :
     public TSource InverseTransform(Vector1D targetPoint)
         => Origin + Offset * targetPoint;
 
-    public double Jacobian(Vector1D targetPoint) => 1.0 / Offset.Norm;
+    public double Jacobian(Vector1D targetPoint) => Offset.Norm;
 
     public IJacobyMatrix<Vector1D, TSource> InverseJacoby()
         => _j;
@@ -50,5 +50,5 @@ public sealed record InverseSegmentJacobyMatrix<TSource>(
         }
     }
     public double this[int i, int j, Vector1D _] => this[i, j];
-    public double Det(Vector1D _) => Offset.Norm;
+    public double Det(Vector1D _) => 1.0 / Offset.Norm;
 }

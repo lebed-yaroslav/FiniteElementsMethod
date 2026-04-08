@@ -11,6 +11,10 @@ public interface IJacobyMatrix<TSource, TTarget>
     static int Columns => TSource.Dimensions;
     static abstract bool IsConstant { get; }
 
+    /// <summary>
+    /// Determinant of matrix if <typeparamref name="TSource"/> equals <typeparamref name="TTarget"/>,
+    /// otherwise it is metric determinant
+    /// </summary>
     double Det(TSource sourcePoint);
     double this[int i, int j, TSource sourcePoint] { get; }
     double this[int i, int j] { get; }
