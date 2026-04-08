@@ -368,7 +368,7 @@ public class EllipticProblemQuadrangleTests
     }
 
 
-    
+
     [Fact]
     public void РавномернаяСеткаСВнутреннимУзлом_ЛинейнаяФункция_БиКвадратичныйБазис()
     {
@@ -646,7 +646,7 @@ public class EllipticProblemQuadrangleTests
 
 
 
-        var real_solutin = new double[] { 2, 5, 10, 5, 8, 13, 10, 13, 18, 1.25, 1.25,
+        var real_solution = new double[] { 2, 5, 10, 5, 8, 13, 10, 13, 18, 1.25, 1.25,
 4.25, 3.25, 9.25, 7.25, 13.25, 3.25, 4.25, 6.25, 6.25, 11.25, 10.25, 16.25, 7.25, 9.25,
 10.25, 11.25, 15.25, 15.25, 21.25, 13.25, 16.25, 21.25, 0.5, 2.5, 6.5, 12.5, 2.5, 4.5,
 8.5, 14.5, 6.5, 8.5, 12.5, 18.5, 12.5, 14.5, 18.5, 24.5, 28.25,
@@ -657,7 +657,7 @@ public class EllipticProblemQuadrangleTests
 
         for (int i = 0; i < solution.Length; i++)
         {
-            Assert.Equal(real_solutin[i], solution[i], 1e-10);
+            Assert.Equal(real_solution[i], solution[i], 1e-10);
         }
     }
 
@@ -665,7 +665,7 @@ public class EllipticProblemQuadrangleTests
 
     //кубич б-с
     [Fact]
-    public void ПроизвольныйЭлемент_КубическаяФункция_БиКубическийБазис()
+    public void МастерЭлемент_КубическаяФункция_БиКубическийБазис()
     {
         string TestMesh1 =
         """
@@ -709,9 +709,9 @@ public class EllipticProblemQuadrangleTests
             new PCGSolver(m => IdentityPreconditioner.Instance)
         );
 
-        var solution = solver.Solve(problem, new ISolver.Params(1e-12, 10000));
+        var solution = solver.Solve(problem, new ISolver.Params(1e-12, 10000)).Coefficients;
 
-        var real_solutin = new double[] { 1.0 / 27.0,
+        var real_solution = new double[] { 1.0 / 27.0,
                                         8.0 / 27.0,
                                         8.0 / 27.0,
                                         1.0 / 27.0,
@@ -726,30 +726,30 @@ public class EllipticProblemQuadrangleTests
                                         0,
                                         1,
                                         1,
-                                        0 };
+                                        0, };
         for (int i = 0; i < solution.Length; i++)
         {
-            Assert.Equal(real_solutin[i], solution[i], 1e-10);
+            Assert.Equal(real_solution[i], solution[i], 1e-10);
         }
     }
     [Fact]
-    public void МастерЭлемент_ЛинейнаяФункция_БиКубическийБазис()
+    public void МастерЭлемент_КвадратичнаяФункция_БиКубическийБазис()
     {
         string TestMesh1 =
         """
-            4
-            0 0
-            1 0
-            1 1
-            0 1
-            1
-            0 1 2 3 0
-            4
-            0 1 0
-            1 2 0
-            2 3 0
-            3 0 0
-            """;
+        4
+        0 0
+        1 0
+        1 1
+        0 1
+        1
+        0 1 2 3 0
+        4
+        0 1 0
+        1 2 0
+        2 3 0
+        3 0 0
+        """;
 
 
         //  * х
@@ -761,12 +761,12 @@ public class EllipticProblemQuadrangleTests
 
         var problem = new EllipticProblem2D(
             Materials: [new(
-                    Lambda: _ => 1.0,
-                    Gamma: _ => 0.0,
-                    Source: p => 0.0
-                )],
+                Lambda: _ => 1.0,
+                Gamma: _ => 0.0,
+                Source: p => -2.0
+            )],
             BoundaryConditions: [
-                new BoundaryCondition2D.Dirichlet(Value: (p, _) => p.X)
+                new BoundaryCondition2D.Dirichlet(Value: (p, _) => p.X * p.X)
             ],
             mesh
         );
@@ -777,24 +777,83 @@ public class EllipticProblemQuadrangleTests
             new PCGSolver(m => IdentityPreconditioner.Instance)
         );
 
-        var solution = solver.Solve(problem, new ISolver.Params(1e-12, 10000));
+        var solution = solver.Solve(problem, new ISolver.Params(1e-12, 10000)).Coefficients;
 
-        var real_solutin = new double[] { 1.0 / 3.0,
-                                        2.0 / 3.0,
-                                        2.0 / 3.0,
-                                        1.0 / 3.0,
+        var real_solution = new double[] { 1.0 / 9.0,
+                                        4.0 / 9.0,
+                                        4.0 / 9.0,
+                                        1.0 / 9.0,
                                         0,
                                         0,
-                                        1.0 / 3.0,
-                                        2.0 / 3.0,
+                                        1.0 / 9.0,
+                                        4.0 / 9.0,
                                         1,
                                         1,
-                                        2.0 / 3.0,
-                                        1.0 / 3.0,
+                                        4.0 / 9.0,
+                                        1.0 / 9.0,
                                         0,
                                         1,
                                         1,
-                                        0 };
+                                        0, };
+        for (int i = 0; i < solution.Length; i++)
+        {
+            Assert.Equal(real_solution[i], solution[i], 1e-10);
+        }
+    }
+    [Fact]
+    public void МастерЭлемент_ЛинейнаяФункция_БиКубическийБазис_ВсеВидыКраевых()
+    {
+        string TestMesh1 =
+                """
+        4
+        0 0
+        1 0
+        1 1
+        0 1
+        1
+        0 1 2 3 0
+        4
+        0 1 0
+        1 2 1
+        2 3 3
+        3 0 2
+        """;
+
+
+
+        //  * х
+        var mesh = new StringReader(TestMesh1).ReadMesh2D(
+            coordinateSystem: IdentityTransform<Vector2D>.Instance,
+            FiniteElements.Quadrangle.LagrangeCubic,
+            FiniteElements.Segment.LagrangeCubic
+        );
+
+        var problem = new EllipticProblem2D(
+                    Materials: [new(
+                Lambda: _ => 1.0,
+                Gamma: _ => 0.0,
+                Source: p => 0.0
+            )],
+                    BoundaryConditions: [
+                        new BoundaryCondition2D.Dirichlet(Value: (p,_) => p.X + p.Y),
+                new BoundaryCondition2D.Neumann(Flux: (p,_) => 1.0),
+                new BoundaryCondition2D.Neumann(Flux: (p,_) => -1.0),
+                new BoundaryCondition2D.Robin(Beta: (p,_) => 1.0,UBeta: (p,_) => p.X + 2)
+                    ],
+                    mesh
+                );
+
+        var solver = new EllipticSolver2D(
+            DenseMatrix.Factory,
+            NumericItegrator2D.Instance,
+            new PCGSolver(m => IdentityPreconditioner.Instance)
+        );
+
+        var solution = solver.Solve(problem, new ISolver.Params(1e-12, 10000)).Coefficients;
+
+        var real_solutin = new double[] { 2, 1, 4 / 3.0, 5 / 3.0, 5 / 3.0, 4 / 3.0, 2 / 3.0,
+                                                1 / 3.0, 2 / 3.0, 1, 4 / 3.0, 1, 2 / 3.0, 1 / 3.0, 1, 0};
+
         for (int i = 0; i < solution.Length; i++)
         {
             Assert.Equal(real_solutin[i], solution[i], 1e-10);
@@ -803,185 +862,6 @@ public class EllipticProblemQuadrangleTests
 
 
 
-//    [Fact]
-//    public void РавномернаяСеткаСВнутреннимУзлом_ЛинейнаяФункция_БиКубическийБазис()
-//    {
-//        string TestMesh1 =
-//               """
-//            9
-//            0 0
-//            3 0
-//            6 0
-//            0 3
-//            3 3
-//            6 3
-//            0 6
-//            3 6
-//            6 6
-//            4
-//            0 1 4 3 0
-//            1 2 5 4 0
-//            3 4 7 6 0
-//            4 5 8 7 0
-//            8
-//            0 1 0
-//            1 2 0
-//            2 5 0
-//            5 8 0
-//            7 8 0
-//            6 7 0
-//            0 3 0
-//            3 6 0
-//            """;
 
-
-//        //  * х
-//        var mesh = new StringReader(TestMesh1).ReadMesh2D(
-//        coordinateSystem: IdentityTransform<Vector2D>.Instance,
-//        FiniteElements.Quadrangle.LagrangeCubic,
-//        FiniteElements.Segment.LagrangeCubic
-//);
-
-//        var problem = new EllipticProblem2D(
-//            Materials: [new(
-//                    Lambda: _ => 1.0,
-//                    Gamma: _ => 0.0,
-//                    Source: p => 0.0
-//                )],
-//            BoundaryConditions: [
-//                new BoundaryCondition2D.Dirichlet(Value: (p, _) => p.X)
-//            ],
-//            mesh
-//        );
-
-//        var solver = new EllipticSolver2D(
-//            DenseMatrix.Factory,
-//            NumericItegrator2D.Instance,
-//            new PCGSolver(m => IdentityPreconditioner.Instance)
-//        );
-
-//        var solution = solver.Solve(problem, new ISolver.Params(1e-12, 10000));
-
-//        var real_solutin = new double[] { 0.5,
-//                                            0.5,
-//                                            0.25,
-//                                            0.75,
-//                                            0.5,
-//                                            0.25,
-//                                            0.75,
-//                                            0.25,
-//                                            0.75,
-//                                            0.75,
-//                                            1,
-//                                            0,
-//                                            0.25,
-//                                            1,
-//                                            0.75,
-//                                            0,
-//                                            0.25,
-//                                            1,
-//                                            0.5,
-//                                            0,
-//                                            1,
-//                                            0,
-//                                            1,
-//                                            0.5,
-//                                            0 };
-//        for (int i = 0; i < solution.Length; i++)
-//        {
-//            Assert.Equal(real_solutin[i], solution[i], 1e-10);
-//        }
-
-//    }
-//    [Fact]
-//    public void РавномернаяСеткаСВнутреннимУзлом_КвадратичнаяФункция_БиКубическийБазис()
-//    {
-//        string TestMesh1 =
-//               """
-//            9
-//            0 0
-//            0.5 0
-//            1 0
-//            0 0.5
-//            0.5 0.5
-//            1 0.5
-//            0 1
-//            0.5 1
-//            1 1
-//            4
-//            0 1 4 3 0
-//            1 2 5 4 0
-//            3 4 7 6 0
-//            4 5 8 7 0
-//            8
-//            0 1 0
-//            1 2 0
-//            2 5 0
-//            5 8 0
-//            7 8 0
-//            6 7 0
-//            0 3 0
-//            3 6 0
-//            """;
-
-
-//        //  * х
-//        var mesh = new StringReader(TestMesh1).ReadMesh2D(
-//        coordinateSystem: IdentityTransform<Vector2D>.Instance,
-//        FiniteElements.Quadrangle.LagrangeQuadratic,
-//        FiniteElements.Segment.LagrangeQuadratic
-//);
-
-//        var problem = new EllipticProblem2D(
-//            Materials: [new(
-//                    Lambda: _ => 1.0,
-//                    Gamma: _ => 0.0,
-//                    Source: p => -2.0
-//                )],
-//            BoundaryConditions: [
-//                new BoundaryCondition2D.Dirichlet(Value: (p, _) => p.X * p.X)
-//            ],
-//            mesh
-//        );
-
-//        var solver = new EllipticSolver2D(
-//            DenseMatrix.Factory,
-//            NumericItegrator2D.Instance,
-//            new PCGSolver(m => IdentityPreconditioner.Instance)
-//        );
-
-//        var solution = solver.Solve(problem, new ISolver.Params(1e-12, 10000));
-
-//        var real_solutin = new double[] { 0.250,
-//                                            0.250,
-//                                            0.0625,
-//                                            0.5625,
-//                                            0.250,
-//                                            0.0625,
-//                                            0.5625,
-//                                            0.0625,
-//                                            0.5625,
-//                                            0.5625,
-//                                            1,
-//                                            0,
-//                                            0.0625,
-//                                            1,
-//                                            0.5625,
-//                                            0,
-//                                            0.0625,
-//                                            1,
-//                                            0.25,
-//                                            0,
-//                                            1,
-//                                            0,
-//                                            1,
-//                                            0.25,
-//                                            0 };
-//        for (int i = 0; i < solution.Length; i++)
-//        {
-//            Assert.Equal(real_solutin[i], solution[i], 1e-10);
-//        }
-
-//    }
 
 }

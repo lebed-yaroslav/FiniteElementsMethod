@@ -43,6 +43,7 @@ public sealed class BicubicLagrangeQuadrangleFactory : IFiniteElementFactory2D
         public override void SetEdgeDof(int localEdgeIndex, bool isOrientationFlipped, int n, int dofIndex)
         {
             AssertIsValidEdgeDofNumber(n);
+            if (isOrientationFlipped) n = 1 - n;
             var basisIndex = localEdgeIndex switch
             {
                 0 => 1 + n,
