@@ -16,9 +16,9 @@ public sealed class LinearTriangleFactory : IFiniteElementFactory2D
 
     public static readonly IBasisSet2D Basis = new BasisSet2D(
         Quadratures.TriangleOrder3,
+        TriangleBasis.L3,
         TriangleBasis.L1,
-        TriangleBasis.L2,
-        TriangleBasis.L3
+        TriangleBasis.L2
    );
 
     public sealed class Dof() : DofManager(dofCount: 3)
