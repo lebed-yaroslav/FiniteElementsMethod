@@ -39,8 +39,8 @@ public sealed class LagrangeCubicSegmentFactory : IBoundaryElementFactory2D
         public override void SetEdgeDof(int localEdgeIndex, bool isOrientationFlipped, int n, int dofIndex)
         {
             AssertIsValidEdgeDofNumber(n);
-            Debug.Assert(0 <= localEdgeIndex && localEdgeIndex < 2);
-            _dof[localEdgeIndex + 2] = dofIndex;
+            Debug.Assert(0 == localEdgeIndex);
+            _dof[n + 2] = dofIndex;
         }
 
         public override void SetElementDof(int n, int dofIndex) =>

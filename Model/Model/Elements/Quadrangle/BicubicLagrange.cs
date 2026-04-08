@@ -15,7 +15,7 @@ public sealed class BicubicLagrangeQuadrangleFactory : IFiniteElementFactory2D
      );
 
     public static readonly IBasisSet2D Basis = new BasisSet2D(
-        Quadratures.QuadrangleOrder7,
+        Quadratures.QuadrangleOrder9,
         QuadrangleBasis.Q3_Lagrange
     );
 
@@ -24,7 +24,6 @@ public sealed class BicubicLagrangeQuadrangleFactory : IFiniteElementFactory2D
         public override int NumberOfDofOnVertex => 1;
         public override int NumberOfDofOnEdge => 2;
         public override int NumberOfDofOnElement => 4;
-
 
         public override void SetVertexDof(int localVertexIndex, int n, int dofIndex)
         {
@@ -63,8 +62,8 @@ public sealed class BicubicLagrangeQuadrangleFactory : IFiniteElementFactory2D
             {
                 0 => 5,
                 1 => 6,
-                2 => 9,
-                3 => 10,
+                2 => 10,
+                3 => 9,
                 _ => throw new NotSupportedException()
             };
             _dof[basisIndex] = dofIndex;
