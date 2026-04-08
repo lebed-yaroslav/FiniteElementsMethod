@@ -441,7 +441,7 @@ public class ElipticProblemQuadrangleHermiteTests
         for (int i = 0; i < mesh.VertexCount; i++)
         {
             var p = mesh[i];
-            Assert.Equal(p.X, solution.Evaluate(p), Eps);
+            Assert.Equal(analyticSolution(p), solution.Evaluate(p), Eps);
         }
     }
 }

@@ -9,6 +9,7 @@ using Telma.Extensions;
 
 namespace Model.Model.Problem;
 
+[Obsolete("This feature is under development")]
 public class ParabolicSolver<TSpace, TBoundary, TOps>(
     IMatrixFactory matrixFactory,
     IIntegrator<TSpace, TBoundary, TOps> integrator,

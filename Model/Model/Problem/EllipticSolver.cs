@@ -14,7 +14,7 @@ namespace Model.Model.Problem;
 /// <typeparam name="TSpace">Domain function space type</typeparam>
 /// <typeparam name="TBoundary">Boundary function space type</typeparam>
 /// <typeparam name="TOps">Matrix operations type for the function space</typeparam>
-public class EllipticSolver<TSpace, TBoundary, TOps>(
+public sealed class EllipticSolver<TSpace, TBoundary, TOps>(
     IMatrixFactory matrixFactory,
     IIntegrator<TSpace, TBoundary, TOps> integrator,
     ISolver algebraicSolver
