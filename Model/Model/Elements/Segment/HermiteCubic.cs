@@ -41,7 +41,6 @@ public sealed class HermiteSegmentFactory : IBoundaryElementFactory2D
     // Это вектор нашего отрезка (его длина и направление)
     double dx = transform.Offset.X; 
     double dy = transform.Offset.Y;
-    double L = transform.Offset.Norm; // Длина отрезка
 
     var physicalBasis = new IBasisFunction1D[8]; 
 
@@ -65,7 +64,7 @@ public sealed class HermiteSegmentFactory : IBoundaryElementFactory2D
 
         // n=3: uxy. Смешанная производная на 1D линии 
         var cUxy = new double[4]; 
-        cUxy[refDerIdx] = 0; 
+        cUxy[refDerIdx] = 0.0; 
         physicalBasis[baseIdx + 3] = new PhysicalHermiteBasis1D(refBasis, cUxy);
     }
 
@@ -99,7 +98,7 @@ public sealed class HermiteSegmentFactory : IBoundaryElementFactory2D
         public override void SetVertexDof(int localVertexIndex, int n, int dofIndex)
         {
             AssertIsValidVertexDofNumber(n);
-            Debug.Assert(0 <= localVertexIndex && localVertexIndex < 4);
+            Debug.Assert(0 <= localVertexIndex && localVertexIndex < 2);
             // n=0: u, n=1: ux, n=2: uy, n=3: uxy
             _dof[localVertexIndex * 4 + n] = dofIndex;
         }
