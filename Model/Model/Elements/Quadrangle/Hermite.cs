@@ -14,7 +14,7 @@ public sealed class PhysicalHermiteBasis2D(
     {
         double sum = 0;
         for (int i = 0; i < 16; i++)
-            if (coefficients[i] != 0) sum += coefficients[i] * refBasis[i].Value(p);
+             sum += coefficients[i] * refBasis[i].Value(p);
         return sum;
     }
 
@@ -22,7 +22,7 @@ public sealed class PhysicalHermiteBasis2D(
     {
         Vector2D sum = Vector2D.Zero;
         for (int i = 0; i < 16; i++)
-            if (coefficients[i] != 0) sum += refBasis[i].Derivatives(p) * coefficients[i];
+             sum += refBasis[i].Derivatives(p) * coefficients[i];
         return sum;
     }
 }
@@ -42,34 +42,53 @@ public sealed class HermiteQuadrangleFactory : IFiniteElementFactory2D
         var physicalBasis = new IBasisFunction2D[16];
         Vector2D[] corners = [new(0, 0), new(1, 0), new(1, 1), new(0, 1)];
 
+        int[][] nodeToRefIndices =
+        [
+            [0, 1, 2, 3],      // (0,0)
+            [4, 5, 6, 7],      // (1,0)
+            [8, 9, 10, 11],    // (1,1)
+            [12, 13, 14, 15]   // (0,1)
+        ];
         for (int k = 0; k < 4; k++)
         {
             var J = jMatrix.At(corners[k]);
-            double x_xi = J[0, 0], x_eta = J[0, 1];
-            double y_xi = J[1, 0], y_eta = J[1, 1];
+
+            // Берем элементы ПРЯМОЙ матрицы Якоби
+            double x_xi = J[0, 0]; // ∂x/∂ξ
+            double x_eta = J[0, 1]; // ∂x/∂η
+            double y_xi = J[1, 0]; // ∂y/∂ξ
+            double y_eta = J[1, 1]; // ∂y/∂η
+
+            double x_xieta = d2P.X;
+            double y_xieta = d2P.Y;
+
+            int[] idx = nodeToRefIndices[k];
+            int baseIdx = k * 4;
 
             // 1. Физическая функция для u
-            var cU = new double[16]; cU[k * 4 + 0] = 1.0;
-            physicalBasis[k * 4 + 0] = new PhysicalHermiteBasis2D(refBasis, cU);
+            var cU = new double[16];
+            cU[idx[0]] = 1.0;
+            physicalBasis[baseIdx + 0] = new PhysicalHermiteBasis2D(refBasis, cU);
 
             // 2. Физическая функция для ux 
             var cUx = new double[16];
-            cUx[k * 4 + 1] = x_xi;
-            cUx[k * 4 + 2] = x_eta;
-            cUx[k * 4 + 3] = d2P.X;
-            physicalBasis[k * 4 + 1] = new PhysicalHermiteBasis2D(refBasis, cUx);
+            cUx[idx[1]] = x_xi;
+            cUx[idx[2]] = x_eta;
+            cUx[idx[3]] = x_xieta;
+            physicalBasis[baseIdx + 1] = new PhysicalHermiteBasis2D(refBasis, cUx);
 
             // 3. Физическая функция для uy
             var cUy = new double[16];
-            cUy[k * 4 + 1] = y_xi;
-            cUy[k * 4 + 2] = y_eta;
-            cUy[k * 4 + 3] = d2P.Y;
-            physicalBasis[k * 4 + 2] = new PhysicalHermiteBasis2D(refBasis, cUy);
+            cUy[idx[1]] = y_xi;
+            cUy[idx[2]] = y_eta;
+            cUy[idx[3]] = y_xieta;
+            physicalBasis[baseIdx + 2] = new PhysicalHermiteBasis2D(refBasis, cUy);
 
             // 4. Физическая функция для uxy
             var cUxy = new double[16];
-            cUxy[k * 4 + 3] = (x_xi * y_eta + x_eta * y_xi);
-            physicalBasis[k * 4 + 3] = new PhysicalHermiteBasis2D(refBasis, cUxy);
+            // Предполагаем аффинное отображение, где x_xi_eta и y_xi_eta равны нулю
+            cUxy[idx[3]] = (x_xi * y_eta + x_eta * y_xi);
+            physicalBasis[baseIdx + 3] = new PhysicalHermiteBasis2D(refBasis, cUxy);
         }
 
         return new FiniteElement2D(

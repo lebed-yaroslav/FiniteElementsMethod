@@ -75,19 +75,36 @@ public static class QuadrangleBasis
     /// </returns>
     private static IBasisFunction2D[] CreateTensorHermite()
     {
-        var basisFunctions = new IBasisFunction2D[16];
-        int index = 0;
+        var basis = new IBasisFunction2D[16];
+        int k = 0;
+        Hermite1D[] H =
+        [
+            new(0), new(1), new(2), new(3)
+        ];
+        // узел (0,0)
+        basis[k++] = new TensorBasis2D(H[0], H[0]); // u
+        basis[k++] = new TensorBasis2D(H[1], H[0]); // uξ
+        basis[k++] = new TensorBasis2D(H[0], H[1]); // uη
+        basis[k++] = new TensorBasis2D(H[1], H[1]); // uξη
 
-        for (int j = 0; j < 4; j++)
-        {
-            for (int i = 0; i < 4; i++)
-            {
-                basisFunctions[index++] = new TensorBasis2D(
-                    new Hermite1D(i),
-                    new Hermite1D(j)
-                );
-            }
-        }
-        return basisFunctions;
+        // узел (1,0)
+        basis[k++] = new TensorBasis2D(H[2], H[0]);
+        basis[k++] = new TensorBasis2D(H[3], H[0]);
+        basis[k++] = new TensorBasis2D(H[2], H[1]);
+        basis[k++] = new TensorBasis2D(H[3], H[1]);
+
+        // узел (1,1)
+        basis[k++] = new TensorBasis2D(H[2], H[2]);
+        basis[k++] = new TensorBasis2D(H[3], H[2]);
+        basis[k++] = new TensorBasis2D(H[2], H[3]);
+        basis[k++] = new TensorBasis2D(H[3], H[3]);
+
+        // узел (0,1)
+        basis[k++] = new TensorBasis2D(H[0], H[2]);
+        basis[k++] = new TensorBasis2D(H[1], H[2]);
+        basis[k++] = new TensorBasis2D(H[0], H[3]);
+        basis[k++] = new TensorBasis2D(H[1], H[3]);
+
+        return basis;
     }
 }

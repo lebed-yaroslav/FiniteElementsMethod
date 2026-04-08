@@ -38,6 +38,12 @@ public sealed class QuadrangleCoordinateSystem(
 
             if (residual.Norm < eps) return targetPoint;
 
+            var J = _j.At(targetPoint);
+            var det = J.Det(Vector2D.Zero);
+
+            if (Math.Abs(det) < 1e-12)
+                throw new Exception("Jacobian collapsed");
+
             var invJ = _j.At(targetPoint).Inverse();
             var delta = invJ * residual;  // Δ = J^(-1) * r
             targetPoint -= delta; // (η, ξ) = (η, ξ) - Δ
@@ -81,7 +87,7 @@ public sealed record QuadrangleJacobyMatrix(
 
     public double this[int i, int j, Vector2D targetPoint] => At(targetPoint)[i, j];
 
-    public double Det(Vector2D targetPoint) => At(targetPoint).Det(Vector2D.Zero);
+    public double Det(Vector2D targetPoint) => At(targetPoint).Det();
 
     public ConstantJacobyMatrix2X2 At(Vector2D sourcePoint)
     {
