@@ -800,11 +800,12 @@ public class EllipticProblemQuadrangleTests
             Assert.Equal(real_solution[i], solution[i], 1e-10);
         }
     }
+
     [Fact]
     public void МастерЭлемент_ЛинейнаяФункция_БиКубическийБазис_ВсеВидыКраевых()
     {
-        string TestMesh1 =
-                """
+        string meshInput =
+        """
         4
         0 0
         1 0
@@ -819,10 +820,9 @@ public class EllipticProblemQuadrangleTests
         3 0 2
         """;
 
+        static double analyticalSolution(Vector2D p) => p.X + p.Y;
 
-
-        //  * х
-        var mesh = new StringReader(TestMesh1).ReadMesh2D(
+        var mesh = new StringReader(meshInput).ReadMesh2D(
             coordinateSystem: IdentityTransform<Vector2D>.Instance,
             FiniteElements.Quadrangle.LagrangeCubic,
             FiniteElements.Segment.LagrangeCubic
@@ -834,14 +834,14 @@ public class EllipticProblemQuadrangleTests
                 Gamma: _ => 0.0,
                 Source: p => 0.0
             )],
-                    BoundaryConditions: [
-                        new BoundaryCondition2D.Dirichlet(Value: (p,_) => p.X + p.Y),
-                new BoundaryCondition2D.Neumann(Flux: (p,_) => 1.0),
-                new BoundaryCondition2D.Neumann(Flux: (p,_) => -1.0),
-                new BoundaryCondition2D.Robin(Beta: (p,_) => 1.0,UBeta: (p,_) => p.X + 2)
-                    ],
-                    mesh
-                );
+            BoundaryConditions: [
+                new BoundaryCondition2D.Dirichlet(Value: (p, _) => analyticalSolution(p)),
+                new BoundaryCondition2D.Neumann(Flux: (p, _) => 1.0),
+                new BoundaryCondition2D.Neumann(Flux: (p, _) => -1.0),
+                new BoundaryCondition2D.Robin(Beta: (p, _) => 1.0, UBeta: (p, _) => p.X + 2)
+            ],
+            mesh
+        );
 
         var solver = new EllipticSolver2D(
             DenseMatrix.Factory,
@@ -849,19 +849,18 @@ public class EllipticProblemQuadrangleTests
             new PCGSolver(m => IdentityPreconditioner.Instance)
         );
 
-        var solution = solver.Solve(problem, new ISolver.Params(1e-12, 10000)).Coefficients;
+        var solution = solver.Solve(problem, new ISolver.Params(1e-12, 10000));
 
         var real_solutin = new double[] { 2, 1, 4 / 3.0, 5 / 3.0, 5 / 3.0, 4 / 3.0, 2 / 3.0,
                                                 1 / 3.0, 2 / 3.0, 1, 4 / 3.0, 1, 2 / 3.0, 1 / 3.0, 1, 0};
 
-        for (int i = 0; i < solution.Length; i++)
-        {
-            Assert.Equal(real_solutin[i], solution[i], 1e-10);
-        }
+        for (int i = 0; i < 4; ++i)
+            for (int j = 0; j < 4; ++j)
+            {
+                var point = new Vector2D(i, j) / 3.0;
+                Assert.Equal(analyticalSolution(point), solution.Evaluate(point), 1e-10);
+            }
     }
-
-
-
 
     [Fact]
     public void РавномернаяСеткаСВнутреннимУзлом_КубическаяФункция_БиКубическийБазис()
