@@ -2,7 +2,7 @@ using Telma;
 
 namespace Model.Model.Basis;
 
-public static class TriangleBasis
+public static partial class TriangleBasis
 {
     // Basis functions for hierarchical triangles, formulas are taken from (12.23) [1, p594]
 
