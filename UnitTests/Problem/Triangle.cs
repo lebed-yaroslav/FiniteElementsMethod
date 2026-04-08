@@ -54,7 +54,7 @@ public class EllipticProblemTriangleTests
             new PCGSolver(m => IdentityPreconditioner.Instance)
         );
 
-        var solution = solver.Solve(problem, new ISolver.Params(1e-12, 10000));
+        var solution = solver.Solve(problem, new ISolver.Params(1e-12, 10000)).Coefficients;
 
         Assert.Equal(0.0, solution[0], 1e-10);
         Assert.Equal(9.0, solution[1], 1e-10);
@@ -88,7 +88,7 @@ public class EllipticProblemTriangleTests
             new PCGSolver(m => IdentityPreconditioner.Instance)
         );
 
-        var solution = solver.Solve(problem, new ISolver.Params(1e-12, 10000));
+        var solution = solver.Solve(problem, new ISolver.Params(1e-12, 10000)).Coefficients;
 
         Assert.Equal(0.0, solution[0], 1e-10);
         Assert.Equal(3.0, solution[1], 1e-10);
@@ -136,7 +136,7 @@ public class EllipticProblemTriangleTests
             new PCGSolver(m => IdentityPreconditioner.Instance)
         );
 
-        var solution = solver.Solve(problem, new ISolver.Params(1e-12, 10000));
+        var solution = solver.Solve(problem, new ISolver.Params(1e-12, 10000)).Coefficients;
 
         Assert.Equal(0.0, solution[0], 1e-10);
         Assert.Equal(3.0, solution[1], 1e-10);
@@ -184,7 +184,7 @@ public class EllipticProblemTriangleTests
             new PCGSolver(m => IdentityPreconditioner.Instance)
         );
 
-        var solution = solver.Solve(problem, new ISolver.Params(1e-12, 10000));
+        var solution = solver.Solve(problem, new ISolver.Params(1e-12, 10000)).Coefficients;
 
         Assert.Equal(0.0, solution[0], 1e-10);
         Assert.Equal(3.0, solution[1], 1e-10);
@@ -232,7 +232,7 @@ public class EllipticProblemTriangleTests
             new PCGSolver(m => IdentityPreconditioner.Instance)
         );
 
-        var solution = solver.Solve(problem, new ISolver.Params(1e-12, 10000));
+        var solution = solver.Solve(problem, new ISolver.Params(1e-12, 10000)).Coefficients;
 
         Assert.Equal(0.0, solution[0], 1e-10);
         Assert.Equal(3.0, solution[1], 1e-10);
@@ -267,7 +267,7 @@ public class EllipticProblemTriangleTests
             new PCGSolver(m => IdentityPreconditioner.Instance)
         );
 
-        var solution = solver.Solve(problem, new ISolver.Params(1e-12, 10000));
+        var solution = solver.Solve(problem, new ISolver.Params(1e-12, 10000)).Coefficients;
 
         Assert.Equal(0.0, solution[0], 1e-10);
         Assert.Equal(3.0, solution[1], 1e-10);
@@ -300,7 +300,7 @@ public class EllipticProblemTriangleTests
             new PCGSolver(m => IdentityPreconditioner.Instance)
         );
 
-        var solution = solver.Solve(problem, new ISolver.Params(1e-12, 10000));
+        var solution = solver.Solve(problem, new ISolver.Params(1e-12, 10000)).Coefficients;
 
         Assert.Equal(0.0, solution[0], 1e-10);
         Assert.Equal(0.0, solution[1], 1e-10);
@@ -336,7 +336,7 @@ public class EllipticProblemTriangleTests
             new PCGSolver(m => IdentityPreconditioner.Instance)
         );
 
-        var solution = solver.Solve(problem, new ISolver.Params(1e-12, 10000));
+        var solution = solver.Solve(problem, new ISolver.Params(1e-12, 10000)).Coefficients;
 
         Assert.Equal(0.0, solution[0], 1e-10);
         Assert.Equal(-9.0, solution[1], 1e-10);
@@ -373,7 +373,7 @@ public class EllipticProblemTriangleTests
             new PCGSolver(m => IdentityPreconditioner.Instance)
         );
 
-        var solution = solver.Solve(problem, new ISolver.Params(1e-12, 10000));
+        var solution = solver.Solve(problem, new ISolver.Params(1e-12, 10000)).Coefficients;
 
         Assert.Equal(0.0, solution[0], 1e-10);
         Assert.Equal(0.0, solution[1], 1e-10);
@@ -410,7 +410,7 @@ public class EllipticProblemTriangleTests
             new PCGSolver(m => IdentityPreconditioner.Instance)
         );
 
-        var solution = solver.Solve(problem, new ISolver.Params(1e-12, 10000));
+        var solution = solver.Solve(problem, new ISolver.Params(1e-12, 10000)).Coefficients;
 
         Assert.Equal(0.0, solution[0], 1e-10);
         Assert.Equal(-9.0, solution[1], 1e-10);

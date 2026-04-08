@@ -27,7 +27,7 @@ public class EllipticSolver<TSpace, TBoundary, TOps>(
     private readonly IIntegrator<TSpace, TBoundary, TOps> _integrator = integrator;
     private readonly ISolver _algebraicSolver = algebraicSolver;
 
-    public double[] Solve(
+    public StationarySolution<TSpace, TBoundary> Solve(
         EllipticProblem<TSpace> problem,
         ISolver.Params solverParams = new()
     )
@@ -63,10 +63,13 @@ public class EllipticSolver<TSpace, TBoundary, TOps>(
         _algebraicSolver.Solve(assembler.RhsVector, freeSolution, solverParams);
 
         // Формирование итогового ответа 
-        return GetFullSolution(freeSolution, assembler.FixedSolution, assembler.DofManager);
+        return new(
+            mesh: mesh,
+            coefficients: CombineCoefficients(freeSolution, assembler.FixedSolution, assembler.DofManager)
+        );
     }
 
-    private static double[] GetFullSolution(ReadOnlySpan<double> freeSolution, ReadOnlySpan<double> fixedSolution, DofManager dofManager)
+    private static double[] CombineCoefficients(ReadOnlySpan<double> freeSolution, ReadOnlySpan<double> fixedSolution, DofManager dofManager)
     {
         var result = new double[dofManager.TotalDofCount];
         freeSolution.CopyTo(result);

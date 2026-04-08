@@ -58,7 +58,7 @@ public class AssemblyTriangleTest
         
         var ellipticSolver = new EllipticSolver2D(matrixFactory, integrator, algebraicSolver);
         var paramz = new ISolver.Params(Eps: 1e-12,MaxIterations: 1200);
-        double[] solution = ellipticSolver.Solve(problem, paramz);
+        var solution = ellipticSolver.Solve(problem, paramz).Coefficients;
         for (int i = 0; i < solution.Length; i++)
         {
             Console.WriteLine($"{solution[i]}");

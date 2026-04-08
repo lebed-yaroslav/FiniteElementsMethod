@@ -56,7 +56,7 @@ public class EllipticProblemQuadrangleTests
             new PCGSolver(m => IdentityPreconditioner.Instance)
         );
 
-        var solution = solver.Solve(problem, new ISolver.Params(1e-12, 10000));
+        var solution = solver.Solve(problem, new ISolver.Params(1e-12, 10000)).Coefficients;
 
         Assert.Equal(0.0, solution[0], 1e-10);
         Assert.Equal(1.0, solution[1], 1e-10);
@@ -106,7 +106,7 @@ public class EllipticProblemQuadrangleTests
             new PCGSolver(m => IdentityPreconditioner.Instance)
         );
 
-        var solution = solver.Solve(problem, new ISolver.Params(1e-12, 10000));
+        var solution = solver.Solve(problem, new ISolver.Params(1e-12, 10000)).Coefficients;
 
         Assert.Equal(-1.0, solution[0], 1e-10);
         Assert.Equal(3.0, solution[1], 1e-10);
@@ -170,7 +170,7 @@ public class EllipticProblemQuadrangleTests
             new PCGSolver(m => IdentityPreconditioner.Instance)
         );
 
-        var solution = solver.Solve(problem, new ISolver.Params(1e-12, 10000));
+        var solution = solver.Solve(problem, new ISolver.Params(1e-12, 10000)).Coefficients;
 
         Assert.Equal(1.0, solution[0], 1e-10);
         Assert.Equal(2.0, solution[1], 1e-10);
@@ -231,7 +231,7 @@ public class EllipticProblemQuadrangleTests
             new PCGSolver(m => IdentityPreconditioner.Instance)
         );
 
-        var solution = solver.Solve(problem, new ISolver.Params(1e-12, 10000));
+        var solution = solver.Solve(problem, new ISolver.Params(1e-12, 10000)).Coefficients;
 
         var real_solutin = new double[] { 0.25,
                                         0,
@@ -292,7 +292,7 @@ public class EllipticProblemQuadrangleTests
             new PCGSolver(m => IdentityPreconditioner.Instance)
         );
 
-        var solution = solver.Solve(problem, new ISolver.Params(1e-12, 10000));
+        var solution = solver.Solve(problem, new ISolver.Params(1e-12, 10000)).Coefficients;
 
         var real_solutin = new double[] { 0.5,
                                         0,
@@ -357,7 +357,7 @@ public class EllipticProblemQuadrangleTests
             new PCGSolver(m => IdentityPreconditioner.Instance)
         );
 
-        var solution = solver.Solve(problem, new ISolver.Params(1e-12, 10000));
+        var solution = solver.Solve(problem, new ISolver.Params(1e-12, 10000)).Coefficients;
 
         var real_solutin = new double[] { 2, 1, 1.5, 1.5, 0.5, 1, 0.5, 1, 0 };
 
@@ -426,7 +426,7 @@ public class EllipticProblemQuadrangleTests
             new PCGSolver(m => IdentityPreconditioner.Instance)
         );
 
-        var solution = solver.Solve(problem, new ISolver.Params(1e-12, 10000));
+        var solution = solver.Solve(problem, new ISolver.Params(1e-12, 10000)).Coefficients;
 
         var real_solutin = new double[] { 0.5,
                                         0.5,
@@ -516,7 +516,7 @@ public class EllipticProblemQuadrangleTests
             new PCGSolver(m => IdentityPreconditioner.Instance)
         );
 
-        var solution = solver.Solve(problem, new ISolver.Params(1e-12, 10000));
+        var solution = solver.Solve(problem, new ISolver.Params(1e-12, 10000)).Coefficients;
 
         var real_solutin = new double[] { 0.250,
                                         0.250,
@@ -642,7 +642,7 @@ public class EllipticProblemQuadrangleTests
             new PCGSolver(m => IdentityPreconditioner.Instance)
         );
 
-        var solution = solver.Solve(problem, new ISolver.Params(1e-12, 10000));
+        var solution = solver.Solve(problem, new ISolver.Params(1e-12, 10000)).Coefficients;
 
 
 
