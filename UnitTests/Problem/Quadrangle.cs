@@ -863,5 +863,242 @@ public class EllipticProblemQuadrangleTests
 
 
 
+    [Fact]
+    public void РавномернаяСеткаСВнутреннимУзлом_КубическаяФункция_БиКубическийБазис()
+    {
+        string TestMesh1 =
+               """
+        9
+        0 0
+        3 0
+        6 0
+        0 3
+        3 3
+        6 3
+        0 6
+        3 6
+        6 6
+        4
+        0 1 4 3 0
+        1 2 5 4 0
+        3 4 7 6 0
+        4 5 8 7 0
+        8
+        0 1 0
+        1 2 0
+        2 5 0
+        5 8 0
+        7 8 0
+        6 7 0
+        0 3 0
+        3 6 0
+        """;
 
+        static double analyticalSolution(Vector2D p) => p.X * p.X * p.X;
+
+        //  * х
+        var mesh = new StringReader(TestMesh1).ReadMesh2D(
+        coordinateSystem: IdentityTransform<Vector2D>.Instance,
+        FiniteElements.Quadrangle.LagrangeCubic,
+        FiniteElements.Segment.LagrangeCubic
+);
+
+        var problem = new EllipticProblem2D(
+            Materials: [new(
+                Lambda: _ => 1.0,
+                Gamma: _ => 0.0,
+                Source: p => -6.0 * p.X
+            )],
+            BoundaryConditions: [
+                new BoundaryCondition2D.Dirichlet(Value: (p, _) => analyticalSolution(p))
+            ],
+            mesh
+        );
+
+        var solver = new EllipticSolver2D(
+            DenseMatrix.Factory,
+            NumericItegrator2D.Instance,
+            new PCGSolver(m => IdentityPreconditioner.Instance)
+        );
+
+        var solution = solver.Solve(problem, new ISolver.Params(1e-12, 10000));
+
+        for (int i = 0; i < 7; ++i)
+            for (int j = 0; j < 7; ++j)
+            {
+                var point = new Vector2D(i, j);
+                Assert.Equal(analyticalSolution(point), solution.Evaluate(point), 1e-10);
+            }
+    }
+    [Fact]
+    public void РавномернаяСеткаСВнутреннимУзлом_КвадратичнаяФункция_БиКубическийБазис()
+    {
+        string TestMesh1 =
+               """
+        9
+        0 0
+        3 0
+        6 0
+        0 3
+        3 3
+        6 3
+        0 6
+        3 6
+        6 6
+        4
+        0 1 4 3 0
+        1 2 5 4 0
+        3 4 7 6 0
+        4 5 8 7 0
+        8
+        0 1 0
+        1 2 0
+        2 5 0
+        5 8 0
+        7 8 0
+        6 7 0
+        0 3 0
+        3 6 0
+        """;
+
+        static double analyticalSolution(Vector2D p) => p.X * p.X;
+
+        //  * х
+        var mesh = new StringReader(TestMesh1).ReadMesh2D(
+        coordinateSystem: IdentityTransform<Vector2D>.Instance,
+        FiniteElements.Quadrangle.LagrangeQuadratic,
+        FiniteElements.Segment.LagrangeQuadratic
+);
+
+        var problem = new EllipticProblem2D(
+            Materials: [new(
+                Lambda: _ => 1.0,
+                Gamma: _ => 0.0,
+                Source: p => -2.0
+            )],
+            BoundaryConditions: [
+                new BoundaryCondition2D.Dirichlet(Value: (p, _) => analyticalSolution(p))
+            ],
+            mesh
+        );
+
+        var solver = new EllipticSolver2D(
+            DenseMatrix.Factory,
+            NumericItegrator2D.Instance,
+            new PCGSolver(m => IdentityPreconditioner.Instance)
+        );
+
+        var solution = solver.Solve(problem, new ISolver.Params(1e-12, 10000));
+
+        for (int i = 0; i < 7; ++i)
+            for (int j = 0; j < 7; ++j)
+            {
+                var point = new Vector2D(i, j);
+                Assert.Equal(analyticalSolution(point), solution.Evaluate(point), 1e-10);
+            }
+
+    }
+    [Fact]
+    public void РавномернаяСеткаСМножественнымиВнутреннимиУзломи_КвадратичнаяФункция_БиКубическийБазис()
+    {
+        string TestMesh1 =
+               """
+        25
+        0 0
+        3 0
+        6 0
+        9 0
+        12 0
+        0 3
+        3 3
+        6 3
+        9 3
+        12 3
+        0 6
+        3 6
+        6 6
+        9 6
+        12 6
+        0 9
+        3 9
+        6 9
+        9 9
+        12 9
+        0 12
+        3 12
+        6 12
+        9 12
+        12 12
+        16
+        0 1 6 5 0
+        1 2 7 6 0
+        2 3 8 7 0
+        3 4 9 8 0
+        5 6 11 10 0
+        6 7 12 11 0
+        7 8 13 12 0
+        8 9 14 13 0
+        10 11 16 15 0
+        11 12 17 16 0
+        12 13 18 17 0
+        13 14 19 18 0
+        15 16 21 20 0
+        16 17 22 21 0
+        17 18 23 22 0
+        18 19 24 23 0
+        16
+        0 1 0
+        1 2 0
+        2 3 0 
+        3 4 0
+        4 9 0
+        9 14 0
+        14 19 0
+        19 24 0
+        23 24 0
+        22 23 0
+        21 22 0
+        20 21 0
+        15 20 0
+        10 15 0
+        5 10 0
+        0 5 0
+        """;
+
+        static double analyticalSolution(Vector2D p) => p.X * p.X + p.Y * p.Y;
+
+        //  * х
+        var mesh = new StringReader(TestMesh1).ReadMesh2D(
+        coordinateSystem: IdentityTransform<Vector2D>.Instance,
+        FiniteElements.Quadrangle.LagrangeQuadratic,
+        FiniteElements.Segment.LagrangeQuadratic
+);
+
+        var problem = new EllipticProblem2D(
+                    Materials: [new(
+                Lambda: _ => 1.0,
+                Gamma: _ => 0.0,
+                Source: p => -4.0
+            )],
+                    BoundaryConditions: [
+                        new BoundaryCondition2D.Dirichlet(Value: (p, _) => analyticalSolution(p))
+                    ],
+                    mesh
+                );
+
+        var solver = new EllipticSolver2D(
+            DenseMatrix.Factory,
+            NumericItegrator2D.Instance,
+            new PCGSolver(m => IdentityPreconditioner.Instance)
+        );
+
+        var solution = solver.Solve(problem, new ISolver.Params(1e-12, 10000));
+
+        for (int i = 0; i < 13; ++i)
+            for (int j = 0; j < 13; ++j)
+            {
+                var point = new Vector2D(i, j);
+                Assert.Equal(analyticalSolution(point), solution.Evaluate(point), 1e-10);
+            }
+    }
 }
