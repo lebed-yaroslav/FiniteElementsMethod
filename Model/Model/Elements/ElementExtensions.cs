@@ -18,17 +18,26 @@ public static class FiniteElementExtensions
         /// Evaluates mesh function value at given point inside element
         /// </summary>
         /// <param name="point">Point defined in mesh-space coordinates</param>
-        /// <param name="basisCoefficients">Basis function coefficients indexed by global dof indices (q array)</param>
-        public double Evaluate(ReadOnlySpan<double> basisCoefficients, TSpace point)
+        /// <param name="coefficients">Basis function coefficients indexed by global dof indices (q array)</param>
+        public double Evaluate(ReadOnlySpan<double> coefficients, TSpace point)
         {
             Debug.Assert(self.ContainsPoint(point, epsilon: 1e-12));
             var ep = self.MasterElementCoordinateSystem.Transform(point); // element-space point
+            return self.EvaluateAtElementSpace(coefficients, ep);
+        }
 
+        /// <summary>
+        /// Evaluates mesh function value at given point inside element
+        /// </summary>
+        /// <param name="point">Point defined in element-space (master element) coordinates</param>
+        /// <param name="coefficients">Basis function coefficients indexed by global dof indices (q array)</param>
+        public double EvaluateAtElementSpace(ReadOnlySpan<double> coefficients, TBoundary point)
+        {
             double value = 0.0;
             for (int i = 0; i < self.DOF.Count; ++i)
             {
-                double q = basisCoefficients[self.DOF.Dof[i]];
-                value += q * self.Basis[i].Value(ep);
+                double q = coefficients[self.DOF.Dof[i]];
+                value += q * self.Basis[i].Value(point);
             }
 
             return value;
