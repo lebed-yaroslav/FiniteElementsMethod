@@ -1,12 +1,13 @@
+using System;
+using System.Collections.Generic;
 using System.Diagnostics;
+using System.Text;
 using Model.Model.Basis;
-using Model.Model.Mesh;
 using Telma;
 
 namespace Model.Model.Elements.Segment;
 
-
-public sealed class HierarchicalQuadraticSegmentFactory : IBoundaryElementFactory2D
+public sealed class LagrangeQuadraticSegmentFactory : IBoundaryElementFactory2D
 {
     public IBoundaryElement2D CreateBoundary(IMesh2D mesh, int[] vertices, int boundaryIndex)
         => new BoundaryElement2D(
@@ -18,13 +19,14 @@ public sealed class HierarchicalQuadraticSegmentFactory : IBoundaryElementFactor
 
     public static readonly IBasisSet1D Basis = new BasisSet1D(
         Quadratures.SegmentGaussOrder5,
-        SegmentBasis.N0,
-        SegmentBasis.N1,
-        SegmentBasis.N0N1
-   );
+        SegmentBasis.Lagrange1D.Create(2, 0),
+        SegmentBasis.Lagrange1D.Create(2, 2),
+        SegmentBasis.Lagrange1D.Create(2, 1)
+    );
 
     public sealed class Dof() : DofManager(dofCount: 3)
     {
+        //|-----|-----|
         public override int NumberOfDofOnVertex => 1;
         public override int NumberOfDofOnEdge => 1;
         public override int NumberOfDofOnElement => 0;
@@ -40,7 +42,7 @@ public sealed class HierarchicalQuadraticSegmentFactory : IBoundaryElementFactor
         {
             AssertIsValidEdgeDofNumber(n);
             Debug.Assert(localEdgeIndex == 0);
-            _dof[2] = dofIndex;
+            _dof[localEdgeIndex + 2] = dofIndex;
         }
 
         public override void SetElementDof(int n, int dofIndex) =>

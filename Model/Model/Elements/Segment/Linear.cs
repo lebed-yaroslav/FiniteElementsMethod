@@ -16,7 +16,7 @@ public sealed class LinearSegmentFactory : IBoundaryElementFactory2D
         );
 
     public static readonly IBasisSet1D Basis = new BasisSet1D(
-        Quadratures.SegmentGaussOrder1,
+        Quadratures.SegmentGaussOrder3,
         SegmentBasis.N0,
         SegmentBasis.N1
    );

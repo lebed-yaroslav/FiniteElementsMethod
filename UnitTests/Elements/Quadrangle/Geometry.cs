@@ -5,10 +5,12 @@ namespace UnitTests.Elements.Quadrangle;
 
 public class QuadrangleGeometryTests
 {
-    private static IFiniteElement2D CreateMeshWithQuadrangle(Vector2D p00, Vector2D p01, Vector2D p11, Vector2D p10)
+    private static IFiniteElement2D CreateMeshWithQuadrangle(Vector2D p00, Vector2D p10, Vector2D p11, Vector2D p01)
     {
         var mesh = new Mesh2D();
         mesh.AddVertex(p00);
+        mesh.AddVertex(p10);
+        mesh.AddVertex(p11);
         mesh.AddVertex(p01);
         mesh.AddVertex(p11);
         mesh.AddVertex(p10);

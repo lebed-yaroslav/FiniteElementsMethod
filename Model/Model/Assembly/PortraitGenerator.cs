@@ -19,7 +19,7 @@ public static class PortraitGenerator
         int maxDofIndex
     )
     {
-        int n = maxDofIndex - minDofIndex;
+        int n = maxDofIndex - minDofIndex + 1;
 
         var adjacencyList = new List<HashSet<int>>(n);
         for (int i = 0; i < n; i++)

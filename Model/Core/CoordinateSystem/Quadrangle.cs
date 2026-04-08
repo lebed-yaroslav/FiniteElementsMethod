@@ -24,7 +24,7 @@ public sealed class QuadrangleCoordinateSystem(
 {
     public static bool IsLinear => false;
     private readonly QuadrangleJacobyMatrix _j = new(p00, p10, p11, p01);
-
+    public QuadrangleJacobyMatrix J_Matrix => _j;
     public Vector2D Transform(Vector2D sourcePoint)
     {
         // Performs Newton method to solve non-linear system
@@ -37,6 +37,12 @@ public sealed class QuadrangleCoordinateSystem(
             var residual = InverseTransform(targetPoint) - sourcePoint; // r = F(η, ξ) - P
 
             if (residual.Norm < eps) return targetPoint;
+
+            var J = _j.At(targetPoint);
+            var det = J.Det(Vector2D.Zero);
+
+            if (Math.Abs(det) < 1e-12)
+                throw new Exception("Jacobian collapsed");
 
             var invJ = _j.At(targetPoint).Inverse();
             var delta = invJ * residual;  // Δ = J^(-1) * r
@@ -75,13 +81,13 @@ public sealed record QuadrangleJacobyMatrix(
 ) : IJacobyMatrix<Vector2D, Vector2D>
 {
     public static bool IsConstant => false;
-
+    public Vector2D MixedDerivative => P00 - P10 + P11 - P01;
     public double this[int i, int j] =>
         throw new NotSupportedException($"{nameof(QuadrangleInverseJacobyMatrix)} is not constant.");
 
     public double this[int i, int j, Vector2D targetPoint] => At(targetPoint)[i, j];
 
-    public double Det(Vector2D targetPoint) => At(targetPoint).Det(Vector2D.Zero);
+    public double Det(Vector2D targetPoint) => At(targetPoint).Det();
 
     public ConstantJacobyMatrix2X2 At(Vector2D sourcePoint)
     {
