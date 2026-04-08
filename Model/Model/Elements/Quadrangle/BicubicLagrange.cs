@@ -49,7 +49,7 @@ public sealed class BicubicLagrangeQuadrangleFactory : IFiniteElementFactory2D
                 0 => 1 + n,
                 1 => 7 + n * 4,
                 2 => 14 - n,
-                3 => 4 + n * 4,
+                3 => 8 - n * 4,
                 _ => throw new NotSupportedException()
             };
             _dof[basisIndex] = dofIndex;
