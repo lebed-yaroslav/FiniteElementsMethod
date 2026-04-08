@@ -1,4 +1,5 @@
 using Model.Core.CoordinateSystem;
+using Model.Core.Util;
 using Model.Model.Elements.Triangle;
 using Telma;
 
@@ -36,17 +37,26 @@ public sealed class QuadrangleGeometry : VolumeElementGeometry2D
     }
     public override int EdgeCount => 4;
 
-    public override bool ContainsPoint(Vector2D point, double epsilon = 1E-12) {
+    public override bool ContainsPoint(Vector2D point, double epsilon = 1E-12)
+    {
         var p00 = Mesh[Vertices[0]];
         var p01 = Mesh[Vertices[1]];
         var p11 = Mesh[Vertices[2]];
         var p10 = Mesh[Vertices[3]];
 
-        bool isPositiveSide = (p01 - p00).Cross(point - p00) >= 0;
-        return
-            (((p11 - p01).Cross(point - p01) >= 0) == isPositiveSide) &&
-            (((p10 - p11).Cross(point - p11) >= 0) == isPositiveSide) &&
-            (((p00 - p10).Cross(point - p10) >= 0) == isPositiveSide);
+        int refOrientation = MathUtils.ToleratedSign((p01 - p00).Cross(point - p00), epsilon);
+
+        // Checks if is orientation preserved
+        bool Check(Vector2D a, Vector2D b)
+        {
+            int orientation = MathUtils.ToleratedSign((b - a).Cross(point - a), epsilon);
+            if (orientation == 0) return true; // Near edge
+            if (refOrientation != 0) return orientation == refOrientation;
+            refOrientation = orientation;
+            return true;
+        }
+
+        return Check(p01, p11) && Check(p11, p10) && Check(p10, p00);
     }
 
     public override ICoordinateTransform<Vector2D, Vector2D> MasterElementCoordinateSystem =>

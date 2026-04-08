@@ -1,4 +1,5 @@
 using Model.Model.Elements;
+using Model.Model.Mesh;
 using Telma;
 
 namespace UnitTests.Elements.Triangle;
@@ -8,13 +9,9 @@ public class TriangleGeometryTests
     private static IFiniteElement2D CreateMeshWithTriangle(Vector2D a, Vector2D b, Vector2D c)
     {
         var mesh = new Mesh2D();
-        mesh.AddVertex(a);
-        mesh.AddVertex(b);
-        mesh.AddVertex(c);
+        mesh.AddVertices(a, b, c);
         return mesh.AddElement(FiniteElements.Triangle.Linear, [0, 1, 2], 0);
     }
-
-    // TODO: near-edge tests
 
     [Fact]
     public void ContainsPoint_IsCorrectForCw()
@@ -32,5 +29,14 @@ public class TriangleGeometryTests
         Assert.False(triangle.ContainsPoint(new(0, 0)));
         Assert.False(triangle.ContainsPoint(new(3, 2)));
         Assert.True(triangle.ContainsPoint(new(3, 2.5)));
+    }
+
+    [Fact]
+    public void ContainsPoint_IsCorrectForEdgePoints()
+    {
+        var triangle = CreateMeshWithTriangle(new(0, 0), new(2, 2), new(1, 3)).Geometry;
+        Assert.True(triangle.ContainsPoint(new(1, 1)));
+        Assert.True(triangle.ContainsPoint(new(1.5, 2.5)));
+        Assert.True(triangle.ContainsPoint(new(0.5, 1.5)));
     }
 }
