@@ -40,6 +40,7 @@ public sealed class LagrangeCubicSegmentFactory : IBoundaryElementFactory2D
         {
             AssertIsValidEdgeDofNumber(n);
             Debug.Assert(0 == localEdgeIndex);
+            if (isOrientationFlipped) n = 1 - n;
             _dof[n + 2] = dofIndex;
         }
 
