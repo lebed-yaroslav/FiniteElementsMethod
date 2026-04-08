@@ -20,6 +20,7 @@ public static class FiniteElements
         public static readonly IFiniteElementFactory2D Linear = new LinearTriangleFactory();
         public static readonly IFiniteElementFactory2D HierarchicalQuadratic = new HierarchicalQuadraticTriangleFactory();
         public static readonly IFiniteElementFactory2D HierarchicalCubic = new HierarchicalCubicTriangleFactory();
+        public static readonly IFiniteElementFactory2D LagrangeCubic = new LagrangeCubicTriangleFactory();
     }
 
     public static class Quadrangle
