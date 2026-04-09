@@ -53,11 +53,10 @@ public sealed class HermiteQuadrangleFactory : IFiniteElementFactory2D
         {
             var J = jMatrix.At(corners[k]);
 
-            // Берем элементы ПРЯМОЙ матрицы Якоби
-            double x_xi = J[0, 0]; // ∂x/∂ξ
-            double x_eta = J[0, 1]; // ∂x/∂η
-            double y_xi = J[1, 0]; // ∂y/∂ξ
-            double y_eta = J[1, 1]; // ∂y/∂η
+            double x_xi = J[0, 0];
+            double x_eta = J[0, 1];
+            double y_xi = J[1, 0];
+            double y_eta = J[1, 1];
 
             double x_xieta = d2P.X;
             double y_xieta = d2P.Y;
@@ -65,29 +64,28 @@ public sealed class HermiteQuadrangleFactory : IFiniteElementFactory2D
             int[] idx = nodeToRefIndices[k];
             int baseIdx = k * 4;
 
-            // 1. Физическая функция для u
+            // u
             var cU = new double[16];
             cU[idx[0]] = 1.0;
             physicalBasis[baseIdx + 0] = new PhysicalHermiteBasis2D(refBasis, cU);
 
-            // 2. Физическая функция для ux 
+            // ux
             var cUx = new double[16];
             cUx[idx[1]] = x_xi;
             cUx[idx[2]] = x_eta;
             cUx[idx[3]] = x_xieta;
             physicalBasis[baseIdx + 1] = new PhysicalHermiteBasis2D(refBasis, cUx);
 
-            // 3. Физическая функция для uy
+            // uy
             var cUy = new double[16];
             cUy[idx[1]] = y_xi;
             cUy[idx[2]] = y_eta;
             cUy[idx[3]] = y_xieta;
             physicalBasis[baseIdx + 2] = new PhysicalHermiteBasis2D(refBasis, cUy);
 
-            // 4. Физическая функция для uxy
+            // uxy
             var cUxy = new double[16];
-            // Предполагаем аффинное отображение, где x_xi_eta и y_xi_eta равны нулю
-            cUxy[idx[3]] = (x_xi * y_eta + x_eta * y_xi);
+            cUxy[idx[3]] = x_xi * y_eta + x_eta * y_xi;
             physicalBasis[baseIdx + 3] = new PhysicalHermiteBasis2D(refBasis, cUxy);
         }
 
