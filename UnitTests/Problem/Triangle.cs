@@ -921,6 +921,97 @@ public class EllipticProblemTriangleTests
                 Assert.Equal(u(point), solution.Evaluate(point), 1e-12);
             }
         }
+
+        private static string TwoNotMasterTrianglesFlipped => """
+        4
+        0 0 
+        2 0
+        0 1
+        2 1
+        2
+        0 2 1 0
+        1 2 3 0
+        4
+        0 1 0 
+        3 2 2 
+        2 0 0 
+        3 1 1 
+        """;
+
+        [Fact]
+        public void LagrangeCubicMeshWithAllBCWithQuadraticFuncFlipped()
+        {
+            var mesh = new StringReader(TwoNotMasterTrianglesFlipped).ReadMesh2D(
+                coordinateSystem: IdentityTransform<Vector2D>.Instance,
+                FiniteElements.Triangle.LagrangeCubic,
+                FiniteElements.Segment.LagrangeCubic
+            );
+            static double u(Vector2D p) => p.X * p.X;
+            var problem = new EllipticProblem2D(
+                Materials: [new(
+                Lambda: _ => 1.0,
+                Gamma: _ => 1.0,
+                Source: p => -2 + p.X*p.X
+            )],
+                BoundaryConditions: [
+                    new BoundaryCondition2D.Dirichlet(Value: (p,_) => u(p)),
+                new BoundaryCondition2D.Neumann(Flux: (p,_) => 2.0 * p.X),
+                new BoundaryCondition2D.Robin(Beta: (p,_) => 1.0,UBeta: (p,_) => p.X*p.X),
+                ],
+                mesh
+            );
+
+            var solver = new EllipticSolver2D(
+                DenseMatrix.Factory,
+                NumericItegrator2D.Instance,
+                new PCGSolver(m => IdentityPreconditioner.Instance)
+            );
+
+            var solution = solver.Solve(problem, new ISolver.Params(1e-13, 10000));
+            for (int i = 0; i < mesh.VertexCount; i++)
+            {
+                var point = mesh[i];
+                Console.WriteLine(point);
+                Assert.Equal(u(point), solution.Evaluate(point), 1e-12);
+            }
+        }
+        [Fact]
+        public void CSRLagrangeCubicMeshWithAllBCWithQuadraticFuncFlipped()
+        {
+            var mesh = new StringReader(TwoNotMasterTrianglesFlipped).ReadMesh2D(
+                coordinateSystem: IdentityTransform<Vector2D>.Instance,
+                FiniteElements.Triangle.LagrangeCubic,
+                FiniteElements.Segment.LagrangeCubic
+            );
+            static double u(Vector2D p) => p.X * p.X;
+            var problem = new EllipticProblem2D(
+                Materials: [new(
+                Lambda: _ => 1.0,
+                Gamma: _ => 1.0,
+                Source: p => -2 + p.X*p.X
+            )],
+                BoundaryConditions: [
+                    new BoundaryCondition2D.Dirichlet(Value: (p,_) => u(p)),
+                new BoundaryCondition2D.Neumann(Flux: (p,_) => 2.0 * p.X),
+                new BoundaryCondition2D.Robin(Beta: (p,_) => 1.0,UBeta: (p,_) => p.X*p.X),
+                ],
+                mesh
+            );
+
+            var solver = new EllipticSolver2D(
+                CsrMatrix.Factory,
+                NumericItegrator2D.Instance,
+                new PCGSolver(m => IdentityPreconditioner.Instance)
+            );
+
+            var solution = solver.Solve(problem, new ISolver.Params(1e-13, 10000));
+            for (int i = 0; i < mesh.VertexCount; i++)
+            {
+                var point = mesh[i];
+                Console.WriteLine(point);
+                Assert.Equal(u(point), solution.Evaluate(point), 1e-12);
+            }
+        }
     }    
 }
 
