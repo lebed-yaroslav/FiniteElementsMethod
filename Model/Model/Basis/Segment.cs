@@ -12,6 +12,8 @@ public static class SegmentBasis
     public static readonly IBasisFunction1D N1 = new SegmentN1();
     /// <summary>N0N1(ξ) = ξ (1 - ξ)</summary>
     public static readonly IBasisFunction1D N0N1 = new SegmentN0N1();
+    /// <summary>N0N1N0SubN1(ξ) = ξ (1 - ξ)(2ξ - 1)</summary>
+    public static readonly IBasisFunction1D N0N1N0SubN1 = new SegmentN0N1N0SubN1();
 
     private readonly struct SegmentN0 : IBasisFunction1D
     {
@@ -29,6 +31,12 @@ public static class SegmentBasis
     {
         public double Value(Vector1D point) => point * (1 - point);
         public Vector1D Derivatives(Vector1D point) => 1 - 2 * point;
+    }
+
+    private readonly struct SegmentN0N1N0SubN1 : IBasisFunction1D
+    {
+        public double Value(Vector1D point) => point * (1 - point) * (2 * point - 1);
+        public Vector1D Derivatives(Vector1D point) => -6 * point * (point - 1) - 1;
     }
 
     public readonly struct Lagrange1D(double[] nodes, int index) : IBasisFunction1D
