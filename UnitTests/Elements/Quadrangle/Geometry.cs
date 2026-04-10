@@ -13,6 +13,22 @@ public class QuadrangleGeometryTests
         return mesh.AddElement(FiniteElements.Quadrangle.Bilinear, [0, 1, 2, 3], 0);
     }
 
+    public static TheoryData<Vector2D, Vector2D, Vector2D, Vector2D> Quadrangles { get; } = new()
+    {
+        { new(0, 0), new(1, 0), new(1, 1), new(0, 1) }
+    };
+
+    [Theory]
+    [MemberData(nameof(Quadrangles))]
+    public void ContainsPoint_Vertices(Vector2D p00, Vector2D p10, Vector2D p11, Vector2D p01)
+    {
+        var quadrangle = CreateMeshWithQuadrangle(p00, p10, p11, p01);
+        Assert.All(
+            [p00, p10, p11, p01],
+            vertex => Assert.True(quadrangle.ContainsPoint(vertex))
+        );
+    }
+
     [Fact]
     public void ContainsPoint_IsCorrectForCw()
     {

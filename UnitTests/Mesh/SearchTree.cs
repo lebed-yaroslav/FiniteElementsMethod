@@ -45,7 +45,8 @@ public class SearchTreeTests
         Assert.Equal(q11, searchTree.FindElementAt(new(1.5, 1.5)));
         Assert.Equal(q01, searchTree.FindElementAt(new(0.5, 1.5)));
 
-        foreach (var vertex in vertices)
-            Assert.NotNull(searchTree.FindElementAt(vertex));
+        Assert.All(vertices, vertex =>
+            Assert.NotNull(searchTree.FindElementAt(vertex))
+        );
     }
 }
