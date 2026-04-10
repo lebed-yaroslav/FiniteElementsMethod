@@ -76,7 +76,7 @@ public class ParabolicProblemQuadrangleTests
             Mesh: mesh
         );
 
-        var solver = new HyperbolicSolver2D(
+        var solver = new ParabolicSolver2D(
             DenseMatrix.Factory,
             NumericItegrator2D.Instance,
             new PCGSolver(m => IdentityPreconditioner.Instance)
@@ -140,7 +140,7 @@ public class ParabolicProblemQuadrangleTests
             Mesh: mesh
         );
 
-        var solver = new HyperbolicSolver2D(
+        var solver = new ParabolicSolver2D(
             DenseMatrix.Factory,
             NumericItegrator2D.Instance,
             new PCGSolver(m => IdentityPreconditioner.Instance)
@@ -197,7 +197,7 @@ public class ParabolicProblemQuadrangleTests
             Mesh: mesh
         );
 
-        var solver = new HyperbolicSolver2D(
+        var solver = new ParabolicSolver2D(
             DenseMatrix.Factory,
             NumericItegrator2D.Instance,
             new PCGSolver(m => IdentityPreconditioner.Instance)
@@ -261,7 +261,7 @@ public class ParabolicProblemQuadrangleTests
             Mesh: mesh
         );
 
-        var solver = new HyperbolicSolver2D(
+        var solver = new ParabolicSolver2D(
             DenseMatrix.Factory,
             NumericItegrator2D.Instance,
             new PCGSolver(m => IdentityPreconditioner.Instance)
@@ -337,7 +337,7 @@ public class ParabolicProblemQuadrangleTests
             Mesh: mesh
         );
 
-        var solver = new HyperbolicSolver2D(
+        var solver = new ParabolicSolver2D(
             DenseMatrix.Factory,
             NumericItegrator2D.Instance,
             new PCGSolver(m => IdentityPreconditioner.Instance)
@@ -401,7 +401,7 @@ public class ParabolicProblemQuadrangleTests
             Mesh: mesh
         );
 
-        var solver = new HyperbolicSolver2D(
+        var solver = new ParabolicSolver2D(
             DenseMatrix.Factory,
             NumericItegrator2D.Instance,
             new PCGSolver(m => IdentityPreconditioner.Instance)
@@ -465,7 +465,7 @@ public class ParabolicProblemQuadrangleTests
             Mesh: mesh
         );
 
-        var solver = new HyperbolicSolver2D(
+        var solver = new ParabolicSolver2D(
             DenseMatrix.Factory,
             NumericItegrator2D.Instance,
             new PCGSolver(m => IdentityPreconditioner.Instance)
@@ -541,7 +541,7 @@ public class ParabolicProblemQuadrangleTests
             Mesh: mesh
         );
 
-        var solver = new HyperbolicSolver2D(
+        var solver = new ParabolicSolver2D(
             DenseMatrix.Factory,
             NumericItegrator2D.Instance,
             new PCGSolver(m => IdentityPreconditioner.Instance)
@@ -623,7 +623,7 @@ public class ParabolicProblemQuadrangleTests
             Mesh: mesh
         );
 
-        var solver = new HyperbolicSolver2D(
+        var solver = new ParabolicSolver2D(
             DenseMatrix.Factory,
             NumericItegrator2D.Instance,
             new PCGSolver(m => IdentityPreconditioner.Instance)
@@ -708,7 +708,7 @@ public class ParabolicProblemQuadrangleTests
             Mesh: mesh
         );
 
-        var solver = new HyperbolicSolver2D(
+        var solver = new ParabolicSolver2D(
             DenseMatrix.Factory,
             NumericItegrator2D.Instance,
             new PCGSolver(m => IdentityPreconditioner.Instance)
