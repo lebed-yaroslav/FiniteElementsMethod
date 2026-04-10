@@ -8,14 +8,15 @@ namespace Model.Model.Elements.Segment;
 public sealed class LagrangeCubicSegmentFactory : IBoundaryElementFactory2D
 {
     public IBoundaryElement2D CreateBoundary(IMesh2D mesh, int[] vertices, int boundaryIndex)
-        => new BoundaryElement2D(
+    {
+        return new BoundaryElement2D(
             Geometry: new SegmentGeometry<Vector2D>(vertices) { Mesh = mesh },
             DOF: new Dof(),
             BasisSet: Basis,
-            BoundaryIndex: boundaryIndex
-    );
+            BoundaryIndex: boundaryIndex);
+    }
 
-    public static readonly IBasisSet1D Basis = new BasisSet1D(
+    public static IBasisSet1D Basis => new BasisSet1D(
         Quadratures.SegmentGaussOrder7,
         SegmentBasis.Lagrange1D.Create(3, 0),
         SegmentBasis.Lagrange1D.Create(3, 3),
@@ -39,8 +40,9 @@ public sealed class LagrangeCubicSegmentFactory : IBoundaryElementFactory2D
         public override void SetEdgeDof(int localEdgeIndex, bool isOrientationFlipped, int n, int dofIndex)
         {
             AssertIsValidEdgeDofNumber(n);
-            Debug.Assert(0 == localEdgeIndex);
-            _dof[n + 2] = dofIndex;
+            Debug.Assert(localEdgeIndex == 0);
+            if (isOrientationFlipped) n = 1 - n;
+            _dof[2 + n] = dofIndex;
         }
 
         public override void SetElementDof(int n, int dofIndex) =>
