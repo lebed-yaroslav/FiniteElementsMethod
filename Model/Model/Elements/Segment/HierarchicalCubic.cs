@@ -19,7 +19,7 @@ public sealed class HierarchicalCubicSegmentFactory : IBoundaryElementFactory2D
     }
 
     public static IBasisSet1D DefaultBasis() => new BasisSet1D(
-        Quadratures.SegmentGaussOrder5,
+        Quadratures.SegmentGaussOrder9,
         SegmentBasis.N0,
         SegmentBasis.N1,
         SegmentBasis.N0N1,

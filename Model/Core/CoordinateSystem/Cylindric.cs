@@ -15,40 +15,46 @@ namespace Model.Core.CoordinateSystem
         public static bool IsLinear => false;
 
         public Vector2D Transform(Vector2D sourcePoint)
-            => new(sourcePoint.Norm, Math.Atan2(sourcePoint.Y, sourcePoint.X));
+            => sourcePoint;
 
-        public Vector2D InverseTransform(Vector2D targetPoint)
-        {
-            (var r, var theta) = targetPoint;
-            return new(r * Math.Cos(theta), r * Math.Sin(theta));
-        }
+        public Vector2D InverseTransform(Vector2D targetPoint) => targetPoint;
 
         public double Jacobian(Vector2D targetPoint) => targetPoint.X; // r
 
-        public IJacobyMatrix<Vector2D, Vector2D> InverseJacoby()
-            => InverseCylindricJacobyMatrix<Vector2D>.Instance;
+        public IJacobyMatrix<Vector2D, Vector2D> InverseJacoby() => InverseCylindricJacobyMatrix.Instance;
+        
     }
 
-    public sealed class InverseCylindricJacobyMatrix<TSource> : IJacobyMatrix<TSource, TSource>
-    where TSource : IVectorBase<TSource>
+    public sealed class InverseCylindricJacobyMatrix : IJacobyMatrix<Vector2D, Vector2D>
     {
-        public static InverseCylindricJacobyMatrix<TSource> Instance { get; } = new();
+        public static readonly InverseCylindricJacobyMatrix Instance = new();
         private InverseCylindricJacobyMatrix() { }
 
-        public static bool IsConstant => true;
-        public double this[int i, int j]
+        public static bool IsConstant => false;
+
+        public double this[int i, int j] =>
+            throw new NotSupportedException($"{nameof(InverseCylindricJacobyMatrix)} is not constant");
+
+        public double this[int i, int j, Vector2D sourcePoint]
         {
             get
             {
-                Debug.Assert(0 <= i && i < TSource.Dimensions);
-                Debug.Assert(0 <= j && j < TSource.Dimensions);
-                return (i == j) ? 1 : 0;
+
+                return (i, j) switch
+                {
+                    (0, 0) => 1,
+                    (0, 1) => 0,
+                    (1, 0) => 0,
+                    (1, 1) => 1,
+
+                    _ => throw new IndexOutOfRangeException()
+                };
+
             }
         }
 
-        public double this[int i, int j, TSource _] => this[i, j];
-
-        public double Det(TSource _) => 1.0;
+        public double Det(Vector2D sourcePoint)
+            => 1/sourcePoint.X; // 1 / r
     }
 }
 
