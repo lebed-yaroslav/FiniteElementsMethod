@@ -1223,7 +1223,7 @@ public class EllipticProblemTriangleTests
                 Materials: [new(
                 Lambda: _ => 1.0,
                 Gamma: _ => 1.0,
-                Source: p => -2 + p.X * p.X
+                Source: p => -4 + p.X * p.X
             )],
                 BoundaryConditions: [
                     new BoundaryCondition2D.Dirichlet(Value: (p,_) => u(p)),
