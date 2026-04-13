@@ -54,7 +54,7 @@ namespace Model.Core.CoordinateSystem
         }
 
         public double Det(Vector2D sourcePoint)
-            => 1/sourcePoint.X; // 1 / r
+            => 1/sourcePoint.X; 
     }
 }
 
