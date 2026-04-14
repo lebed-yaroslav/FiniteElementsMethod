@@ -1244,7 +1244,7 @@ public class EllipticProblemTriangleTests
             {
                 var point = mesh[i];
                 Console.WriteLine(point);
-                //Assert.Equal(u(point), solution.Evaluate(point), 1e-12);
+                Assert.Equal(u(point), solution.Evaluate(point), 1e-11);
                 Console.WriteLine($"u: {u(point)} solution: {solution.Evaluate(point)}");
             }
         }
@@ -1264,10 +1264,25 @@ public class EllipticProblemTriangleTests
         0 2 0 
         1 3 1 
         """;
+        private static string TwoNotMasterTriangles2 => """
+        4
+        1 1 
+        3 1
+        1 2
+        3 2
+        2
+        0 1 2 0
+        1 2 3 0
+        4
+        0 1 0 
+        2 3 2 
+        0 2 0 
+        1 3 1 
+        """;
         [Fact]
         public void HierarchicalCubicMeshWithAllBCWithCubicFunc()
         {
-            var mesh = new StringReader(TwoNotMasterTriangles).ReadMesh2D(
+            var mesh = new StringReader(TwoNotMasterTriangles2).ReadMesh2D(
                 coordinateSystem: CylindricCoordinateSystem.Instance,
                 FiniteElements.Triangle.HierarchicalCubic,
                 FiniteElements.Segment.HierarchicalCubic
@@ -1281,8 +1296,8 @@ public class EllipticProblemTriangleTests
             )],
                 BoundaryConditions: [
                     new BoundaryCondition2D.Dirichlet(Value: (p,_) => u(p)),
-                new BoundaryCondition2D.Neumann(Flux: (p,_) => 3*p.X*p.X),
-                new BoundaryCondition2D.Robin(Beta: (p,_) => 1.0,UBeta: (p,_) => p.X*p.X*p.X + 1),
+                new BoundaryCondition2D.Neumann(Flux: (p,_) => 27),
+                new BoundaryCondition2D.Robin(Beta: (p,_) => 1.0,UBeta: (p,_) => p.X*p.X*p.X + 4),
                 ],
                 mesh
             );
