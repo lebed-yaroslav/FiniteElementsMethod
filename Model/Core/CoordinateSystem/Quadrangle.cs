@@ -1,7 +1,6 @@
-using Model.Model.Basis;
 using Telma;
 
-using static Model.Model.Basis.QuadrangleBasis;
+using static Model.Fem.Basis.QuadrangleBasis;
 
 namespace Model.Core.CoordinateSystem;
 

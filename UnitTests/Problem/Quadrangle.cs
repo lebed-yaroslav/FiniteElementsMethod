@@ -2,8 +2,8 @@ using Model.Core.CoordinateSystem;
 using Model.Core.Matrix;
 using Model.Core.Solver;
 using Model.Core.Solver.Precondition;
-using Model.Model.Elements;
-using Model.Model.Mesh;
+using Model.Fem.Elements;
+using Model.Fem.Mesh;
 using Telma;
 
 namespace UnitTests.Problem;

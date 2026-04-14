@@ -1,7 +1,7 @@
-using Model.Model.Elements;
-using Model.Model.Mesh;
+using Model.Fem.Elements;
+using Model.Fem.Mesh;
 using Telma;
-using SearchTree2D = Model.Model.Mesh.SearchTree<Telma.Vector2D>;
+using SearchTree2D = Model.Fem.Mesh.SearchTree<Telma.Vector2D>;
 
 namespace UnitTests.Mesh;
 
