@@ -37,12 +37,21 @@ public sealed class SlidingWindow<T> : IEnumerable<T>
     /// If the window is full, the oldest element is overwritten.
     /// </summary>
     /// <param name="value">The element to add.</param>
-    public void Push(T value)
+    /// <returns>
+    /// Oldest element in the window if <see cref="Count"/>=<see cref="Capacity"> otherwise no-value
+    /// </returns>
+    public T? Push(T value)
     {
+        var oldest = _items[_next];
         _items[_next] = value;
         _next = (_next + 1) % Capacity;
 
-        if (Count < Capacity) ++Count;
+        if (Count < Capacity)
+        {
+            ++Count;
+            return default;
+        }
+        return oldest;
     }
 
     /// <summary>
