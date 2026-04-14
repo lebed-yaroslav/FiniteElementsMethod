@@ -19,15 +19,15 @@ public sealed class HierarchicalCubicTriangleFactory : IFiniteElementFactory2D
     }
 
     public static IBasisSet2D DefaultBasis() => new BasisSet2D(
-        Quadratures.TriangleOrder6,
+        Quadratures.TriangleOrder18,
         TriangleBasis.L3,
         TriangleBasis.L1,
         TriangleBasis.L2,
         TriangleBasis.L3L1,
         TriangleBasis.L1L2,
         TriangleBasis.L2L3,
-        new OrientedBasisFunction2D(TriangleBasis.L1L3L1SubL3),
-        new OrientedBasisFunction2D(TriangleBasis.L1L2L2SubL1),
+        new OrientedBasisFunction2D(TriangleBasis.L3L1L3SubL1),
+        new OrientedBasisFunction2D(TriangleBasis.L1L2L1SubL2),
         new OrientedBasisFunction2D(TriangleBasis.L2L3L2SubL3),
         TriangleBasis.L1L2L3
     );
