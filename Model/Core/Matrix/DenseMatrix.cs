@@ -22,7 +22,15 @@ public sealed class DenseMatrix : IGlobalMatrix
         _data = data;
     }
 
-    public bool HasSamePortrait(IGlobalMatrix other) => other is DenseMatrix;
+    public bool HasSamePortrait(IGlobalMatrix other) =>
+        other is DenseMatrix dense && Size == dense.Size;
+
+    public void CopyTo(IGlobalMatrix other)
+    {
+        Debug.Assert(HasSamePortrait(other));
+        var dense = (DenseMatrix)other;
+        Array.Copy(_data, dense._data, _data.Length);
+    }
 
     public object Clone() => new DenseMatrix((double[,])_data.Clone());
 

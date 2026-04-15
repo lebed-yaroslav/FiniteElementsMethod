@@ -19,7 +19,16 @@ public interface IGlobalMatrix : IMatrix, ICloneable
 {
     static abstract IMatrixFactory Factory { get; }
 
+    /// <summary>
+    /// Checks if matrix portraits are same.
+    /// Perform component-wise array check if portraits are not reference equals.
+    /// </summary>
     bool HasSamePortrait(IGlobalMatrix other);
+
+    /// <summary>
+    /// Copies matrix contents into other matrix with same portrait <see cref="HasSamePortrait(IGlobalMatrix)"/>
+    /// </summary>
+    void CopyTo(IGlobalMatrix other);
 
     /// <summary>
     /// Assembles local matrix into global using index mapping.

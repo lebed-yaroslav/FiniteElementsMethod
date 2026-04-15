@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using Quasar.Native;
 
 namespace Model.Core.Matrix;
@@ -29,15 +30,21 @@ public sealed class PardisoMatrix(PardisoMatrix.Portrait portrait) : IPardisoMat
 
     public bool HasSamePortrait(IGlobalMatrix other)
     {
-        if (other is not PardisoMatrix pardisoOther)
+        if (other is not PardisoMatrix pardiso)
             return false;
-        return ReferenceEquals(_portrait, pardisoOther._portrait) ||
-            (_portrait.Ia.SequenceEqual(pardisoOther._portrait.Ia) &&
-            _portrait.Ja.SequenceEqual(pardisoOther._portrait.Ja));
+        return ReferenceEquals(_portrait, pardiso._portrait) ||
+            (_portrait.Ia.SequenceEqual(pardiso._portrait.Ia) &&
+            _portrait.Ja.SequenceEqual(pardiso._portrait.Ja));
+    }
+
+    public void CopyTo(IGlobalMatrix other)
+    {
+        Debug.Assert(HasSamePortrait(other));
+        var pardiso = (PardisoMatrix)other;
+        _a.CopyTo(pardiso._a);
     }
 
     public object Clone() => new PardisoMatrix(this);
-
 
     // TODO: Implement IGlobalMatrix
     public void AddLocalMatrix(LocalMatrix matrix, ReadOnlySpan<int> indices) => throw new NotImplementedException();

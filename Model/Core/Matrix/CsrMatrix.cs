@@ -32,11 +32,19 @@ public class CsrMatrix(CsrMatrix.Portrait portrait) : IGlobalMatrix
 
     public bool HasSamePortrait(IGlobalMatrix other)
     {
-        if (other is not CsrMatrix csrOther)
+        if (other is not CsrMatrix csr)
             return false;
-        return ReferenceEquals(_portrait, csrOther._portrait) ||
-            (_portrait.Ig.SequenceEqual(csrOther._portrait.Ig) &&
-            _portrait.Jg.SequenceEqual(csrOther._portrait.Jg));
+        return ReferenceEquals(_portrait, csr._portrait) ||
+            (_portrait.Ig.SequenceEqual(csr._portrait.Ig) &&
+            _portrait.Jg.SequenceEqual(csr._portrait.Jg));
+    }
+
+    public void CopyTo(IGlobalMatrix other)
+    {
+        Debug.Assert(HasSamePortrait(other));
+        var csr = (CsrMatrix)other;
+        _di.CopyTo(csr._di);
+        _ggl.CopyTo(csr._ggl);
     }
 
     public object Clone() => new CsrMatrix(this);
