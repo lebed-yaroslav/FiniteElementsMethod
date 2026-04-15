@@ -39,6 +39,14 @@ public interface IGlobalMatrix : IMatrix, ICloneable
     void AddLocalMatrix(LocalMatrix matrix, ReadOnlySpan<int> indices);
 
     /// <summary>
+    /// Adds scaled by <paramref name="alpha"/> matrix <paramref name="lhs"/>.
+    /// <paramref name="lhs"/> must have same portrait <see cref="HasSamePortrait(IGlobalMatrix)"/>
+    /// </summary>
+    /// <param name="alpha"></param>
+    /// <param name="lhs"></param>
+    void AddScaled(double alpha, IGlobalMatrix matrix);
+
+    /// <summary>
     /// Matrix-vector multiplication: res = this * vec
     /// </summary>
     void MulVec(ReadOnlySpan<double> vec, Span<double> res);

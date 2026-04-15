@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using Model.Core.Vector;
 
 namespace Model.Core.Matrix;
 
@@ -74,6 +75,14 @@ public class CsrMatrix(CsrMatrix.Portrait portrait) : IGlobalMatrix
                 _ggl[k] += matrix[i, j];
             }
         }
+    }
+
+    public void AddScaled(double alpha, IGlobalMatrix matrix)
+    {
+        Debug.Assert(HasSamePortrait(matrix));
+        var csr = (CsrMatrix)matrix;
+        _di.AddScaled(alpha, csr._di);
+        _ggl.AddScaled(alpha, csr._ggl);
     }
 
     public void MulVec(ReadOnlySpan<double> vec, Span<double> res)

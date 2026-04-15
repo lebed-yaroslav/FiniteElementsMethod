@@ -1,5 +1,6 @@
 using System.Diagnostics;
 using Model.Core.Util;
+using Model.Core.Vector;
 
 namespace Model.Core.Matrix;
 
@@ -50,6 +51,13 @@ public sealed class DenseMatrix : IGlobalMatrix
                 _data[gi, gj] += matrix[i, j];
             }
         }
+    }
+
+    public void AddScaled(double alpha, IGlobalMatrix matrix)
+    {
+        Debug.Assert(HasSamePortrait(matrix));
+        var dense = (DenseMatrix)matrix;
+        _data.AsFlatSpan<double>().AddScaled(alpha, dense._data.AsFlatSpan<double>());
     }
 
     public void MulVec(ReadOnlySpan<double> vector, Span<double> result)
