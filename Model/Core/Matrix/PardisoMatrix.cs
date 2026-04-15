@@ -27,6 +27,15 @@ public sealed class PardisoMatrix(PardisoMatrix.Portrait portrait) : IPardisoMat
     public PardisoMatrix(PardisoMatrix other) : this(other._portrait)
         => _a = [.. other._a];
 
+    public bool HasSamePortrait(IGlobalMatrix other)
+    {
+        if (other is not PardisoMatrix pardisoOther)
+            return false;
+        return ReferenceEquals(_portrait, pardisoOther._portrait) ||
+            (_portrait.Ia.SequenceEqual(pardisoOther._portrait.Ia) &&
+            _portrait.Ja.SequenceEqual(pardisoOther._portrait.Ja));
+    }
+
     public object Clone() => new PardisoMatrix(this);
 
 

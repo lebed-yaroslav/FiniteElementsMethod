@@ -22,6 +22,8 @@ public sealed class DenseMatrix : IGlobalMatrix
         _data = data;
     }
 
+    public bool HasSamePortrait(IGlobalMatrix other) => other is DenseMatrix;
+
     public object Clone() => new DenseMatrix((double[,])_data.Clone());
 
     public void AddLocalMatrix(LocalMatrix matrix, ReadOnlySpan<int> indices)

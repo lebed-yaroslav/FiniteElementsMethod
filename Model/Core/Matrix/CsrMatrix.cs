@@ -30,6 +30,15 @@ public class CsrMatrix(CsrMatrix.Portrait portrait) : IGlobalMatrix
         _ggl = [.. other._ggl];
     }
 
+    public bool HasSamePortrait(IGlobalMatrix other)
+    {
+        if (other is not CsrMatrix csrOther)
+            return false;
+        return ReferenceEquals(_portrait, csrOther._portrait) ||
+            (_portrait.Ig.SequenceEqual(csrOther._portrait.Ig) &&
+            _portrait.Jg.SequenceEqual(csrOther._portrait.Jg));
+    }
+
     public object Clone() => new CsrMatrix(this);
 
     public void AddLocalMatrix(LocalMatrix matrix, ReadOnlySpan<int> indices)

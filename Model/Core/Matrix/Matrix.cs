@@ -19,6 +19,8 @@ public interface IGlobalMatrix : IMatrix, ICloneable
 {
     static abstract IMatrixFactory Factory { get; }
 
+    bool HasSamePortrait(IGlobalMatrix other);
+
     /// <summary>
     /// Assembles local matrix into global using index mapping.
     /// Skips entries where indices[i] < 0 (e.g., constrained DOFs).
