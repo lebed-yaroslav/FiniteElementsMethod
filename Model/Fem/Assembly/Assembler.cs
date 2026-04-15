@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using Model.Core.CoordinateSystem;
 using Model.Core.Matrix;
 using Model.Core.Solver;
@@ -40,45 +41,17 @@ public sealed record Assembler<TSpace, TBoundary, TOps>(
     where TBoundary : IVectorBase<TBoundary>
     where TOps : IMatrixOperations<TSpace, TSpace, TOps>
 {
-    private readonly double[] _rhsVector = new double[DofManager.FreeDofCount];
     private readonly double[] _fixedSolution = new double[DofManager.FixedDofCount];
 
-    /// <summary>
-    /// Gets the global stiffness/mass matrix for free degrees of freedom (A_ff).
-    /// This matrix is assembled incrementally by calling <see cref="CalculateStiffness"/>,
-    /// <see cref="CalculateMass"/>, and <see cref="CalculateRobinMassContribution"/>
-    /// </summary>
-    public IGlobalMatrix Matrix { get; } = MatrixFactory.Create(PortraitGenerator.CreateAdjacencyList(
+    private readonly List<HashSet<int>> _adjacencyList = PortraitGenerator.CreateAdjacencyList(
         Mesh.AllElementsDof, minDofIndex: 0, maxDofIndex: DofManager.FreeDofCount - 1
-    ));
+    );
 
-    /// <summary>
-    /// Gets the right-hand side vector for free degrees of freedom (f_f).
-    /// This includes contributions from:
-    /// <list type="bullet">
-    /// <item>Domain loads (source terms)</item>
-    /// <item>Neumann boundary fluxes</item>
-    /// <item>Robin boundary contributions (β·u_β)</item>
-    /// <item>Fixed DOF contributions (-A_fd·u_d)</item>
-    /// </list>
-    /// </summary>
-    public ReadOnlySpan<double> RhsVector => _rhsVector;
-
-    /// <summary>
-    /// Gets the solution values for fixed (Dirichlet) degrees of freedom (u_d).
-    /// These are computed by <see cref="CalculateFixedElements"/> and used to
-    /// compute the -A_fd·u_d contribution to the free RHS
-    /// </summary>
     public ReadOnlySpan<double> FixedSolution => _fixedSolution;
 
-    /// <summary>Resets all fixed DOF solution values to zero</summary>
-    public void ResetFixedElements() => Array.Fill(_fixedSolution, 0);
+    public IGlobalMatrix CreateGlobalMatrix() => MatrixFactory.Create(_adjacencyList);
+    public double[] CreateRhsVector() => new double[DofManager.FreeDofCount];
 
-    /// <summary>Resets the global system matrix to zero</summary>
-    public void ResetSystemMatrix() => Matrix.Fill(0);
-
-    /// <summary>Resets the right-hand side vector to zero</summary>
-    public void ResetLoadVector() => Array.Fill(_rhsVector, 0);
 
     /// <summary>
     /// Solves for the fixed (Dirichlet) degrees of freedom by assembling and solving a separate system.
@@ -103,6 +76,8 @@ public sealed record Assembler<TSpace, TBoundary, TOps>(
         double time, ISolver solver, 
         ISolver.Params paramz = default)
     {
+        Array.Fill(_fixedSolution, 0);
+
         var adjacencyList = PortraitGenerator.CreateAdjacencyList(
             Mesh.AllElementsDof,
             minDofIndex: DofManager.FreeDofCount,
@@ -139,13 +114,17 @@ public sealed record Assembler<TSpace, TBoundary, TOps>(
     /// <item>Used to compute -A_fd·u_d contributions to <see cref="RhsVector"/> from fixed DOFs</item>
     /// </list>
     /// </remarks>
-    public void CalculateStiffness(Func<int, Func<TSpace, double>> lambdaByMaterialIndex)
+    public void CalculateStiffness(
+        Func<int, Func<TSpace, double>> lambdaByMaterialIndex,
+        IGlobalMatrix outStiffness,
+        Span<double> outLoad = default
+    )
     {
         foreach (var element in Mesh.FiniteElements)
         {
             var lambda = lambdaByMaterialIndex(element.MaterialIndex);
-            var stiffness = Integrator.CalculateLocalStiffness(element, lambda);
-            AddLocalMatrixWithFixedLoadContribution(stiffness, element.DOF);
+            var local = Integrator.CalculateLocalStiffness(element, lambda);
+            AddLocalMatrixWithFixedLoadContribution(local, element.DOF, outStiffness, outLoad);
         }
     }
 
@@ -163,13 +142,17 @@ public sealed record Assembler<TSpace, TBoundary, TOps>(
     /// <item>Used to compute -A_fd·u_d contributions to <see cref="RhsVector"/> from fixed DOFs</item>
     /// </list>
     /// </remarks>
-    public void CalculateMass(Func<int, Func<TSpace, double>> gammaByMaterialIndex)
+    public void CalculateMass(
+        Func<int, Func<TSpace, double>> gammaByMaterialIndex,
+        IGlobalMatrix outMass,
+        Span<double> outLoad = default
+    )
     {
         foreach (var element in Mesh.FiniteElements)
         {
             var gamma = gammaByMaterialIndex(element.MaterialIndex);
-            var mass = Integrator.CalculateLocalMass(element, gamma);
-            AddLocalMatrixWithFixedLoadContribution(mass, element.DOF);
+            var local = Integrator.CalculateLocalMass(element, gamma);
+            AddLocalMatrixWithFixedLoadContribution(local, element.DOF, outMass, outLoad);
         }
     }
 
@@ -181,14 +164,17 @@ public sealed record Assembler<TSpace, TBoundary, TOps>(
     /// Function is defined in mesh-space coordinates.
     /// </param>
     /// <remarks>Local load vectors adds up to <see cref="RhsVector"/></remarks>
-    public void CalculateLoad(Func<int, Func<TSpace, double>> sourceByMaterialIndex)
+    public void CalculateLoad(
+        Func<int, Func<TSpace, double>> sourceByMaterialIndex,
+        Span<double> outLoad
+    )
     {
         foreach (var element in Mesh.FiniteElements)
         {
             var source = sourceByMaterialIndex(element.MaterialIndex);
             var load = new double[element.DOF.Count];
             Integrator.CalculateLocalLoad(element, source, load);
-            AddLocalLoad(load, element.DOF);
+            AddLocalLoad(load, element.DOF, outLoad);
         }
     }
 
@@ -207,7 +193,11 @@ public sealed record Assembler<TSpace, TBoundary, TOps>(
     /// <item>Robin: f_i = ∫_S3 β·u_β φ_i dS</item>
     /// </list>
     /// </remarks>
-    public void CalculateBoundaryLoadContribution(BoundaryCondition<TSpace>[] boundaryConditions, double time)
+    public void CalculateBoundaryLoadContribution(
+        BoundaryCondition<TSpace>[] boundaryConditions,
+        double time,
+        Span<double> outLoad
+    )
     {
         foreach (var element in Mesh.BoundaryElements)
         {
@@ -216,12 +206,12 @@ public sealed record Assembler<TSpace, TBoundary, TOps>(
                 case BoundaryCondition<TSpace>.Neumann(var flux):
                     var load2 = new double[element.DOF.Count];
                     Integrator.CalculateLocalLoad(element, p => flux(p, time), load2);
-                    AddLocalLoad(load2, element.DOF);
+                    AddLocalLoad(load2, element.DOF, outLoad);
                     break;
                 case BoundaryCondition<TSpace>.Robin(var beta, var uBeta):
                     var load3 = new double[element.DOF.Count];
                     Integrator.CalculateLocalLoad(element, p => beta(p, time) * uBeta(p, time), load3);
-                    AddLocalLoad(load3, element.DOF);
+                    AddLocalLoad(load3, element.DOF, outLoad);
                     break;
             }
         }
@@ -242,14 +232,19 @@ public sealed record Assembler<TSpace, TBoundary, TOps>(
     /// <item>Used to compute -A_fd·u_d contributions to <see cref="RhsVector"/> from fixed DOFs</item>
     /// </list>
     /// </remarks>
-    public void CalculateRobinMassContribution(BoundaryCondition<TSpace>[] boundaryConditions, double time)
+    public void CalculateRobinMassContribution(
+        BoundaryCondition<TSpace>[] boundaryConditions,
+        double time,
+        IGlobalMatrix outMass3,
+        Span<double> outLoad = default
+    )
     {
         foreach (var element in Mesh.BoundaryElements)
         {
             if (boundaryConditions[element.BoundaryIndex] is not BoundaryCondition<TSpace>.Robin(var beta, var _))
                 continue;
-            var mass = Integrator.CalculateLocalMass(element, p => beta(p, time));
-            AddLocalMatrixWithFixedLoadContribution(mass, element.DOF);
+            var local = Integrator.CalculateLocalMass(element, p => beta(p, time));
+            AddLocalMatrixWithFixedLoadContribution(local, element.DOF, outMass3, outLoad);
         }
     }
 
@@ -278,13 +273,29 @@ public sealed record Assembler<TSpace, TBoundary, TOps>(
         }
     }
 
-    private void AddLocalMatrixWithFixedLoadContribution(LocalMatrix matrix, IDofManager elementDof)
+    private void AddLocalMatrixWithFixedLoadContribution(
+        LocalMatrix local,
+        IDofManager elementDof,
+        IGlobalMatrix outMatrix,
+        Span<double> outLoad = default
+    )
     {
-        var indices = new int[elementDof.Count];
-        DofManager.CreateFreeLocalToGlobalIndexMapping(elementDof, indices);
-        Matrix.AddLocalMatrix(matrix, indices);
+        var indices = DofManager.CreateFreeLocalToGlobalIndexMapping(elementDof);
+        outMatrix.AddLocalMatrix(local, indices);
 
-        // Add contribution of fixed elements to load vector
+        if (!outLoad.IsEmpty)
+            AddFixedLoadContribution(local, elementDof, indices, FixedSolution, outLoad); ;
+    }
+
+    private void AddFixedLoadContribution(
+        LocalMatrix local,
+        IDofManager elementDof,
+        ReadOnlySpan<int> indices,
+        ReadOnlySpan<double> fixedSolution,
+        Span<double> outLoad
+    )
+    {
+        Debug.Assert(outLoad.Length == DofManager.FreeDofCount);
         for (int i = 0; i < elementDof.Count; ++i)
         {
             var globalDofI = elementDof.Dof[i];
@@ -293,18 +304,24 @@ public sealed record Assembler<TSpace, TBoundary, TOps>(
             {
                 var fixedDofJ = elementDof.Dof[j] - DofManager.FreeDofCount;
                 if (fixedDofJ < 0) continue; // Skip free dof column
-                _rhsVector[globalDofI] -= matrix[i, j] * _fixedSolution[fixedDofJ];
+                outLoad[globalDofI] -= local[i, j] * _fixedSolution[fixedDofJ];
             }
         }
     }
 
-    private void AddLocalLoad(ReadOnlySpan<double> load, IDofManager elementDof)
+    private void AddLocalLoad(
+        ReadOnlySpan<double> local,
+        IDofManager elementDof,
+        Span<double> outLoad
+    )
     {
+        Debug.Assert(outLoad.Length == DofManager.FreeDofCount);
+
         for (int i = 0; i < elementDof.Count; ++i)
         {
             int dof = elementDof.Dof[i];
             if (dof < DofManager.FreeDofCount) // Ignore fixed dof
-                _rhsVector[dof] += load[i];
+                outLoad[dof] += local[i];
         }
     }
 }

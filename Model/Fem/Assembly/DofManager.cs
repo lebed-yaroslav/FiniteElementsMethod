@@ -31,6 +31,18 @@ public sealed class DofManager
     /// <see cref="Core.Matrix.IGlobalMatrix.AddLocalMatrix(Core.Matrix.LocalMatrix, ReadOnlySpan{int})"/>
     /// </summary>
     /// <param name="elementDof">Element which indices is mapped</param>
+    public int[] CreateFreeLocalToGlobalIndexMapping(IDofManager elementDof)
+    {
+        var indices = new int[elementDof.Count];
+        CreateFreeLocalToGlobalIndexMapping(elementDof, indices);
+        return indices;
+    }
+
+    /// <summary>
+    /// Create index mapping for free dof system, to use in
+    /// <see cref="Core.Matrix.IGlobalMatrix.AddLocalMatrix(Core.Matrix.LocalMatrix, ReadOnlySpan{int})"/>
+    /// </summary>
+    /// <param name="elementDof">Element which indices is mapped</param>
     /// <param name="outIndices">Output parameter</param>
     public void CreateFreeLocalToGlobalIndexMapping(IDofManager elementDof, Span<int> outIndices)
     {
