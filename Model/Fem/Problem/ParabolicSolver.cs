@@ -52,12 +52,13 @@ public sealed class ParabolicSolver<TSpace, TBoundary, TOps>(
 
         void ApplyLocalStiffness(LocalMatrix local, ReadOnlySpan<int> indices, double dt)
         {
-            // 1. History contributions: b += Sum(i, (γi)G * u_{n-i})
+            // 1. History contributions: b += Sum(i, (γi)G  u_{n-i})
             var k = solutions.Count - 2;
             for (int i = 0; i <= k; ++i)
             {
-                local.AddMatVec(dofManager.AsFreeSpan(solutions[k - i]), indices, rhsVector, scale: gamma[i]);
-                assembler.AddFixedLoadContribution(local, indices, dofManager.AsFixedSpan(solutions[k - i]), rhsVector, scale: -gamma[i]);
+                var oldSolution = solutions[k - i];
+                local.AddMatVec(dofManager.AsFreeSpan(oldSolution), indices, rhsVector, scale: gamma[i]);
+                assembler.AddFixedLoadContribution(local, indices, dofManager.AsFixedSpan(oldSolution), rhsVector, scale: -gamma[i]);
             }
 
             // 2. Global matrix: A += αG_ff, b -= αG_fd * u_d
@@ -72,14 +73,15 @@ public sealed class ParabolicSolver<TSpace, TBoundary, TOps>(
             var k = solutions.Count - 2;
             for (int i = 0; i <= k; ++i)
             {
-                local.AddMatVec(dofManager.AsFreeSpan(solutions[k - i]), indices, rhsVector, scale: delta[i]);
-                assembler.AddFixedLoadContribution(local, indices, dofManager.AsFixedSpan(solutions[k - i]), rhsVector, scale: -delta[i]);
+                var oldSolution = solutions[k - i];
+                local.AddMatVec(dofManager.AsFreeSpan(oldSolution), indices, rhsVector, scale: delta[i]);
+                assembler.AddFixedLoadContribution(local, indices, dofManager.AsFixedSpan(oldSolution), rhsVector, scale: -delta[i]);
             }
 
             // 2. Global matrix: A += βM_ff, b += -βM_fd * u_d
             local *= beta;
             globalMatrix.AddLocalMatrix(local, indices);
-            assembler.AddFixedLoadContribution(local, indices, dofManager.AsFixedSpan(solutions.Last), rhsVector, scale: beta);
+            assembler.AddFixedLoadContribution(local, indices, dofManager.AsFixedSpan(solutions.Last), rhsVector);
         }
 
         // globalMatrix += MS3_ff, And rhsVector += -MS3_fd * u_d
