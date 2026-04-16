@@ -29,33 +29,10 @@ public sealed class PardisoMatrix(PardisoMatrix.Portrait portrait) : IPardisoMat
     public PardisoMatrix(PardisoMatrix other) : this(other._portrait)
         => _a = [.. other._a];
 
-    public bool HasSamePortrait(IGlobalMatrix other)
-    {
-        if (other is not PardisoMatrix pardiso)
-            return false;
-        return ReferenceEquals(_portrait, pardiso._portrait) ||
-            (_portrait.Ia.SequenceEqual(pardiso._portrait.Ia) &&
-            _portrait.Ja.SequenceEqual(pardiso._portrait.Ja));
-    }
-
-    public void CopyTo(IGlobalMatrix other)
-    {
-        Debug.Assert(HasSamePortrait(other));
-        var pardiso = (PardisoMatrix)other;
-        _a.CopyTo(pardiso._a);
-    }
-
     public object Clone() => new PardisoMatrix(this);
 
     // TODO: Implement IGlobalMatrix
     public void AddLocalMatrix(LocalMatrix matrix, ReadOnlySpan<int> indices) => throw new NotImplementedException();
-
-    public void AddScaled(double alpha, IGlobalMatrix matrix)
-    {
-        Debug.Assert(HasSamePortrait(matrix));
-        var pardiso = (PardisoMatrix)matrix;
-        _a.AddScaled(alpha, pardiso._a);
-    }
 
     public void MulVec(ReadOnlySpan<double> vec, Span<double> res) => throw new NotImplementedException();
     public void Fill(double value) => Array.Fill(_a, value);

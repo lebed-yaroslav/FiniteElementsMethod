@@ -44,16 +44,5 @@ public static class SpanAsVectorExtensions
             for (int i = 0; i < self.Length; ++i)
                 self[i] *= alpha;
         }
-
-        public void AddScaled(double alpha, ReadOnlySpan<double> vec)
-            => self.AddScaled(alpha, vec, self);
-
-        public void AssignScaled(double alpha, ReadOnlySpan<double> vec)
-        {
-            Debug.Assert(self.Length == vec.Length);
-
-            for (int i = 0; i < self.Length; ++i)
-                self[i] = alpha * vec[i];
-        }
     }
 }

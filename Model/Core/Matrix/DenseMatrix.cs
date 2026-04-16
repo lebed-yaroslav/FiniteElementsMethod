@@ -23,16 +23,6 @@ public sealed class DenseMatrix : IGlobalMatrix
         _data = data;
     }
 
-    public bool HasSamePortrait(IGlobalMatrix other) =>
-        other is DenseMatrix dense && Size == dense.Size;
-
-    public void CopyTo(IGlobalMatrix other)
-    {
-        Debug.Assert(HasSamePortrait(other));
-        var dense = (DenseMatrix)other;
-        Array.Copy(_data, dense._data, _data.Length);
-    }
-
     public object Clone() => new DenseMatrix((double[,])_data.Clone());
 
     public void AddLocalMatrix(LocalMatrix matrix, ReadOnlySpan<int> indices)
@@ -51,13 +41,6 @@ public sealed class DenseMatrix : IGlobalMatrix
                 _data[gi, gj] += matrix[i, j];
             }
         }
-    }
-
-    public void AddScaled(double alpha, IGlobalMatrix matrix)
-    {
-        Debug.Assert(HasSamePortrait(matrix));
-        var dense = (DenseMatrix)matrix;
-        _data.AsFlatSpan<double>().AddScaled(alpha, dense._data.AsFlatSpan<double>());
     }
 
     public void MulVec(ReadOnlySpan<double> vector, Span<double> result)

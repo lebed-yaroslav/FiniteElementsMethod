@@ -1,5 +1,4 @@
 using System.Diagnostics;
-using Model.Core.Vector;
 
 namespace Model.Core.Matrix;
 
@@ -31,23 +30,6 @@ public class CsrMatrix(CsrMatrix.Portrait portrait) : IGlobalMatrix
         _ggl = [.. other._ggl];
     }
 
-    public bool HasSamePortrait(IGlobalMatrix other)
-    {
-        if (other is not CsrMatrix csr)
-            return false;
-        return ReferenceEquals(_portrait, csr._portrait) ||
-            (_portrait.Ig.SequenceEqual(csr._portrait.Ig) &&
-            _portrait.Jg.SequenceEqual(csr._portrait.Jg));
-    }
-
-    public void CopyTo(IGlobalMatrix other)
-    {
-        Debug.Assert(HasSamePortrait(other));
-        var csr = (CsrMatrix)other;
-        _di.CopyTo(csr._di);
-        _ggl.CopyTo(csr._ggl);
-    }
-
     public object Clone() => new CsrMatrix(this);
 
     public void AddLocalMatrix(LocalMatrix matrix, ReadOnlySpan<int> indices)
@@ -75,14 +57,6 @@ public class CsrMatrix(CsrMatrix.Portrait portrait) : IGlobalMatrix
                 _ggl[k] += matrix[i, j];
             }
         }
-    }
-
-    public void AddScaled(double alpha, IGlobalMatrix matrix)
-    {
-        Debug.Assert(HasSamePortrait(matrix));
-        var csr = (CsrMatrix)matrix;
-        _di.AddScaled(alpha, csr._di);
-        _ggl.AddScaled(alpha, csr._ggl);
     }
 
     public void MulVec(ReadOnlySpan<double> vec, Span<double> res)

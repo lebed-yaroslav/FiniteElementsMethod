@@ -48,31 +48,12 @@ public interface IGlobalMatrix : IMatrix, ICloneable
     static abstract IMatrixFactory Factory { get; }
 
     /// <summary>
-    /// Checks if matrix portraits are same.
-    /// Perform component-wise array check if portraits are not reference equals.
-    /// </summary>
-    bool HasSamePortrait(IGlobalMatrix other);
-
-    /// <summary>
-    /// Copies matrix contents into other matrix with same portrait <see cref="HasSamePortrait(IGlobalMatrix)"/>
-    /// </summary>
-    void CopyTo(IGlobalMatrix other);
-
-    /// <summary>
     /// Assembles local matrix into global using index mapping.
     /// Skips entries where indices[i] < 0 (e.g., constrained DOFs).
     /// </summary>
     /// <param name="matrix">Local element matrix</param>
     /// <param name="indices">Global DOF indices; negative = skip</param>
     void AddLocalMatrix(LocalMatrix matrix, ReadOnlySpan<int> indices);
-
-    /// <summary>
-    /// Adds scaled by <paramref name="alpha"/> matrix <paramref name="lhs"/>.
-    /// <paramref name="lhs"/> must have same portrait <see cref="HasSamePortrait(IGlobalMatrix)"/>
-    /// </summary>
-    /// <param name="alpha"></param>
-    /// <param name="lhs"></param>
-    void AddScaled(double alpha, IGlobalMatrix matrix);
 
     /// <summary>
     /// Matrix-vector multiplication: res = this * vec
