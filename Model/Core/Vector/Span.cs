@@ -1,5 +1,6 @@
 using System.Diagnostics;
 using System.Security.Cryptography;
+using System.Xml.Serialization;
 
 namespace Model.Core.Vector;
 
@@ -39,6 +40,11 @@ public static class SpanAsVectorExtensions
 
     extension (Span<double> self)
     {
+        public void Scale(double alpha) {
+            for (int i = 0; i < self.Length; ++i)
+                self[i] *= alpha;
+        }
+
         public void AddScaled(double alpha, ReadOnlySpan<double> vec)
             => self.AddScaled(alpha, vec, self);
 

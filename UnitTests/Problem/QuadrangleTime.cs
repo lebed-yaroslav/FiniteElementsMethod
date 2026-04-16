@@ -14,6 +14,9 @@ namespace UnitTests.Problem;
 public class ParabolicProblemQuadrangleTests
 {
     private const double Dt = 0.25;
+
+    private static double[] TimePoints { get; } = [0.0, 0.25, 0.50, 0.75, 1.0];
+
     private const double TStart = 0.0;
     private const double TEnd = 1.0;
     private const double Eps = 1e-10;
@@ -21,7 +24,7 @@ public class ParabolicProblemQuadrangleTests
     private static double A(double t) => t;
     private static double dA(double t) => 1.0;
 
-    private static void AssertScaled(double[] solution, double[] spatialValues)
+    private static void AssertScaled(ReadOnlySpan<double> solution, ReadOnlySpan<double> spatialValues)
     {
         var scale = A(TEnd);
 
@@ -77,6 +80,7 @@ public class ParabolicProblemQuadrangleTests
         );
 
         var solver = new ParabolicSolver2D(
+            isImplicit ? TimeSchemes.BackwardEuler : TimeSchemes.ForwardEuler,
             DenseMatrix.Factory,
             NumericItegrator2D.Instance,
             new PCGSolver(m => IdentityPreconditioner.Instance)
@@ -84,14 +88,11 @@ public class ParabolicProblemQuadrangleTests
 
         var solution = solver.Solve(
             problem,
-            TStart,
-            TEnd,
-            Dt,
-            isImplicit,
+            TimePoints,
             new ISolver.Params(1e-12, 10000)
         );
 
-        AssertScaled(solution, [0.0, 1.0, 1.0, 0.0]);
+        AssertScaled(solution.Last().Coefficients, [0.0, 1.0, 1.0, 0.0]);
     }
 
     [Theory]
@@ -141,14 +142,15 @@ public class ParabolicProblemQuadrangleTests
         );
 
         var solver = new ParabolicSolver2D(
+            isImplicit ? TimeSchemes.BackwardEuler : TimeSchemes.ForwardEuler,
             DenseMatrix.Factory,
             NumericItegrator2D.Instance,
             new PCGSolver(m => IdentityPreconditioner.Instance)
         );
 
-        var solution = solver.Solve(problem, TStart, TEnd, Dt, isImplicit, new ISolver.Params(1e-12, 10000));
+        var solution = solver.Solve(problem, TimePoints, new ISolver.Params(1e-12, 10000));
 
-        AssertScaled(solution, new double[4]);
+        AssertScaled(solution.Last().Coefficients, new double[4]);
     }
 
     [Theory]
@@ -198,6 +200,7 @@ public class ParabolicProblemQuadrangleTests
         );
 
         var solver = new ParabolicSolver2D(
+            isImplicit ? TimeSchemes.BackwardEuler : TimeSchemes.ForwardEuler,
             DenseMatrix.Factory,
             NumericItegrator2D.Instance,
             new PCGSolver(m => IdentityPreconditioner.Instance)
@@ -205,14 +208,11 @@ public class ParabolicProblemQuadrangleTests
 
         var solution = solver.Solve(
             problem,
-            TStart,
-            TEnd,
-            Dt,
-            isImplicit,
+            TimePoints,
             new ISolver.Params(1e-12, 10000)
         );
 
-        AssertScaled(solution, new double[9]);
+        AssertScaled(solution.Last().Coefficients, new double[9]);
     }
 
     [Theory]
@@ -262,6 +262,7 @@ public class ParabolicProblemQuadrangleTests
         );
 
         var solver = new ParabolicSolver2D(
+            isImplicit ? TimeSchemes.BackwardEuler : TimeSchemes.ForwardEuler,
             DenseMatrix.Factory,
             NumericItegrator2D.Instance,
             new PCGSolver(m => IdentityPreconditioner.Instance)
@@ -269,14 +270,11 @@ public class ParabolicProblemQuadrangleTests
 
         var solution = solver.Solve(
             problem,
-            TStart,
-            TEnd,
-            Dt,
-            isImplicit,
+            TimePoints,
             new ISolver.Params(1e-12, 10000)
         );
 
-        AssertScaled(solution, [-1.0, 3.0, 3.0, 0.0]);
+        AssertScaled(solution.Last().Coefficients, [-1.0, 3.0, 3.0, 0.0]);
     }
 
     [Theory]
@@ -338,6 +336,7 @@ public class ParabolicProblemQuadrangleTests
         );
 
         var solver = new ParabolicSolver2D(
+            isImplicit ? TimeSchemes.BackwardEuler : TimeSchemes.ForwardEuler,
             DenseMatrix.Factory,
             NumericItegrator2D.Instance,
             new PCGSolver(m => IdentityPreconditioner.Instance)
@@ -345,14 +344,11 @@ public class ParabolicProblemQuadrangleTests
 
         var solution = solver.Solve(
             problem,
-            TStart,
-            TEnd,
-            Dt,
-            isImplicit,
+            TimePoints,
             new ISolver.Params(1e-12, 10000)
         );
 
-        AssertScaled(solution, [1.0, 2.0, 1.0, 0.0, 2.0, 0.0, 2.0, 1.0, 0.0]);
+        AssertScaled(solution.Last().Coefficients, [1.0, 2.0, 1.0, 0.0, 2.0, 0.0, 2.0, 1.0, 0.0]);
     }
 
     [Theory]
@@ -402,6 +398,7 @@ public class ParabolicProblemQuadrangleTests
         );
 
         var solver = new ParabolicSolver2D(
+            isImplicit ? TimeSchemes.BackwardEuler : TimeSchemes.ForwardEuler,
             DenseMatrix.Factory,
             NumericItegrator2D.Instance,
             new PCGSolver(m => IdentityPreconditioner.Instance)
@@ -409,14 +406,11 @@ public class ParabolicProblemQuadrangleTests
 
         var solution = solver.Solve(
             problem,
-            TStart,
-            TEnd,
-            Dt,
-            isImplicit,
+            TimePoints,
             new ISolver.Params(1e-12, 10000)
         );
 
-        AssertScaled(solution, [0.25, 0.0, 0.25, 1.0, 0.25, 0.0, 1.0, 1.0, 0.0]);
+        AssertScaled(solution.Last().Coefficients, [0.25, 0.0, 0.25, 1.0, 0.25, 0.0, 1.0, 1.0, 0.0]);
     }
 
     [Theory]
@@ -466,6 +460,7 @@ public class ParabolicProblemQuadrangleTests
         );
 
         var solver = new ParabolicSolver2D(
+            isImplicit ? TimeSchemes.BackwardEuler : TimeSchemes.ForwardEuler,
             DenseMatrix.Factory,
             NumericItegrator2D.Instance,
             new PCGSolver(m => IdentityPreconditioner.Instance)
@@ -473,14 +468,11 @@ public class ParabolicProblemQuadrangleTests
 
         var solution = solver.Solve(
             problem,
-            TStart,
-            TEnd,
-            Dt,
-            isImplicit,
+            TimePoints,
             new ISolver.Params(1e-12, 10000)
         );
 
-        AssertScaled(solution, [0.5, 0.0, 0.5, 1.0, 0.5, 0.0, 1.0, 1.0, 0.0]);
+        AssertScaled(solution.Last().Coefficients, [0.5, 0.0, 0.5, 1.0, 0.5, 0.0, 1.0, 1.0, 0.0]);
     }
 
     [Theory]
@@ -542,6 +534,7 @@ public class ParabolicProblemQuadrangleTests
         );
 
         var solver = new ParabolicSolver2D(
+            isImplicit ? TimeSchemes.BackwardEuler : TimeSchemes.ForwardEuler,
             DenseMatrix.Factory,
             NumericItegrator2D.Instance,
             new PCGSolver(m => IdentityPreconditioner.Instance)
@@ -549,14 +542,11 @@ public class ParabolicProblemQuadrangleTests
 
         var solution = solver.Solve(
             problem,
-            TStart,
-            TEnd,
-            Dt,
-            isImplicit,
+            TimePoints,
             new ISolver.Params(1e-12, 10000)
         );
 
-        AssertScaled(solution, [
+        AssertScaled(solution.Last().Coefficients, [
             0.5, 0.5, 0.25, 0.75, 0.5,
             0.25, 0.75, 0.25, 0.75, 0.75,
             1.0, 0.0, 0.25, 1.0, 0.75,
@@ -624,6 +614,7 @@ public class ParabolicProblemQuadrangleTests
         );
 
         var solver = new ParabolicSolver2D(
+            isImplicit ? TimeSchemes.BackwardEuler : TimeSchemes.ForwardEuler,
             DenseMatrix.Factory,
             NumericItegrator2D.Instance,
             new PCGSolver(m => IdentityPreconditioner.Instance)
@@ -631,14 +622,11 @@ public class ParabolicProblemQuadrangleTests
 
         var solution = solver.Solve(
             problem,
-            TStart,
-            TEnd,
-            Dt,
-            isImplicit,
+            TimePoints,
             new ISolver.Params(1e-12, 10000)
         );
 
-        AssertScaled(solution, [
+        AssertScaled(solution.Last().Coefficients, [
             0.2500, 0.2500, 0.0625, 0.5625, 0.2500,
             0.0625, 0.5625, 0.0625, 0.5625, 0.5625,
             1.0000, 0.0000, 0.0625, 1.0000, 0.5625,
@@ -709,6 +697,7 @@ public class ParabolicProblemQuadrangleTests
         );
 
         var solver = new ParabolicSolver2D(
+            isImplicit ? TimeSchemes.BackwardEuler : TimeSchemes.ForwardEuler,
             DenseMatrix.Factory,
             NumericItegrator2D.Instance,
             new PCGSolver(m => IdentityPreconditioner.Instance)
@@ -716,14 +705,11 @@ public class ParabolicProblemQuadrangleTests
 
         var solution = solver.Solve(
             problem,
-            TStart,
-            TEnd,
-            Dt,
-            isImplicit,
+            TimePoints,
             new ISolver.Params(1e-12, 10000)
         );
 
-        AssertScaled(solution, [
+        AssertScaled(solution.Last().Coefficients, [
             0.2500, 0.2500, 0.0625, 0.5625, 0.2500,
         0.0625, 0.5625, 0.0625, 0.5625, 0.5625,
         1.0000, 0.0000, 0.0625, 1.0000, 0.5625,

@@ -40,17 +40,21 @@ public sealed class EllipticSolver<TSpace, TBoundary, TOps>(
 
         var globalMatrix = assembler.CreateGlobalMatrix();
         var rhsVector = assembler.CreateRhsVector();
-        var fixedSolution = assembler.CreateFixedSolutionVector();
+        var solution = new double[dofManager.TotalDofCount];
 
         void AddLocalMatrixWithFixedLoadContribution(LocalMatrix local, ReadOnlySpan<int> indices)
         {
             globalMatrix.AddLocalMatrix(local, indices);
-            assembler.AddFixedLoadContribution(local, indices, fixedSolution, rhsVector);
+            assembler.AddFixedLoadContribution(local, indices, dofManager.AsFixedSpan(solution), rhsVector);
         }
 
         // 1. Assemble global matrix A = (M_ff + G_ff + MS3_ff) and add
         //    dirichlet contribution b = -(M_fd + G_fd + MS3_fd) * u_d
-        assembler.CalculateFixedElements(problem.BoundaryConditions, time, _algebraicSolver, fixedSolution, solverParams);
+        assembler.CalculateFixedElements(
+            problem.BoundaryConditions, time, _algebraicSolver,
+            dofManager.AsFixedSpan(solution),
+            solverParams
+        );
         assembler.CalculateStiffness(
             id => problem.Materials[id].Lambda,
             AddLocalMatrixWithFixedLoadContribution
@@ -69,14 +73,12 @@ public sealed class EllipticSolver<TSpace, TBoundary, TOps>(
         assembler.CalculateBoundaryLoadContribution(problem.BoundaryConditions, time, rhsVector);
 
         // 3. Solve SLAE
-        var solution = new double[dofManager.TotalDofCount];
         _algebraicSolver.Matrix = globalMatrix;
         _algebraicSolver.Solve(
             rhsVector,
-            solution.AsSpan()[..dofManager.FreeDofCount],
+            dofManager.AsFreeSpan(solution),
             solverParams
         );
-        assembler.FixedSolution.CopyTo(solution.AsSpan()[dofManager.FreeDofCount..]);
 
         return new(
             mesh: mesh,

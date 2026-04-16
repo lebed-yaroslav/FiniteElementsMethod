@@ -1,3 +1,7 @@
+using System.Diagnostics;
+using Model.Core.Util;
+using Model.Core.Vector;
+
 namespace Model.Core.Matrix;
 
 public interface IMatrix
@@ -10,6 +14,30 @@ public sealed class LocalMatrix(int n) : IMatrix
     public int Size { get; } = n;
     private double[,] _values = new double[n, n];
     public double this[int i, int j] { get => _values[i, j]; set => _values[i, j] = value; }
+
+    public void operator *=(double alpha) =>
+        _values.AsFlatSpan<double>().Scale(alpha);
+
+    public void AddMatVec(
+        ReadOnlySpan<double> vec,
+        ReadOnlySpan<int> indices,
+        Span<double> res,
+        double scale = 1.0
+    ) {
+        Debug.Assert(indices.Length == Size);
+
+        for (int i = 0; i < Size; ++i)
+        {
+            var gi = indices[i];
+            if (indices[i] < 0) continue;
+            for (int j = 0; j < Size; ++j)
+            {
+                var gj = indices[j];
+                if (indices[j] < 0) continue;
+                res[gi] += scale * _values[i, j] * vec[gj];
+            }
+        }
+    }
 }
 
 /// <summary>

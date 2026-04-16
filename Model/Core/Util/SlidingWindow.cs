@@ -19,6 +19,8 @@ public sealed class SlidingWindow<T> : IEnumerable<T>
     public int Capacity => _items.Length;
     public int Count { get; private set; } = 0;
 
+    public ref T Last => ref this[Count - 1];
+
     /// <summary>
     /// Initializes a new instance of the <see cref="SlidingWindow{T}"/> class.
     /// </summary>
@@ -54,6 +56,13 @@ public sealed class SlidingWindow<T> : IEnumerable<T>
         return oldest;
     }
 
+    public void CycleOrPushNew(Func<T> supplier)
+    {
+        if (Count < Capacity)
+            _items[_next] = supplier();
+        _next = (_next + 1) % Capacity;
+    }
+
     /// <summary>
     /// Gets the element at the specified index in the window.
     /// Index 0 corresponds to the oldest element,
@@ -62,12 +71,12 @@ public sealed class SlidingWindow<T> : IEnumerable<T>
     /// <param name="i">Index in the logical window (0 = oldest).</param>
     /// <returns>The element at the specified index.</returns>
     /// <exception cref="ArgumentOutOfRangeException">Thrown when index is out of range.</exception>
-    public T this[int i] {
+    public ref T this[int i] {
         get {
             if (i < 0 || i >= Count)
                 throw new ArgumentOutOfRangeException(nameof(i));
             int start = Count == Capacity ? _next : 0;
-            return _items[(start + i) % Capacity];
+            return ref _items[(start + i) % Capacity];
         }
     }
 

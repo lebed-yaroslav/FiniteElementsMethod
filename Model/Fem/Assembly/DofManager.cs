@@ -51,7 +51,7 @@ public sealed class DofManager
         for (int i = 0; i < elementDof.Count; ++i)
         {
             var dof = elementDof.Dof[i];
-            outIndices[i] = (dof < FreeDofCount) ? dof : -dof; // IGlobalMatrix.AddLocalMatrix ignores negative indices
+            outIndices[i] = (dof < FreeDofCount) ? dof : -(dof + 1); // IGlobalMatrix.AddLocalMatrix ignores negative indices
         }
     }
 
@@ -61,7 +61,7 @@ public sealed class DofManager
     public int MappedFreeToFixed(int dofIndex)
     {
         Debug.Assert(dofIndex < 0 && -dofIndex >= FreeDofCount);
-        return -dofIndex - FreeDofCount;
+        return -dofIndex - 1 - FreeDofCount;
     }
 
     /// <summary>
@@ -84,6 +84,18 @@ public sealed class DofManager
     {
         Debug.Assert(dofIndex < 0 && -dofIndex < FreeDofCount);
         return dofIndex + FreeDofCount;
+    }
+
+    public Span<double> AsFreeSpan(Span<double> solution)
+    {
+        Debug.Assert(solution.Length == TotalDofCount);
+        return solution[..FreeDofCount];
+    }
+
+    public Span<double> AsFixedSpan(Span<double> solution)
+    {
+        Debug.Assert(solution.Length == TotalDofCount);
+        return solution[FreeDofCount..];
     }
 }
 

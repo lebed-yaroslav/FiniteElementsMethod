@@ -41,13 +41,9 @@ public sealed record Assembler<TSpace, TBoundary, TOps>(
     where TBoundary : IVectorBase<TBoundary>
     where TOps : IMatrixOperations<TSpace, TSpace, TOps>
 {
-    private readonly double[] _fixedSolution = new double[DofManager.FixedDofCount];
-
     private readonly List<HashSet<int>> _adjacencyList = PortraitGenerator.CreateAdjacencyList(
         Mesh.AllElementsDof, minDofIndex: 0, maxDofIndex: DofManager.FreeDofCount - 1
     );
-
-    public ReadOnlySpan<double> FixedSolution => _fixedSolution;
 
     public IGlobalMatrix CreateGlobalMatrix() => MatrixFactory.Create(_adjacencyList);
     public double[] CreateRhsVector() => new double[DofManager.FreeDofCount];
@@ -133,7 +129,8 @@ public sealed record Assembler<TSpace, TBoundary, TOps>(
 
     public void CalculateLoad(
         Func<int, Func<TSpace, double>> sourceByMaterialIndex,
-        Span<double> outLoad
+        Span<double> outLoad,
+        double scale = 1.0
     )
     {
         foreach (var element in Mesh.FiniteElements)
@@ -141,7 +138,7 @@ public sealed record Assembler<TSpace, TBoundary, TOps>(
             var source = sourceByMaterialIndex(element.MaterialIndex);
             var load = new double[element.DOF.Count];
             Integrator.CalculateLocalLoad(element, source, load);
-            AddLocalLoad(load, element.DOF, outLoad);
+            AddLocalLoad(load, element.DOF, outLoad, scale);
         }
     }
 
@@ -214,19 +211,20 @@ public sealed record Assembler<TSpace, TBoundary, TOps>(
         LocalMatrix local,
         ReadOnlySpan<int> indices,
         ReadOnlySpan<double> fixedSolution,
-        Span<double> outLoad
+        Span<double> outLoad,
+        double scale = 1.0
     )
     {
         Debug.Assert(outLoad.Length == DofManager.FreeDofCount);
         for (int i = 0; i < local.Size; ++i)
         {
-            var globalDofI = -indices[i]; // Negative indices correpsonds to fixed dof
-            if (globalDofI >= 0) continue; // Skip fixed dof row
+            var globalDofI = indices[i]; // Negative indices correpsonds to fixed dof
+            if (globalDofI < 0) continue; // Skip fixed dof row
             for (int j = 0; j < local.Size; ++j)
             {
-                if (indices[j] < 0) continue; // Skip free dof column
+                if (indices[j] >= 0) continue; // Skip free dof column
                 var fixedDofJ = DofManager.MappedFreeToFixed(indices[j]);
-                outLoad[globalDofI] -= local[i, j] * _fixedSolution[fixedDofJ];
+                outLoad[globalDofI] -= scale * local[i, j] * fixedSolution[fixedDofJ];
             }
         }
     }
@@ -234,7 +232,8 @@ public sealed record Assembler<TSpace, TBoundary, TOps>(
     private void AddLocalLoad(
         ReadOnlySpan<double> local,
         IDofManager elementDof,
-        Span<double> outLoad
+        Span<double> outLoad,
+        double scale = 1.0
     )
     {
         Debug.Assert(outLoad.Length == DofManager.FreeDofCount);
@@ -243,7 +242,7 @@ public sealed record Assembler<TSpace, TBoundary, TOps>(
         {
             int dof = elementDof.Dof[i];
             if (dof < DofManager.FreeDofCount) // Ignore fixed dof
-                outLoad[dof] += local[i];
+                outLoad[dof] += scale * local[i];
         }
     }
 }
