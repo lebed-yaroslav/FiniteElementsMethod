@@ -28,7 +28,8 @@ public sealed class DofManager
 
     /// <summary>
     /// Create index mapping for free dof system, to use in
-    /// <see cref="Core.Matrix.IGlobalMatrix.AddLocalMatrix(Core.Matrix.LocalMatrix, ReadOnlySpan{int})"/>
+    /// <see cref="Core.Matrix.IGlobalMatrix.AddLocalMatrix(Core.Matrix.LocalMatrix, ReadOnlySpan{int})"/>.
+    /// Negative indices corresponds to fixed dof
     /// </summary>
     /// <param name="elementDof">Element which indices is mapped</param>
     public int[] CreateFreeLocalToGlobalIndexMapping(IDofManager elementDof)
@@ -40,7 +41,7 @@ public sealed class DofManager
 
     /// <summary>
     /// Create index mapping for free dof system, to use in
-    /// <see cref="Core.Matrix.IGlobalMatrix.AddLocalMatrix(Core.Matrix.LocalMatrix, ReadOnlySpan{int})"/>
+    /// <see cref="Core.Matrix.IGlobalMatrix.AddLocalMatrix(Core.Matrix.LocalMatrix, ReadOnlySpan{int})"/>.
     /// </summary>
     /// <param name="elementDof">Element which indices is mapped</param>
     /// <param name="outIndices">Output parameter</param>
@@ -50,13 +51,22 @@ public sealed class DofManager
         for (int i = 0; i < elementDof.Count; ++i)
         {
             var dof = elementDof.Dof[i];
-            outIndices[i] = (dof < FreeDofCount) ? dof : -1; // IGlobalMatrix.AddLocalMatrix ignores negative indices
+            outIndices[i] = (dof < FreeDofCount) ? dof : -dof; // IGlobalMatrix.AddLocalMatrix ignores negative indices
         }
     }
 
     /// <summary>
+    /// Recovers fixed dof index that mapped by <see cref="CreateFreeLocalToGlobalIndexMapping(IDofManager, Span{int})"/>
+    /// </summary>
+    public int MappedFreeToFixed(int dofIndex)
+    {
+        Debug.Assert(dofIndex < 0 && -dofIndex >= FreeDofCount);
+        return -dofIndex - FreeDofCount;
+    }
+
+    /// <summary>
     /// Create index mapping for fixed dof system, to use in
-    /// <see cref="Core.Matrix.IGlobalMatrix.AddLocalMatrix(Core.Matrix.LocalMatrix, ReadOnlySpan{int})"/>
+    /// <see cref="Core.Matrix.IGlobalMatrix.AddLocalMatrix(Core.Matrix.LocalMatrix, ReadOnlySpan{int})"/>.
     /// </summary>
     /// <param name="elementDof">Element which indices is mapped</param>
     /// <param name="outIndices">Output parameter</param>
@@ -65,6 +75,15 @@ public sealed class DofManager
         Debug.Assert(outIndices.Length == elementDof.Count);
         for (int i = 0; i < outIndices.Length; ++i)
             outIndices[i] = elementDof.Dof[i] - FreeDofCount; // IGlobalMatrix.AddLocalMatrix ignores negative indices
+    }
+
+    /// <summary>
+    /// Recovers fixed dof index that mapped by <see cref="CreateFixedLocalToGlobalIndexMapping(IDofManager, Span{int})"/>
+    /// </summary>
+    public int MappedFixedToFree(int dofIndex)
+    {
+        Debug.Assert(dofIndex < 0 && -dofIndex < FreeDofCount);
+        return dofIndex + FreeDofCount;
     }
 }
 
