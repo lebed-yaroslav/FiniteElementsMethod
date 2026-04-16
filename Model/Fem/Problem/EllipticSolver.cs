@@ -40,13 +40,29 @@ public sealed class EllipticSolver<TSpace, TBoundary, TOps>(
 
         var globalMatrix = assembler.CreateGlobalMatrix();
         var rhsVector = assembler.CreateRhsVector();
+        var fixedSolution = assembler.CreateFixedSolutionVector();
+
+        void AddLocalMatrixWithFixedLoadContribution(LocalMatrix local, ReadOnlySpan<int> indices)
+        {
+            globalMatrix.AddLocalMatrix(local, indices);
+            assembler.AddFixedLoadContribution(local, indices, fixedSolution, rhsVector);
+        }
 
         // 1. Assemble global matrix A = (M_ff + G_ff + MS3_ff) and add
         //    dirichlet contribution b = -(M_fd + G_fd + MS3_fd) * u_d
-        assembler.CalculateFixedElements(problem.BoundaryConditions, time, _algebraicSolver, solverParams);
-        assembler.CalculateStiffness(id => problem.Materials[id].Lambda, globalMatrix, rhsVector);
-        assembler.CalculateMass(id => problem.Materials[id].Gamma, globalMatrix, rhsVector);
-        assembler.CalculateRobinMassContribution(problem.BoundaryConditions, time, globalMatrix, rhsVector);
+        assembler.CalculateFixedElements(problem.BoundaryConditions, time, _algebraicSolver, fixedSolution, solverParams);
+        assembler.CalculateStiffness(
+            id => problem.Materials[id].Lambda,
+            AddLocalMatrixWithFixedLoadContribution
+        );
+        assembler.CalculateMass(
+            id => problem.Materials[id].Gamma,
+            AddLocalMatrixWithFixedLoadContribution
+        );
+        assembler.CalculateRobinMassContribution(
+            problem.BoundaryConditions, time,
+            AddLocalMatrixWithFixedLoadContribution
+        );
 
         // 2. Calculate rhs vector: b += f_ff + f_ff(Neumann)
         assembler.CalculateLoad(id => problem.Materials[id].Source, rhsVector);
