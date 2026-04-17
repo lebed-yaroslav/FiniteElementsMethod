@@ -45,7 +45,11 @@ public sealed class Mesh<TSpace, TBoundary>(ICoordinateTransform<TSpace, TSpace>
 
     // Mesh construction:
 
-    public void AddVertex(TSpace vertex) => _vertices.Add(vertex);
+    public int AddVertex(TSpace vertex)
+    {
+        _vertices.Add(vertex);
+        return _vertices.Count - 1;
+    }
 
     public IFiniteElement<TSpace> AddElement(IFiniteElementFactory<TSpace> factory, int[] vertices, int materialIndex)
     {
