@@ -48,7 +48,43 @@ public sealed record Assembler<TSpace, TBoundary, TOps>(
 
     public IGlobalMatrix CreateGlobalMatrix() => MatrixFactory.Create(_adjacencyList);
     public double[] CreateRhsVector() => new double[DofManager.FreeDofCount];
-    public double[] CreateFixedSolutionVector() => new double[DofManager.FixedDofCount];
+
+    public void CalculateInitialCondition(
+        Func<TSpace, double> InitialCondition,
+        ISolver solver,
+        Span<double> outInitialSolution,
+        ISolver.Params solverParams = new()
+    )
+    {
+        Debug.Assert(outInitialSolution.Length == DofManager.TotalDofCount);
+
+        var adjacencyList = PortraitGenerator.CreateAdjacencyList(
+            Mesh.AllElementsDof,
+            minDofIndex: 0,
+            maxDofIndex: DofManager.TotalDofCount - 1
+        );
+
+        var matrix = MatrixFactory.Create(adjacencyList);
+        var rhsVector = new double[DofManager.TotalDofCount];
+
+        foreach (var element in Mesh.FiniteElements)
+        {
+            matrix.AddLocalMatrix(
+                Integrator.CalculateLocalMass(element, _ => 1.0),
+                element.DOF.Dof
+            );
+            var load = new double[element.DOF.Count];
+            Integrator.CalculateLocalLoad(element, InitialCondition, load);
+            for (int i = 0; i < element.DOF.Count; ++i)
+            {
+                int dof = element.DOF.Dof[i];
+                rhsVector[dof] += load[i];
+            }
+        }
+
+        solver.Matrix = matrix;
+        solver.Solve(rhsVector, outInitialSolution, solverParams);
+    }
 
     /// <summary>
     /// Solves for the fixed (Dirichlet) degrees of freedom by assembling and solving a separate system.
@@ -60,7 +96,7 @@ public sealed record Assembler<TSpace, TBoundary, TOps>(
     /// <param name="time">Current simulation time, passed to Dirichlet condition evaluation.</param>
     /// <param name="solver">Solver instance used to solve the fixed DOF system.</param>
     /// <param name="outFixedSolution">Output parameter for solution</param>
-    /// <param name="paramz">Optional solver parameters.</param>
+    /// <param name="solverParams">Optional solver parameters.</param>
     /// <remarks>
     /// The fixed DOF system solves:
     /// <code>
@@ -73,7 +109,7 @@ public sealed record Assembler<TSpace, TBoundary, TOps>(
         BoundaryCondition<TSpace>[] boundaryConditions, 
         double time, ISolver solver, 
         Span<double> outFixedSolution,
-        ISolver.Params paramz = default
+        ISolver.Params solverParams = new()
     )
     {
         Debug.Assert(outFixedSolution.Length == DofManager.FixedDofCount);
@@ -98,7 +134,7 @@ public sealed record Assembler<TSpace, TBoundary, TOps>(
         }
 
         solver.Matrix = matrix;
-        solver.Solve(rhsVector, outFixedSolution, paramz);
+        solver.Solve(rhsVector, outFixedSolution, solverParams);
     }
 
     /// <summary>

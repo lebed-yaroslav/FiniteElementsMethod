@@ -70,6 +70,7 @@ public class ParabolicProblemQuadrangleTests
                     Source: (p, t) => dA(t) * p.X
                 )
             ],
+            InitialCondition: p => A(0) * p.X,
             BoundaryConditions:
             [
                 new BoundaryCondition2D.Dirichlet(
@@ -125,13 +126,14 @@ public class ParabolicProblemQuadrangleTests
         var problem = new HyperbolicProblem2D(
             Materials:
             [
-                new HyperbolicMaterial2D(
-                Lambda: (p, t) => 1.0,
-                Xi:     (p, t) => 0.0,
-                Sigma:  (p, t) => 1.0,
-                Source: (p, t) => 0.0
-            )
+                new(
+                    Lambda: (p, t) => 1.0,
+                    Xi:     (p, t) => 0.0,
+                    Sigma:  (p, t) => 1.0,
+                    Source: (p, t) => 0.0
+                )
             ],
+            InitialCondition: p => 0.0,
             BoundaryConditions:
             [
                 new BoundaryCondition2D.Dirichlet(
@@ -183,13 +185,14 @@ public class ParabolicProblemQuadrangleTests
         var problem = new HyperbolicProblem2D(
             Materials:
             [
-                new HyperbolicMaterial2D(
-                Lambda: (p, t) => 1.0,
-                Xi:     (p, t) => 0.0,
-                Sigma:  (p, t) => 1.0,
-                Source: (p, t) => 0.0
-            )
+                new(
+                    Lambda: (p, t) => 1.0,
+                    Xi:     (p, t) => 0.0,
+                    Sigma:  (p, t) => 1.0,
+                    Source: (p, t) => 0.0
+                )
             ],
+            InitialCondition: p => A(0) * p.X,
             BoundaryConditions:
             [
                 new BoundaryCondition2D.Dirichlet(
@@ -245,13 +248,14 @@ public class ParabolicProblemQuadrangleTests
         var problem = new HyperbolicProblem2D(
             Materials:
             [
-                new HyperbolicMaterial2D(
+                new(
                     Lambda: (p, t) => 1.0,
                     Xi:     (p, t) => 0.0,
                     Sigma:  (p, t) => 1.0,
                     Source: (p, t) => dA(t) * p.X
                 )
             ],
+            InitialCondition: p => A(0) * p.X,
             BoundaryConditions:
             [
                 new BoundaryCondition2D.Dirichlet(
@@ -326,6 +330,7 @@ public class ParabolicProblemQuadrangleTests
                     Source: (p, t) => dA(t) * p.X
                 )
             ],
+            InitialCondition: p => A(0) * p.X,
             BoundaryConditions:
             [
                 new BoundaryCondition2D.Dirichlet(
@@ -381,13 +386,14 @@ public class ParabolicProblemQuadrangleTests
         var problem = new HyperbolicProblem2D(
             Materials:
             [
-                new HyperbolicMaterial2D(
+                new(
                     Lambda: (p, t) => 1.0,
                     Xi:     (p, t) => 0.0,
                     Sigma:  (p, t) => 1.0,
                     Source: (p, t) => dA(t) * p.X * p.X - 2.0 * A(t)
                 )
             ],
+            InitialCondition: p => A(0) * p.X * p.X,
             BoundaryConditions:
             [
                 new BoundaryCondition2D.Dirichlet(
@@ -443,13 +449,14 @@ public class ParabolicProblemQuadrangleTests
         var problem = new HyperbolicProblem2D(
             Materials:
             [
-                new HyperbolicMaterial2D(
+                new(
                     Lambda: (p, t) => 1.0,
                     Xi:     (p, t) => 0.0,
                     Sigma:  (p, t) => 1.0,
                     Source: (p, t) => dA(t) * p.X
                 )
             ],
+            InitialCondition: p => A(0) * p.X,
             BoundaryConditions:
             [
                 new BoundaryCondition2D.Dirichlet(
@@ -517,13 +524,14 @@ public class ParabolicProblemQuadrangleTests
         var problem = new HyperbolicProblem2D(
             Materials:
             [
-                new HyperbolicMaterial2D(
+                new(
                     Lambda: (p, t) => 1.0,
                     Xi:     (p, t) => 0.0,
                     Sigma:  (p, t) => 1.0,
                     Source: (p, t) => dA(t) * p.X
                 )
             ],
+            InitialCondition: p => A(0) * p.X,
             BoundaryConditions:
             [
                 new BoundaryCondition2D.Dirichlet(
@@ -604,6 +612,7 @@ public class ParabolicProblemQuadrangleTests
                     Source: (p, t) => dA(t) * p.X * p.X - 2.0 * A(t)
                 )
             ],
+            InitialCondition: p => A(0) * p.X * p.X,
             BoundaryConditions:
             [
                 new BoundaryCondition2D.Dirichlet(
@@ -680,13 +689,14 @@ public class ParabolicProblemQuadrangleTests
         var problem = new HyperbolicProblem2D(
             Materials:
             [
-                new HyperbolicMaterial2D(
-                Lambda: (p, t) => 1.0,
-                Xi:     (p, t) => 0.0,
-                Sigma:  (p, t) => 1.0,
-                Source: (p, t) => dA(t) * p.X * p.X - 2.0 * A(t)
-            )
+                new(
+                    Lambda: (p, t) => 1.0,
+                    Xi:     (p, t) => 0.0,
+                    Sigma:  (p, t) => 1.0,
+                    Source: (p, t) => dA(t) * p.X * p.X - 2.0 * A(t)
+                )
             ],
+            InitialCondition: p => A(0) * p.X * p.X,
             BoundaryConditions:
             [
                 new BoundaryCondition2D.Dirichlet(

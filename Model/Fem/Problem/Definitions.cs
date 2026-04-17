@@ -75,6 +75,7 @@ public sealed record EllipticProblem<TSpace>
 public sealed record HyperbolicProblem<TSpace>
 (
     HyperbolicMaterial<TSpace>[] Materials,
+    Func<TSpace, double> InitialCondition,
     BoundaryCondition<TSpace>[] BoundaryConditions,
     IMesh<TSpace> Mesh
 ) where TSpace : IVectorBase<TSpace>

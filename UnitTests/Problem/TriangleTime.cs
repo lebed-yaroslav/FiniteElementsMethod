@@ -47,6 +47,7 @@ public class ParabolicProblemTriangleTests
                     Xi: (p,t) => 0.0,
                     Source: (p,t) => 1.0
                 )],
+                InitialCondition: p => analyticSolution(p, 0),
                 BoundaryConditions: [
                     new BoundaryCondition2D.Dirichlet(Value: (p, t) => analyticSolution(p,t))
                 ],
@@ -105,6 +106,7 @@ public class ParabolicProblemTriangleTests
                     Xi: (p,t) => 0.0,
                     Source: (p,t) => 1.0
                 )],
+                InitialCondition: p => analyticSolution(p, 0),
                 BoundaryConditions: [
                     new BoundaryCondition2D.Dirichlet(Value: (p, t) => analyticSolution(p,t)),
                     new BoundaryCondition2D.Neumann(Flux: (p,t) => 0.0),

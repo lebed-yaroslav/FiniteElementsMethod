@@ -39,11 +39,12 @@ public sealed class ParabolicSolver<TSpace, TBoundary, TOps>(
         int freeDofCount = dofManager.FreeDofCount;
         int fixedDofCount = dofManager.FixedDofCount;
 
-        var solutions = new SlidingWindow<double[]>(_timeScheme.SolutionLayerCount);
-        solutions.Push(new double[dofCount]);
-
         var globalMatrix = assembler.CreateGlobalMatrix(); // A_ff
         var rhsVector = new double[freeDofCount]; // b_ff
+
+        var solutions = new SlidingWindow<double[]>(_timeScheme.SolutionLayerCount); // u
+        solutions.Push(new double[dofCount]);
+        assembler.CalculateInitialCondition(problem.InitialCondition, _algebraicSolver, solutions.Last, solverParams);
 
         var alpha = 0.0;
         var beta = 0.0;
@@ -93,17 +94,24 @@ public sealed class ParabolicSolver<TSpace, TBoundary, TOps>(
 
         for (int i = 1; i < timePoints.Length; ++i)
         {
+
+            // 0. Cleanup for next step
+            solutions.CycleOrPushNew(() => new double[dofCount]);
+            // Array.Fill(solutions.Last, 0) - Reuse old solution as initial guess
+            Array.Fill(rhsVector, 0);
+            globalMatrix.Fill(0);
+
             var time = timePoints[i];
 
-            // 0. Calculate time scheme coefficients
-            var dt = (i > 0) ? time - timePoints[i - 1] : 1;
+            // 1. Calculate time scheme coefficients
+            var dt = time - timePoints[i - 1];
             alpha = _timeScheme.GetStiffnessScale(dt);
             beta = _timeScheme.GetMassScale(dt);
             _timeScheme.GetHistoryStiffnessCoefficients(dt, gamma);
             _timeScheme.GetHistoryMassCoefficients(dt, delta);
             var zeta = _timeScheme.GetSourceScale(dt);
 
-            // 1. Calculate fixed solution at current time (u_d)
+            // 2. Calculate fixed solution at current time (u_d)
             assembler.CalculateFixedElements(
                 problem.BoundaryConditions, time,
                 _algebraicSolver,
@@ -111,7 +119,7 @@ public sealed class ParabolicSolver<TSpace, TBoundary, TOps>(
                 solverParams
             );
 
-            // 2. Assemble main part: (αG + βM)u_n = ζf + Sum(i, [(γi)G +  (δi)M] * u_{n-i})
+            // 3. Assemble main part: (αG + βM)u_n = ζf + Sum(i, [(γi)G +  (δi)M] * u_{n-i})
             assembler.CalculateStiffness(
                 id => problem.Lambda(id, time),
                 (local, indices) => ApplyLocalStiffness(local, indices, dt)
@@ -122,14 +130,14 @@ public sealed class ParabolicSolver<TSpace, TBoundary, TOps>(
             );
             assembler.CalculateLoad(id => problem.Source(id, time), rhsVector, scale: zeta);
 
-            // 3. Calculate boundary condition contribution
+            // 4. Calculate boundary condition contribution
             assembler.CalculateRobinMassContribution(
                 problem.BoundaryConditions, time,
                 ApplyLocalMatrix
             );
             assembler.CalculateBoundaryLoadContribution(problem.BoundaryConditions, time, rhsVector);
 
-            // 4. Solve system
+            // 5. Solve system
             _algebraicSolver.Matrix = globalMatrix;
             _algebraicSolver.Solve(
                 rhsVector,
@@ -138,12 +146,6 @@ public sealed class ParabolicSolver<TSpace, TBoundary, TOps>(
             );
 
             yield return new(mesh, [.. solutions.Last]);
-
-            // 5. Cleanup for next step
-            solutions.CycleOrPushNew(() => new double[dofCount]);
-            // Array.Fill(solutions.Last, 0) - Reuse old solution as initial guess
-            Array.Fill(rhsVector, 0);
-            globalMatrix.Fill(0);
         }
 
         yield break;
