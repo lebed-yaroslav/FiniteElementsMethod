@@ -59,7 +59,10 @@ public sealed class SlidingWindow<T> : IEnumerable<T>
     public void CycleOrPushNew(Func<T> supplier)
     {
         if (Count < Capacity)
+        {
             _items[_next] = supplier();
+            ++Count;
+        }
         _next = (_next + 1) % Capacity;
     }
 
