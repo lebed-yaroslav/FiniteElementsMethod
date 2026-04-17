@@ -46,6 +46,13 @@ public sealed record Assembler<TSpace, TBoundary, TOps>(
         Mesh.AllElementsDof, minDofIndex: 0, maxDofIndex: DofManager.FreeDofCount - 1
     );
 
+    // A_dd matrix
+    private readonly Lazy<IGlobalMatrix> _fixedMatrix = new(() => MatrixFactory.Create(PortraitGenerator.CreateAdjacencyList(
+        Mesh.AllElementsDof,
+        minDofIndex: DofManager.FreeDofCount,
+        maxDofIndex: DofManager.TotalDofCount - 1
+    )));
+
     public IGlobalMatrix CreateGlobalMatrix() => MatrixFactory.Create(_adjacencyList);
     public double[] CreateRhsVector() => new double[DofManager.FreeDofCount];
 
@@ -113,15 +120,12 @@ public sealed record Assembler<TSpace, TBoundary, TOps>(
     )
     {
         Debug.Assert(outFixedSolution.Length == DofManager.FixedDofCount);
-        outFixedSolution.Fill(0);
+        outFixedSolution.Clear();
 
-        var adjacencyList = PortraitGenerator.CreateAdjacencyList(
-            Mesh.AllElementsDof,
-            minDofIndex: DofManager.FreeDofCount,
-            maxDofIndex: DofManager.TotalDofCount - 1
-        );
+        if (_fixedMatrix.IsValueCreated)
+            _fixedMatrix.Value.Fill(0);
+        var matrix = _fixedMatrix.Value;
 
-        var matrix = MatrixFactory.Create(adjacencyList);
         var rhsVector = new double[DofManager.FixedDofCount];
 
         foreach (var element in Mesh.BoundaryElements)
