@@ -1510,7 +1510,7 @@ public class EllipticProblemQuadrangleTests
     [Fact]
     public void РавномернаяСеткаСВнутреннимУзлом_КубическаяФункция_БиКубическийБазис()
     {
-        string TestMesh1 =
+       string TestMesh1 =
                """
         9
         0 0

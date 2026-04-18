@@ -356,6 +356,8 @@ public class ParabolicProblemQuadrangleTests
         AssertScaled(solution.Last().Coefficients, [1.0, 2.0, 1.0, 0.0, 2.0, 0.0, 2.0, 1.0, 0.0]);
     }
 
+
+    //начало квадратич тестов
     [Theory]
     [InlineData(true)]
     [InlineData(false)]
@@ -727,6 +729,1011 @@ public class ParabolicProblemQuadrangleTests
         1.0000, 0.0000, 1.0000, 0.2500, 0.0000
         ]);
     }
+    
+
+    // начало кубич тестов
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public void ПроизвольныйЭлемент_КубическаяФункция_БиКубическийБазис_СУчетомВремени(bool isImplicit)
+    {
+        string TestMesh1 =
+        """
+        4
+        0 0
+        1 0
+        1 1
+        0 1
+        1
+        0 1 2 3 0
+        4
+        0 1 0
+        1 2 0
+        2 3 0
+        3 0 0
+        """;
+
+        static double analyticSolution(Vector2D p, double t) => A(t) * p.X * p.X * p.X;
+
+        var mesh = new StringReader(TestMesh1).ReadMesh2D(
+            coordinateSystem: IdentityTransform<Vector2D>.Instance,
+            FiniteElements.Quadrangle.LagrangeCubic,
+            FiniteElements.Segment.LagrangeCubic
+        );
+
+        var problem = new HyperbolicProblem2D(
+            Materials:
+            [
+                new HyperbolicMaterial2D(
+                    Lambda: (p, t) => 1.0,
+                    Xi:     (p, t) => 0.0,
+                    Sigma:  (p, t) => 1.0,
+                    Source: (p, t) => dA(t) * p.X * p.X * p.X - 6.0 * A(t) * p.X
+                )
+            ],
+            InitialCondition: p => analyticSolution(p, 0),
+            BoundaryConditions:
+            [
+                new BoundaryCondition2D.Dirichlet(
+                    Value: (p, t) => analyticSolution(p, t)
+                )
+            ],
+            Mesh: mesh
+        );
+
+        var solver = new ParabolicSolver2D(
+            [isImplicit ? TimeSchemes.BackwardEuler : TimeSchemes.ForwardEuler],
+            DenseMatrix.Factory,
+            NumericItegrator2D.Instance,
+            new PCGSolver(m => IdentityPreconditioner.Instance)
+        );
+
+        //double[] timeLayers = [0.0, 0.5 / 3.0, 1 / 3.0, 1.5 / 3.0, 2.0 / 3.0, 2.5 / 3.0, 1.0];
+
+        double[] timeLayers = [0.0, 0.125 / 3 ,0.25 / 3.0, 0.375 / 3.0, 0.5 / 3.0, 0.625 / 3.0, 0.75 / 3.0, 0.875 / 3.0, 1.0 / 3.0,
+            1.125 / 3 , 1.25 / 3.0, 1.375 / 3.0, 1.5 / 3.0, 1.625 / 3.0, 1.75 / 3.0, 1.875 / 3.0, 2.0 / 3.0,
+            2.125 / 3 , 2.25 / 3.0, 2.375 / 3.0, 2.5 / 3.0, 2.625 / 3.0, 2.75 / 3.0, 2.875 / 3.0, 3.0 / 3.0
+        ];
+
+        var solutions = solver.Solve(problem, timeLayers, new ISolver.Params(1e-12, 10000));
+
+        int timeId = 1;
+        foreach (var solution in solutions)
+        {
+            double currentTime = timeLayers[timeId];
+            for (int i = 0; i < mesh.VertexCount; i++)
+            {
+                var point = mesh[i];
+                Assert.Equal(analyticSolution(point, currentTime), solution.Evaluate(point), 1e-12);
+            }
+            timeId++;
+        }
+    }
+
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public void МастерЭлемент_КвадратичнаяФункция_БиКубическийБазис_СУчетомВремени(bool isImplicit)
+    {
+        string TestMesh1 =
+        """
+        4
+        0 0
+        1 0
+        1 1
+        0 1
+        1
+        0 1 2 3 0
+        4
+        0 1 0
+        1 2 0
+        2 3 0
+        3 0 0
+        """;
+
+        static double analyticSolution(Vector2D p, double t) => A(t) * p.X * p.X;
+
+        var mesh = new StringReader(TestMesh1).ReadMesh2D(
+            coordinateSystem: IdentityTransform<Vector2D>.Instance,
+            FiniteElements.Quadrangle.LagrangeCubic,
+            FiniteElements.Segment.LagrangeCubic
+        );
+
+        var problem = new HyperbolicProblem2D(
+            Materials:
+            [
+                new HyperbolicMaterial2D(
+                    Lambda: (p, t) => 1.0,
+                    Xi:     (p, t) => 0.0,
+                    Sigma:  (p, t) => 1.0,
+                    Source: (p, t) => dA(t) * p.X * p.X - 2.0 * A(t)
+                )
+            ],
+            InitialCondition: p => analyticSolution(p, 0),
+            BoundaryConditions:
+            [
+                new BoundaryCondition2D.Dirichlet(
+                    Value: (p, t) => analyticSolution(p, t)
+                )
+            ],
+            Mesh: mesh
+        );
+
+        var solver = new ParabolicSolver2D(
+            [isImplicit ? TimeSchemes.BackwardEuler : TimeSchemes.ForwardEuler],
+            DenseMatrix.Factory,
+            NumericItegrator2D.Instance,
+            new PCGSolver(m => IdentityPreconditioner.Instance)
+        );
+
+        //double[] timeLayers = [0.0, 0.5 / 3.0, 1 / 3.0, 1.5 / 3.0, 2.0 / 3.0, 2.5 / 3.0, 1.0];
+
+        double[] timeLayers = [0.0, 0.125 / 3 ,0.25 / 3.0, 0.375 / 3.0, 0.5 / 3.0, 0.625 / 3.0, 0.75 / 3.0, 0.875 / 3.0, 1.0 / 3.0,
+            1.125 / 3 , 1.25 / 3.0, 1.375 / 3.0, 1.5 / 3.0, 1.625 / 3.0, 1.75 / 3.0, 1.875 / 3.0, 2.0 / 3.0,
+            2.125 / 3 , 2.25 / 3.0, 2.375 / 3.0, 2.5 / 3.0, 2.625 / 3.0, 2.75 / 3.0, 2.875 / 3.0, 3.0 / 3.0
+        ];
+
+        var solutions = solver.Solve(problem, timeLayers, new ISolver.Params(1e-12, 10000));
+
+        int timeId = 1;
+        foreach (var solution in solutions)
+        {
+            double currentTime = timeLayers[timeId];
+            for (int i = 0; i < mesh.VertexCount; i++)
+            {
+                var point = mesh[i];
+                Assert.Equal(analyticSolution(point, currentTime), solution.Evaluate(point), 1e-12);
+            }
+            timeId++;
+        }
+    }
+
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public void РавномернаяСеткаСВнутреннимУзлом_ЛинейнаяФункция_БиКубическийБазис_СУчетомВремени(bool isImplicit)
+    {
+        string TestMesh1 =
+        """
+        9
+        0 0
+        1 0
+        2 0
+        0 1
+        2 1
+        2 1
+        0 2
+        1 2
+        2 2
+        4
+        0 1 4 3 0
+        1 2 5 4 0
+        3 4 7 6 0
+        4 5 8 7 0
+        8
+        0 1 0
+        1 2 0
+        2 5 0
+        5 8 0
+        7 8 0
+        6 7 0
+        0 3 0
+        3 6 0
+        """;
+
+        static double analyticSolution(Vector2D p, double t) => A(t) * p.X;
+
+        var mesh = new StringReader(TestMesh1).ReadMesh2D(
+            coordinateSystem: IdentityTransform<Vector2D>.Instance,
+            FiniteElements.Quadrangle.LagrangeCubic,
+            FiniteElements.Segment.LagrangeCubic
+        );
+
+        var problem = new HyperbolicProblem2D(
+            Materials:
+            [
+                new HyperbolicMaterial2D(
+                    Lambda: (p, t) => 1.0,
+                    Xi:     (p, t) => 0.0,
+                    Sigma:  (p, t) => 1.0,
+                    Source: (p, t) => dA(t) * p.X
+                )
+            ],
+            InitialCondition: p => A(0) * p.X,
+            BoundaryConditions:
+            [
+                new BoundaryCondition2D.Dirichlet(
+                    Value: (p, t) => A(t) * p.X
+                )
+            ],
+            Mesh: mesh
+        );
+
+        var solver = new ParabolicSolver2D(
+            [isImplicit ? TimeSchemes.BackwardEuler : TimeSchemes.ForwardEuler],
+            DenseMatrix.Factory,
+            NumericItegrator2D.Instance,
+            new PCGSolver(m => IdentityPreconditioner.Instance)
+        );
+
+        double[] timeLayers = new double[100];
+
+        for (int i = 0;  i < 100; i++)
+        {
+            timeLayers[i] = i * 0.0001;
+        }
+
+        //double[] timeLayers = [0.0, 3.0 / 9.0, 6.0 / 9.0, 1.0];
+
+        //double[] timeLayers = [0.0, 0.125 / 3.0, 0.25 / 3.0, 0.375 / 3.0, 0.5 / 3.0, 0.625 / 3.0, 0.75 / 3.0, 0.875 / 3.0, 1.0 / 3.0,
+        //    1.125 / 3 , 1.25 / 3.0, 1.375 / 3.0, 1.5 / 3.0, 1.625 / 3.0, 1.75 / 3.0, 1.875 / 3.0, 2.0 / 3.0,
+        //    2.125 / 3 , 2.25 / 3.0, 2.375 / 3.0, 2.5 / 3.0, 2.625 / 3.0, 2.75 / 3.0, 2.875 / 3.0, 3.0 / 3.0
+        //    ];
+
+        var solutions = solver.Solve(problem, timeLayers, new ISolver.Params(1e-12, 100000));
+
+        int timeId = 1;
+        foreach (var solution in solutions)
+        {
+            double currentTime = timeLayers[timeId];
+            for (int i = 0; i < mesh.VertexCount; i++)
+            {
+                var point = mesh[i];
+                Assert.Equal(analyticSolution(point, currentTime), solution.Evaluate(point), 1e-10);
+            }
+            timeId++;
+        }
+    }
+
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public void РавномернаяСеткаСВнутреннимУзлом_КвадратичнаяФункция_БиКубическийБазис_СУчетомВремени(bool isImplicit)
+    {
+        string TestMesh1 =
+        """
+        9
+        0 0
+        0.5 0
+        1 0
+        0 0.5
+        0.5 0.5
+        1 0.5
+        0 1
+        0.5 1
+        1 1
+        4
+        0 1 4 3 0
+        1 2 5 4 0
+        3 4 7 6 0
+        4 5 8 7 0
+        8
+        0 1 0
+        1 2 0
+        2 5 0
+        5 8 0
+        7 8 0
+        6 7 0
+        0 3 0
+        3 6 0
+        """;
+
+        static double analyticSolution(Vector2D p, double t) => A(t) + p.X * p.X;
+
+        var mesh = new StringReader(TestMesh1).ReadMesh2D(
+            coordinateSystem: IdentityTransform<Vector2D>.Instance,
+            FiniteElements.Quadrangle.LagrangeCubic,
+            FiniteElements.Segment.LagrangeCubic
+        );
+
+        var problem = new HyperbolicProblem2D(
+            Materials:
+            [
+                new HyperbolicMaterial2D(
+                    Lambda: (p, t) => 1.0,
+                    Xi:     (p, t) => 0.0,
+                    Sigma:  (p, t) => 1.0,
+                    Source: (p, t) => dA(t) - 2.0
+                )
+            ],
+            InitialCondition: p => analyticSolution(p, 0),
+            BoundaryConditions:
+            [
+                new BoundaryCondition2D.Dirichlet(
+                    Value: (p, t) => analyticSolution(p, t)
+                )
+            ],
+            Mesh: mesh
+        );
+
+        var solver = new ParabolicSolver2D(
+            [isImplicit ? TimeSchemes.BackwardEuler : TimeSchemes.ForwardEuler],
+            DenseMatrix.Factory,
+            NumericItegrator2D.Instance,
+            new PCGSolver(m => IdentityPreconditioner.Instance)
+        );
+
+        double[] timeLayers = new double[100];
+
+        for (int i = 0; i < 100; i++)
+        {
+            timeLayers[i] = i * 0.0001;
+        }
+
+        //double[] timeLayers = [0.0, 0.25, 0.5, 0.75, 1.0];
+
+        //double[] timeLayers = [0.0, 0.25 / 3.0, 0.5 / 3.0, 0.75 / 3.0, 1.0 / 3.0, 1.25 / 3.0,
+        //    1.5 / 3.0, 1.75 / 3.0, 2.0 / 3.0, 2.25 / 3.0, 2.5 / 3.0, 2.75 / 3.0, 1.0
+        //    ];
+
+        //double[] timeLayers = [0.0, 0.125 / 3 ,0.25 / 3.0, 0.375 / 3.0, 0.5 / 3.0, 0.625 / 3.0, 0.75 / 3.0, 0.875 / 3.0, 1.0 / 3.0,
+        //    1.125 / 3 , 1.25 / 3.0, 1.375 / 3.0, 1.5 / 3.0, 1.625 / 3.0, 1.75 / 3.0, 1.875 / 3.0, 2.0 / 3.0,
+        //    2.125 / 3 , 2.25 / 3.0, 2.375 / 3.0, 2.5 / 3.0, 2.625 / 3.0, 2.75 / 3.0, 2.875 / 3.0, 3.0 / 3.0
+        //    ];
+
+        var solutions = solver.Solve(problem, timeLayers, new ISolver.Params(1e-12, 1000000));
+
+        int timeId = 1;
+        foreach (var solution in solutions)
+        {
+            double currentTime = timeLayers[timeId];
+            for (int i = 0; i < mesh.VertexCount; i++)
+            {
+                var point = mesh[i];
+                Assert.Equal(analyticSolution(point, currentTime), solution.Evaluate(point), 1e-12);
+            }
+            timeId++;
+        }
+    }
+
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public void РавномернаяСеткаСВнутреннимУзлом_КубическаяФункция_БиКубическийБазис_СУчетомВремени(bool isImplicit)
+    {
+        string TestMesh1 =
+        """
+        9
+        0 0
+        0.5 0
+        1 0
+        0 0.5
+        0.5 0.5
+        1 0.5
+        0 1
+        0.5 1
+        1 1
+        4
+        0 1 4 3 0
+        1 2 5 4 0
+        3 4 7 6 0
+        4 5 8 7 0
+        8
+        0 1 0
+        1 2 0
+        2 5 0
+        5 8 0
+        7 8 0
+        6 7 0
+        0 3 0
+        3 6 0
+        """;
+
+
+        static double analyticSolution(Vector2D p, double t) => A(t) + p.X * p.X * p.X;
+
+        var mesh = new StringReader(TestMesh1).ReadMesh2D(
+            coordinateSystem: IdentityTransform<Vector2D>.Instance,
+            FiniteElements.Quadrangle.LagrangeCubic,
+            FiniteElements.Segment.LagrangeCubic
+        );
+
+        var problem = new HyperbolicProblem2D(
+            Materials:
+            [
+                new HyperbolicMaterial2D(
+                    Lambda: (p, t) => 1.0,
+                    Xi:     (p, t) => 0.0,
+                    Sigma:  (p, t) => 1.0,
+                    Source: (p, t) => dA(t) - 6.0 * p.X
+                )
+            ],
+            InitialCondition: p => analyticSolution(p, 0),
+            BoundaryConditions:
+            [
+                new BoundaryCondition2D.Dirichlet(
+                    Value: (p, t) => analyticSolution(p, t)
+                )
+            ],
+            Mesh: mesh
+        );
+
+        var solver = new ParabolicSolver2D(
+            [isImplicit ? TimeSchemes.BackwardEuler : TimeSchemes.ForwardEuler],
+            DenseMatrix.Factory,
+            NumericItegrator2D.Instance,
+            new PCGSolver(m => IdentityPreconditioner.Instance)
+        );
+
+        double[] timeLayers = new double[100];
+
+        for (int i = 0; i < 100; i++)
+        {
+            timeLayers[i] = i * 0.0001;
+        }
+
+        //double[] timeLayers = [0.0, 0.5 / 3.0, 1 / 3.0, 1.5 / 3.0, 2.0 / 3.0, 2.5 / 3.0, 1.0];
+
+        //double[] timeLayers = [0.0, 0.125 / 3, 0.25 / 3.0, 0.375 / 3.0, 0.5 / 3.0, 0.625 / 3.0, 0.75 / 3.0, 0.875 / 3.0, 1.0 / 3.0,
+        //    1.125 / 3 , 1.25 / 3.0, 1.375 / 3.0, 1.5 / 3.0, 1.625 / 3.0, 1.75 / 3.0, 1.875 / 3.0, 2.0 / 3.0,
+        //    2.125 / 3 , 2.25 / 3.0, 2.375 / 3.0, 2.5 / 3.0, 2.625 / 3.0, 2.75 / 3.0, 2.875 / 3.0, 1
+        //    ];
+
+        //double[] timeLayers = [
+        //    0.0, 0.0625 / 3.0, 0.125 / 3.0, 0.1875 / 3.0, 0.25 / 3.0, 0.3125 / 3.0, 0.375 / 3.0, 0.4375 / 3.0, 0.5 / 3.0, 0.5625 / 3.0, 0.625 / 3.0, 0.6875 / 3.0, 0.75 / 3.0, 0.8125 / 3.0, 0.875 / 3.0, 0.9375 / 3.0, 1.0 / 3.0,
+        //    1.0625 / 3.0, 1.125 / 3.0, 1.1875 / 3.0, 1.25 / 3.0, 1.3125 / 3.0, 1.375 / 3.0, 1.4375 / 3.0, 1.5 / 3.0, 1.5625 / 3.0, 1.625 / 3.0, 1.6875 / 3.0, 1.75 / 3.0, 1.8125 / 3.0, 1.875 / 3.0, 1.9375 / 3.0, 2.0 / 3.0,
+        //    2.0625 / 3.0, 2.125 / 3.0, 2.1875 / 3.0, 2.25 / 3.0, 2.3125 / 3.0, 2.375 / 3.0, 2.4375 / 3.0, 2.5 / 3.0, 2.5625 / 3.0, 2.625 / 3.0, 2.6875 / 3.0, 2.75 / 3.0, 2.8125 / 3.0, 2.875 / 3.0, 2.9375 / 3.0, 1.0
+        //    ];
+
+        var solutions = solver.Solve(problem, timeLayers, new ISolver.Params(1e-12, 10000));
+
+        int timeId = 1;
+        foreach (var solution in solutions)
+        {
+            double currentTime = timeLayers[timeId];
+            for (int i = 0; i < mesh.VertexCount; i++)
+            {
+                var point = mesh[i];
+                Assert.Equal(analyticSolution(point, currentTime), solution.Evaluate(point), 1e-10);
+            }
+            timeId++;
+        }
+    }
+
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public void РавномернаяСеткаСВнутреннимУзлом_КубическаяФункция_ПостоянноеПоВремениA(bool isImplicit)
+    {
+        string TestMesh1 =
+                  """
+        9
+        0 0
+        3 0
+        6 0
+        0 3
+        3 3
+        6 3
+        0 6
+        3 6
+        6 6
+        4
+        0 1 4 3 0
+        1 2 5 4 0
+        3 4 7 6 0
+        4 5 8 7 0
+        8
+        0 1 0
+        1 2 0
+        2 5 0
+        5 8 0
+        7 8 0
+        6 7 0
+        0 3 0
+        3 6 0
+        """;
+
+        static double analyticSolution(Vector2D p, double t) => p.X * p.X * p.X;
+
+
+
+        var mesh = new StringReader(TestMesh1).ReadMesh2D(
+            coordinateSystem: IdentityTransform<Vector2D>.Instance,
+            FiniteElements.Quadrangle.LagrangeCubic,
+            FiniteElements.Segment.LagrangeCubic
+        );
+
+        var problem = new HyperbolicProblem2D(
+            Materials:
+            [
+                new HyperbolicMaterial2D(
+                Lambda: (p, t) => 1.0,
+                Xi:     (p, t) => 0.0,
+                Sigma:  (p, t) => 1.0,
+                Source: (p, t) => -6.0 * p.X
+            )
+            ],
+            InitialCondition: p => analyticSolution(p, 0),
+            BoundaryConditions:
+            [
+                new BoundaryCondition2D.Dirichlet(
+                Value: (p, t) => analyticSolution(p, t)
+            )
+            ],
+            Mesh: mesh
+        );
+
+        var solver = new ParabolicSolver2D(
+            [isImplicit ? TimeSchemes.BackwardEuler : TimeSchemes.ForwardEuler],
+            DenseMatrix.Factory,
+            NumericItegrator2D.Instance,
+            new PCGSolver(m => IdentityPreconditioner.Instance)
+        );
+
+        //double[] timeLayers = [0.0, 0.5 / 3.0, 1 / 3.0, 1.5 / 3.0, 2.0 / 3.0, 2.5 / 3.0, 1.0];
+
+        double[] timeLayers = [0.0, 0.125 / 3 ,0.25 / 3.0, 0.375 / 3.0, 0.5 / 3.0, 0.625 / 3.0, 0.75 / 3.0, 0.875 / 3.0, 1.0 / 3.0,
+            1.125 / 3 , 1.25 / 3.0, 1.375 / 3.0, 1.5 / 3.0, 1.625 / 3.0, 1.75 / 3.0, 1.875 / 3.0, 2.0 / 3.0,
+            2.125 / 3 , 2.25 / 3.0, 2.375 / 3.0, 2.5 / 3.0, 2.625 / 3.0, 2.75 / 3.0, 2.875 / 3.0, 3.0 / 3.0
+        ];
+
+        var solutions = solver.Solve(problem, timeLayers, new ISolver.Params(1e-14, 10000));
+
+        int timeId = 1;
+        foreach (var solution in solutions)
+        {
+            double currentTime = timeLayers[timeId];
+            for (int i = 0; i < mesh.VertexCount; i++)
+            {
+                var point = mesh[i];
+                Assert.Equal(analyticSolution(point, currentTime), solution.Evaluate(point), 1e-12);
+            }
+            timeId++;
+        }
+    }
+
+
+    //начало тестов на трехслойной схеме
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public void ПроизвольныйЭлемент_КубическаяФункция_БиКубическийБазис_СУчетомВремени_ТрехслойнаяСхема(bool isImplicit)
+    {
+        string TestMesh1 =
+        """
+        4
+        0 0
+        1 0
+        1 1
+        0 1
+        1
+        0 1 2 3 0
+        4
+        0 1 0
+        1 2 0
+        2 3 0
+        3 0 0
+        """;
+
+        static double analyticSolution(Vector2D p, double t) => A(t) * p.X * p.X * p.X;
+
+        var mesh = new StringReader(TestMesh1).ReadMesh2D(
+            coordinateSystem: IdentityTransform<Vector2D>.Instance,
+            FiniteElements.Quadrangle.LagrangeCubic,
+            FiniteElements.Segment.LagrangeCubic
+        );
+
+        var problem = new HyperbolicProblem2D(
+            Materials:
+            [
+                new HyperbolicMaterial2D(
+                    Lambda: (p, t) => 1.0,
+                    Xi:     (p, t) => 0.0,
+                    Sigma:  (p, t) => 1.0,
+                    Source: (p, t) => dA(t) * p.X * p.X * p.X - 6.0 * A(t) * p.X
+                )
+            ],
+            InitialCondition: p => analyticSolution(p, 0),
+            BoundaryConditions:
+            [
+                new BoundaryCondition2D.Dirichlet(
+                    Value: (p, t) => analyticSolution(p, t)
+                )
+            ],
+            Mesh: mesh
+        );
+
+        var solver = new ParabolicSolver2D(
+            isImplicit ? [TimeSchemes.BackwardEuler, TimeSchemes.ImplicitThreeLayer] : [TimeSchemes.ForwardEuler, TimeSchemes.ExplicitThreeLayer],
+            DenseMatrix.Factory,
+            NumericItegrator2D.Instance,
+            new PCGSolver(m => IdentityPreconditioner.Instance)
+        );
+
+        //double[] timeLayers = [0.0, 0.5 / 3.0, 1 / 3.0, 1.5 / 3.0, 2.0 / 3.0, 2.5 / 3.0, 1.0];
+
+        double[] timeLayers = [0.0, 0.125 / 3 ,0.25 / 3.0, 0.375 / 3.0, 0.5 / 3.0, 0.625 / 3.0, 0.75 / 3.0, 0.875 / 3.0, 1.0 / 3.0,
+            1.125 / 3 , 1.25 / 3.0, 1.375 / 3.0, 1.5 / 3.0, 1.625 / 3.0, 1.75 / 3.0, 1.875 / 3.0, 2.0 / 3.0,
+            2.125 / 3 , 2.25 / 3.0, 2.375 / 3.0, 2.5 / 3.0, 2.625 / 3.0, 2.75 / 3.0, 2.875 / 3.0, 3.0 / 3.0
+        ];
+
+        var solutions = solver.Solve(problem, timeLayers, new ISolver.Params(1e-12, 10000));
+
+        int timeId = 1;
+        foreach (var solution in solutions)
+        {
+            double currentTime = timeLayers[timeId];
+            for (int i = 0; i < mesh.VertexCount; i++)
+            {
+                var point = mesh[i];
+                Assert.Equal(analyticSolution(point, currentTime), solution.Evaluate(point), 1e-12);
+            }
+            timeId++;
+        }
+    }
+
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public void МастерЭлемент_КвадратичнаяФункция_БиКубическийБазис_СУчетомВремени_ТрехслойнаяСхема(bool isImplicit)
+    {
+        string TestMesh1 =
+        """
+        4
+        0 0
+        1 0
+        1 1
+        0 1
+        1
+        0 1 2 3 0
+        4
+        0 1 0
+        1 2 0
+        2 3 0
+        3 0 0
+        """;
+
+        static double analyticSolution(Vector2D p, double t) => A(t) * p.X * p.X;
+
+        var mesh = new StringReader(TestMesh1).ReadMesh2D(
+            coordinateSystem: IdentityTransform<Vector2D>.Instance,
+            FiniteElements.Quadrangle.LagrangeCubic,
+            FiniteElements.Segment.LagrangeCubic
+        );
+
+        var problem = new HyperbolicProblem2D(
+            Materials:
+            [
+                new HyperbolicMaterial2D(
+                    Lambda: (p, t) => 1.0,
+                    Xi:     (p, t) => 0.0,
+                    Sigma:  (p, t) => 1.0,
+                    Source: (p, t) => dA(t) * p.X * p.X - 2.0 * A(t)
+                )
+            ],
+            InitialCondition: p => analyticSolution(p, 0),
+            BoundaryConditions:
+            [
+                new BoundaryCondition2D.Dirichlet(
+                    Value: (p, t) => analyticSolution(p, t)
+                )
+            ],
+            Mesh: mesh
+        );
+
+        var solver = new ParabolicSolver2D(
+            isImplicit ? [TimeSchemes.BackwardEuler, TimeSchemes.ImplicitThreeLayer] : [TimeSchemes.ForwardEuler, TimeSchemes.ExplicitThreeLayer],
+            DenseMatrix.Factory,
+            NumericItegrator2D.Instance,
+            new PCGSolver(m => IdentityPreconditioner.Instance)
+        );
+
+        //double[] timeLayers = [0.0, 0.5 / 3.0, 1 / 3.0, 1.5 / 3.0, 2.0 / 3.0, 2.5 / 3.0, 1.0];
+
+        double[] timeLayers = [0.0, 0.125 / 3 ,0.25 / 3.0, 0.375 / 3.0, 0.5 / 3.0, 0.625 / 3.0, 0.75 / 3.0, 0.875 / 3.0, 1.0 / 3.0,
+            1.125 / 3 , 1.25 / 3.0, 1.375 / 3.0, 1.5 / 3.0, 1.625 / 3.0, 1.75 / 3.0, 1.875 / 3.0, 2.0 / 3.0,
+            2.125 / 3 , 2.25 / 3.0, 2.375 / 3.0, 2.5 / 3.0, 2.625 / 3.0, 2.75 / 3.0, 2.875 / 3.0, 3.0 / 3.0
+        ];
+
+        var solutions = solver.Solve(problem, timeLayers, new ISolver.Params(1e-12, 10000));
+
+        int timeId = 1;
+        foreach (var solution in solutions)
+        {
+            double currentTime = timeLayers[timeId];
+            for (int i = 0; i < mesh.VertexCount; i++)
+            {
+                var point = mesh[i];
+                Assert.Equal(analyticSolution(point, currentTime), solution.Evaluate(point), 1e-12);
+            }
+            timeId++;
+        }
+    }
+    
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public void РавномернаяСеткаСВнутреннимУзлом_КвадратичнаяФункция_БиКубическийБазис_СУчетомВремени_ТрехслойнаяСхема(bool isImplicit)
+    {
+        string TestMesh1 =
+        """
+        9
+        0 0
+        0.5 0
+        1 0
+        0 0.5
+        0.5 0.5
+        1 0.5
+        0 1
+        0.5 1
+        1 1
+        4
+        0 1 4 3 0
+        1 2 5 4 0
+        3 4 7 6 0
+        4 5 8 7 0
+        8
+        0 1 0
+        1 2 0
+        2 5 0
+        5 8 0
+        7 8 0
+        6 7 0
+        0 3 0
+        3 6 0
+        """;
+
+        static double analyticSolution(Vector2D p, double t) => A(t) * p.X * p.X;
+
+        var mesh = new StringReader(TestMesh1).ReadMesh2D(
+            coordinateSystem: IdentityTransform<Vector2D>.Instance,
+            FiniteElements.Quadrangle.LagrangeCubic,
+            FiniteElements.Segment.LagrangeCubic
+        );
+
+        var problem = new HyperbolicProblem2D(
+            Materials:
+            [
+                new HyperbolicMaterial2D(
+                    Lambda: (p, t) => 1.0,
+                    Xi:     (p, t) => 0.0,
+                    Sigma:  (p, t) => 1.0,
+                    Source: (p, t) => dA(t) * p.X * p.X - 2.0 * A(t)
+                )
+            ],
+            InitialCondition: p => analyticSolution(p, 0),
+            BoundaryConditions:
+            [
+                new BoundaryCondition2D.Dirichlet(
+                    Value: (p, t) => analyticSolution(p, t)
+                )
+            ],
+            Mesh: mesh
+        );
+
+        var solver = new ParabolicSolver2D(
+            isImplicit ? [TimeSchemes.BackwardEuler, TimeSchemes.ImplicitThreeLayer] : [TimeSchemes.ForwardEuler, TimeSchemes.ExplicitThreeLayer],
+            DenseMatrix.Factory,
+            NumericItegrator2D.Instance,
+            new PCGSolver(m => IdentityPreconditioner.Instance)
+        );
+
+        double[] timeLayers = new double[100];
+
+        for (int i = 0; i < 100; i++)
+        {
+            timeLayers[i] = i * 0.00000001;
+        }
+
+        //double[] timeLayers = [0.0, 0.25 / 3.0, 0.5 / 3.0, 0.75 / 3.0, 1.0 / 3.0, 1.25 / 3.0,
+        //    1.5 / 3.0, 1.75 / 3.0, 2.0 / 3.0, 2.25 / 3.0, 2.5 / 3.0, 2.75 / 3.0, 1.0
+        //    ];
+
+        //double[] timeLayers = [0.0, 0.125 / 3 ,0.25 / 3.0, 0.375 / 3.0, 0.5 / 3.0, 0.625 / 3.0, 0.75 / 3.0, 0.875 / 3.0, 1.0 / 3.0,
+        //    1.125 / 3 , 1.25 / 3.0, 1.375 / 3.0, 1.5 / 3.0, 1.625 / 3.0, 1.75 / 3.0, 1.875 / 3.0, 2.0 / 3.0,
+        //    2.125 / 3 , 2.25 / 3.0, 2.375 / 3.0, 2.5 / 3.0, 2.625 / 3.0, 2.75 / 3.0, 2.875 / 3.0, 3.0 / 3.0
+        //    ];
+
+        var solutions = solver.Solve(problem, timeLayers, new ISolver.Params(1e-12, 10000));
+
+        int timeId = 1;
+        foreach (var solution in solutions)
+        {
+            double currentTime = timeLayers[timeId];
+            for (int i = 0; i < mesh.VertexCount; i++)
+            {
+                var point = mesh[i];
+                Assert.Equal(analyticSolution(point, currentTime), solution.Evaluate(point), 1e-12);
+            }
+            timeId++;
+        }
+    }
+
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public void РавномернаяСеткаСВнутреннимУзлом_КубическаяФункция_БиКубическийБазис_СУчетомВремени_ТрехслойнаяСхема(bool isImplicit)
+    {
+        string TestMesh1 =
+        """
+        9
+        0 0
+        0.5 0
+        1 0
+        0 0.5
+        0.5 0.5
+        1 0.5
+        0 1
+        0.5 1
+        1 1
+        4
+        0 1 4 3 0
+        1 2 5 4 0
+        3 4 7 6 0
+        4 5 8 7 0
+        8
+        0 1 0
+        1 2 0
+        2 5 0
+        5 8 0
+        7 8 0
+        6 7 0
+        0 3 0
+        3 6 0
+        """;
+
+
+        static double analyticSolution(Vector2D p, double t) => A(t) * p.X * p.X * p.X;
+
+        var mesh = new StringReader(TestMesh1).ReadMesh2D(
+            coordinateSystem: IdentityTransform<Vector2D>.Instance,
+            FiniteElements.Quadrangle.LagrangeCubic,
+            FiniteElements.Segment.LagrangeCubic
+        );
+
+        var problem = new HyperbolicProblem2D(
+            Materials:
+            [
+                new HyperbolicMaterial2D(
+                    Lambda: (p, t) => 1.0,
+                    Xi:     (p, t) => 0.0,
+                    Sigma:  (p, t) => 1.0,
+                    Source: (p, t) => dA(t) * p.X * p.X * p.X - 6.0 * A(t) * p.X
+                )
+            ],
+            InitialCondition: p => analyticSolution(p, 0),
+            BoundaryConditions:
+            [
+                new BoundaryCondition2D.Dirichlet(
+                    Value: (p, t) => analyticSolution(p, t)
+                )
+            ],
+            Mesh: mesh
+        );
+
+        var solver = new ParabolicSolver2D(
+            isImplicit ? [TimeSchemes.BackwardEuler, TimeSchemes.ImplicitThreeLayer] : [TimeSchemes.ForwardEuler, TimeSchemes.ExplicitThreeLayer],
+            DenseMatrix.Factory,
+            NumericItegrator2D.Instance,
+            new PCGSolver(m => IdentityPreconditioner.Instance)
+        );
+
+        double[] timeLayers = new double[100];
+
+        for (int i = 0; i < 100; i++)
+        {
+            timeLayers[i] = i * 0.0000000001;
+        }
+
+        //double[] timeLayers = [0.0, 0.5 / 3.0, 1 / 3.0, 1.5 / 3.0, 2.0 / 3.0, 2.5 / 3.0, 1.0];
+
+        //double[] timeLayers = [0.0, 0.125 / 3 ,0.25 / 3.0, 0.375 / 3.0, 0.5 / 3.0, 0.625 / 3.0, 0.75 / 3.0, 0.875 / 3.0, 1.0 / 3.0,
+        //    1.125 / 3 , 1.25 / 3.0, 1.375 / 3.0, 1.5 / 3.0, 1.625 / 3.0, 1.75 / 3.0, 1.875 / 3.0, 2.0 / 3.0,
+        //    2.125 / 3 , 2.25 / 3.0, 2.375 / 3.0, 2.5 / 3.0, 2.625 / 3.0, 2.75 / 3.0, 2.875 / 3.0, 3.0 / 3.0
+        //    ];
+
+        var solutions = solver.Solve(problem, timeLayers, new ISolver.Params(1e-12, 10000));
+
+        int timeId = 1;
+        foreach (var solution in solutions)
+        {
+            double currentTime = timeLayers[timeId];
+            for (int i = 0; i < mesh.VertexCount; i++)
+            {
+                var point = mesh[i];
+                Assert.Equal(analyticSolution(point, currentTime), solution.Evaluate(point), 1e-12);
+            }
+            timeId++;
+        }
+    }
+
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public void РавномернаяСеткаСВнутреннимУзлом_КубическаяФункция_ПостоянноеПоВремениA_ТрехслойнаяСхема(bool isImplicit)
+    {
+        string TestMesh1 =
+        """
+    9
+    0 0
+    0.5 0
+    1 0
+    0 0.5
+    0.5 0.5
+    1 0.5
+    0 1
+    0.5 1
+    1 1
+    4
+    0 1 4 3 0
+    1 2 5 4 0
+    3 4 7 6 0
+    4 5 8 7 0
+    8
+    0 1 0
+    1 2 0
+    2 5 0
+    5 8 0
+    7 8 0
+    6 7 0
+    0 3 0
+    3 6 0
+    """;
+
+        double analyticSolution(Vector2D p, double t) => p.X * p.X * p.X;
+
+        var mesh = new StringReader(TestMesh1).ReadMesh2D(
+            coordinateSystem: IdentityTransform<Vector2D>.Instance,
+            FiniteElements.Quadrangle.LagrangeCubic,
+            FiniteElements.Segment.LagrangeCubic
+        );
+
+        var problem = new HyperbolicProblem2D(
+            Materials:
+            [
+                new HyperbolicMaterial2D(
+                Lambda: (p, t) => 1.0,
+                Xi:     (p, t) => 0.0,
+                Sigma:  (p, t) => 1.0,
+                Source: (p, t) => -6.0 * p.X
+            )
+            ],
+            InitialCondition: p => analyticSolution(p, 0),
+            BoundaryConditions:
+            [
+                new BoundaryCondition2D.Dirichlet(
+                Value: (p, t) => analyticSolution(p, t)
+            )
+            ],
+            Mesh: mesh
+        );
+
+        var solver = new ParabolicSolver2D(
+            isImplicit ? [TimeSchemes.BackwardEuler, TimeSchemes.ImplicitThreeLayer] : [TimeSchemes.ForwardEuler, TimeSchemes.ExplicitThreeLayer],
+            DenseMatrix.Factory,
+            NumericItegrator2D.Instance,
+            new PCGSolver(m => IdentityPreconditioner.Instance)
+        );
+
+        double[] timeLayers = new double[100];
+
+        for (int i = 0; i < 100; i++)
+        {
+            timeLayers[i] = i * 0.0001;
+        }
+
+        //double[] timeLayers = [0.0, 0.5 / 3.0, 1 / 3.0, 1.5 / 3.0, 2.0 / 3.0, 2.5 / 3.0, 1.0];
+
+        //double[] timeLayers = [0.0, 0.125 / 3 ,0.25 / 3.0, 0.375 / 3.0, 0.5 / 3.0, 0.625 / 3.0, 0.75 / 3.0, 0.875 / 3.0, 1.0 / 3.0,
+        //    1.125 / 3 , 1.25 / 3.0, 1.375 / 3.0, 1.5 / 3.0, 1.625 / 3.0, 1.75 / 3.0, 1.875 / 3.0, 2.0 / 3.0,
+        //    2.125 / 3 , 2.25 / 3.0, 2.375 / 3.0, 2.5 / 3.0, 2.625 / 3.0, 2.75 / 3.0, 2.875 / 3.0, 3.0 / 3.0
+        //];
+
+        var solutions = solver.Solve(problem, timeLayers, new ISolver.Params(1e-12, 10000));
+
+        int timeId = 1;
+        foreach (var solution in solutions)
+        {
+            double currentTime = timeLayers[timeId];
+            for (int i = 0; i < mesh.VertexCount; i++)
+            {
+                var point = mesh[i];
+                Assert.Equal(analyticSolution(point, currentTime), solution.Evaluate(point), 1e-12);
+            }
+            timeId++;
+        }
+    }
+
 }
 
 public class ParabolicProblemQuadrangleHermiteTests
