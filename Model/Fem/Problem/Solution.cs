@@ -55,6 +55,6 @@ public sealed class StationarySolution<TSpace, TBoundary>(
             }
             totalDifference += elementDifference;
         }
-        return totalDifference;
+        return Math.Sqrt(totalDifference);
     }
 }
