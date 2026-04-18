@@ -33,13 +33,13 @@ public static class TimeSchemes
     /// <code>[M + MS3]⋅u_n = (dt)b_{n-1} + [-(dt)G + M]⋅u_{n-1}</code>
     /// </summary>
     /// <remarks>Formula [1, 7.12]</remarks>
-    public static ITimeScheme ExplicitTwoLayers { get; } = new ExplicitTwoLayersScheme();
+    public static ITimeScheme ExplicitTwoLayers { get; } = new ForwardEulerScheme();
 
     /// <summary>
     /// <code>[2M + (dt)G + (dt)MS3]⋅u_n = dt⋅[b_n + b_{n-1}] + [2M - (dt)G - (dt)MS3]⋅u_{n-1}</code>
     /// </summary>
     /// <remarks>Formula [1, 7.13]</remarks>
-    public static ITimeScheme ImplicitTwoLayers { get; } = new ImplicitTwoLayersScheme();
+    public static ITimeScheme ImplicitTwoLayers { get; } = new BackwardEulerScheme();
 
     /// <summary>
     /// <code>[dt1/(dt⋅dt0)M + MS3]⋅u_n = b_{n-1} + [-G + (dt+dt0)/(dt⋅dt0)M]⋅u_{n-1} + (dt0)/(dt⋅dt1)M⋅u_{n-2}</code>
@@ -57,7 +57,7 @@ public static class TimeSchemes
     /// <code>[M + MS3]⋅u_n = (dt)b_{n-1} + [-(dt)G + M]⋅u_{n-1}</code>
     /// </summary>
     /// <remarks>Formula [1, 7.12]</remarks>
-    private sealed class ExplicitTwoLayersScheme : ITimeScheme
+    private sealed class ForwardEulerScheme : ITimeScheme
     {
         public int Layers => 2;
 
@@ -90,7 +90,7 @@ public static class TimeSchemes
     /// <code>[2M + (dt)G + (dt)MS3]⋅u_n = dt⋅[b_n + b_{n-1}] + [2M - (dt)G - (dt)MS3]⋅u_{n-1}</code>
     /// </summary>
     /// <remarks>Formula [1, 7.13]</remarks>
-    private sealed class ImplicitTwoLayersScheme : ITimeScheme
+    private sealed class BackwardEulerScheme : ITimeScheme
     {
         public int Layers => 2;
 
@@ -132,8 +132,8 @@ public static class TimeSchemes
         private static (double dt, double dt0, double dt1) GetTimeSteps(ReadOnlySpan<double> t)
             => (
                 dt: t[2] - t[0],
-                dt0: t[1] - t[0],
-                dt1: t[2] - t[1]
+                dt0: t[2] - t[1],
+                dt1: t[1] - t[0]
             );
 
         public void GetStiffnessScale(ReadOnlySpan<double> t, Span<double> outAlpha)
@@ -177,8 +177,8 @@ public static class TimeSchemes
         private static (double dt, double dt0, double dt1) GetTimeSteps(ReadOnlySpan<double> t) 
             => (
                 dt: t[2] - t[0],
-                dt0: t[1] - t[0],
-                dt1: t[2] - t[1]
+                dt0: t[2] - t[1],
+                dt1: t[1] - t[0]
             );
 
         public void GetStiffnessScale(ReadOnlySpan<double> t, Span<double> outAlpha)
