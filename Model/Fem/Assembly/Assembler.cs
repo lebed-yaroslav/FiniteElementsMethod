@@ -227,7 +227,8 @@ public sealed record Assembler<TSpace, TBoundary, TOps>(
     public void CalculateBoundaryLoadContribution(
         BoundaryCondition<TSpace>[] boundaryConditions,
         double time,
-        Span<double> outLoad
+        Span<double> outLoad,
+        double scale = 1.0
     )
     {
         foreach (var element in Mesh.BoundaryElements)
@@ -237,12 +238,12 @@ public sealed record Assembler<TSpace, TBoundary, TOps>(
                 case BoundaryCondition<TSpace>.Neumann(var flux):
                     var load2 = new double[element.DOF.Count];
                     Integrator.CalculateLocalLoad(element, p => flux(p, time), load2);
-                    AddLocalLoad(load2, element.DOF, outLoad);
+                    AddLocalLoad(load2, element.DOF, outLoad, scale);
                     break;
                 case BoundaryCondition<TSpace>.Robin(var beta, var uBeta):
                     var load3 = new double[element.DOF.Count];
                     Integrator.CalculateLocalLoad(element, p => beta(p, time) * uBeta(p, time), load3);
-                    AddLocalLoad(load3, element.DOF, outLoad);
+                    AddLocalLoad(load3, element.DOF, outLoad, scale);
                     break;
             }
         }

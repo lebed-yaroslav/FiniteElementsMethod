@@ -2,131 +2,212 @@ using System.Diagnostics;
 
 namespace Model.Fem.Problem;
 
-
+/// <summary>
+/// Time scheme of type:
+/// <code>
+/// ∑ [i=0,k | ((αi)G + (βi)M + (ζi)MS3)⋅u_{n-i} + (γi)⋅f_{n-i}] = 0
+/// </code>
+/// where:
+/// <list type="bullet">
+/// <item>k - <see cref="Layers"/></item>
+/// <item>α - <see cref="GetStiffnessScale"/></item>
+/// <item>β - <see cref="GetMassScale"/></item>
+/// <item>ζ - <see cref="GetRobinMassScale"/></item>
+/// <item>γ - <see cref="GetSourceScale"/></item>
+/// </list>
+/// </summary>
 public interface ITimeScheme
-{
-    int SolutionLayerCount { get; }
+{   
+    int Layers { get; }
 
-    double GetStiffnessScale(double dt);
-    double GetMassScale(double dt);
-    double GetSourceScale(double dt);
-
-    void GetHistoryStiffnessCoefficients(double dt, Span<double> outCoeff);
-    void GetHistoryMassCoefficients(double dt, Span<double> outCoeff);
+    void GetStiffnessScale(ReadOnlySpan<double> t, Span<double> outAlpha);
+    void GetMassScale(ReadOnlySpan<double> t, Span<double> outBeta);
+    void GetRobinMassScale(ReadOnlySpan<double> t, Span<double> outZeta);
+    void GetSourceScale(ReadOnlySpan<double> t, Span<double> outGamma);
 }
 
 
 public static class TimeSchemes
 {
     /// <summary>
-    /// Explicit two-layer scheme:
-    /// <code>M * u_n = (dt)f_n - (dt)G * u_{n-1} + M * u_{n-1}</code>
+    /// <code>[M + MS3]⋅u_n = b_{n-1} + [-(dt)G + M]⋅u_{n-1}</code>
     /// </summary>
+    /// <remarks>Formula [1, 7.12]</remarks>
     public static ITimeScheme ForwardEuler { get; } = new ForwardEulerScheme();
 
     /// <summary>
-    /// Implicit two-layer scheme:
-    /// <code>[(dt)G + M] * u_n = (dt)f_n + M * u_{n-1}</code>
+    /// <code>[2M + (dt)G + (dt)MS3]⋅u_n = dt⋅[b_n + b_{n-1}] + [2M - (dt)G - (dt)MS3]⋅u_{n-1}</code>
     /// </summary>
+    /// <remarks>Formula [1, 7.13]</remarks>
     public static ITimeScheme BackwardEuler { get; } = new BackwardEulerScheme();
 
     /// <summary>
-    /// Explicit three-layer scheme:
-    /// <code>M * u_n = (2dt)f_n - (2dt)G * u_{n-1} + M * u_{n-2}</code>
+    /// <code>[dt1/(dt⋅dt0)M + MS3]⋅u_n = b_{n-1} + [-G + (dt+dt0)/(dt⋅dt0)M]⋅u_{n-1} + (dt0)/(dt⋅dt1)M⋅u_{n-2}</code>
     /// </summary>
     public static ITimeScheme ExplicitThreeLayer { get; } = new ExplicitThreeLayerScheme();
 
     /// <summary>
-    /// Implicit three-layer scheme:
-    /// <code>[(2dt)G + M] * u_n = (2dt)f_n + M * u_{n-2}</code>
+    /// <code>[G + (dt+dt0)/(dt⋅dt0)M + MS3]⋅u_n = b_n + (dt)/(dt1⋅dt0)M⋅u_{n-1} - (dt0)/(dt⋅dt1)M⋅u_{n-2}</code>
     /// </summary>
+    /// <remarks>Formula [1, 7.24]</remarks>
     public static ITimeScheme ImplicitThreeLayer { get; } = new ImplicitThreeLayerScheme();
 
 
+    /// <summary>
+    /// <code>[M + MS3]⋅u_n = (dt)b_{n-1} + [-(dt)G + M]⋅u_{n-1}</code>
+    /// </summary>
+    /// <remarks>Formula [1, 7.12]</remarks>
     private sealed class ForwardEulerScheme : ITimeScheme
     {
-        public int SolutionLayerCount => 2;
+        public int Layers => 2;
 
-        public double GetStiffnessScale(double dt) => 0.0;
-        public double GetMassScale(double dt) => 1.0;
-        public double GetSourceScale(double dt) => dt;
-
-        public void GetHistoryStiffnessCoefficients(double dt, Span<double> outCoeff)
+        public void GetStiffnessScale(ReadOnlySpan<double> t, Span<double> outAlpha)
         {
-            Debug.Assert(outCoeff.Length >= 1);
-            outCoeff[0] = -dt;
+            outAlpha[0] = 0.0;
+            outAlpha[1] = t[1] - t[0];
         }
 
-        public void GetHistoryMassCoefficients(double dt, Span<double> outCoeff)
+        public void GetMassScale(ReadOnlySpan<double> t, Span<double> outBeta)
         {
-            Debug.Assert(outCoeff.Length >= 1);
-            outCoeff[0] = 1.0;
+            outBeta[0] = 1.0;
+            outBeta[1] = -1.0;
+        }
+
+        public void GetRobinMassScale(ReadOnlySpan<double> t, Span<double> outZeta)
+        {
+            outZeta[0] = 1.0;
+            outZeta[1] = 0.0;
+        }
+
+        public void GetSourceScale(ReadOnlySpan<double> t, Span<double> outGamma)
+        {
+            outGamma[0] = -(t[1] - t[0]);
+            outGamma[1] = 0.0;
         }
     }
 
+    /// <summary>
+    /// <code>[2M + (dt)G + (dt)MS3]⋅u_n = dt⋅[b_n + b_{n-1}] + [2M - (dt)G - (dt)MS3]⋅u_{n-1}</code>
+    /// </summary>
+    /// <remarks>Formula [1, 7.13]</remarks>
     private sealed class BackwardEulerScheme : ITimeScheme
     {
-        public int SolutionLayerCount => 2;
+        public int Layers => 2;
 
-        public double GetStiffnessScale(double dt) => dt;
-        public double GetMassScale(double dt) => 1.0;
-        public double GetSourceScale(double dt) => dt;
-
-        public void GetHistoryStiffnessCoefficients(double dt, Span<double> outCoeff)
+        public void GetStiffnessScale(ReadOnlySpan<double> t, Span<double> outAlpha)
         {
-            Debug.Assert(outCoeff.Length >= 1);
-            outCoeff[0] = 0.0;
+            var dt = t[1] - t[0];
+            outAlpha[0] = dt;
+            outAlpha[1] = dt;
         }
 
-        public void GetHistoryMassCoefficients(double dt, Span<double> outCoeff)
+        public void GetMassScale(ReadOnlySpan<double> t, Span<double> outBeta)
         {
-            Debug.Assert(outCoeff.Length >= 1);
-            outCoeff[0] = 1.0;
+            outBeta[0] = 2.0;
+            outBeta[1] = -2.0;
+        }
+
+        public void GetRobinMassScale(ReadOnlySpan<double> t, Span<double> outZeta)
+        {
+            var dt = t[1] - t[0];
+            outZeta[0] = dt;
+            outZeta[1] = dt;
+        }
+
+        public void GetSourceScale(ReadOnlySpan<double> t, Span<double> outGamma)
+        {
+            var dt = t[1] - t[0];
+            outGamma[0] = -dt;
+            outGamma[1] = -dt;
         }
     }
 
+    /// <summary>
+    /// <code>[dt1/(dt⋅dt0)M + MS3]⋅u_n = b_{n-1} + [-G + (dt+dt0)/(dt⋅dt0)M]⋅u_{n-1} + (dt0)/(dt⋅dt1)M⋅u_{n-2}</code>
+    /// </summary>
     private sealed class ExplicitThreeLayerScheme : ITimeScheme
     {
-        public int SolutionLayerCount => 3;
+        public int Layers => 3;
 
-        public double GetStiffnessScale(double dt) => 0.0;
-        public double GetMassScale(double dt) => 1.0;
-        public double GetSourceScale(double dt) => 2 * dt;
+        private static (double dt, double dt0, double dt1) GetTimeSteps(ReadOnlySpan<double> t)
+            => (
+                dt: t[2] - t[0],
+                dt0: t[1] - t[0],
+                dt1: t[2] - t[1]
+            );
 
-        public void GetHistoryStiffnessCoefficients(double dt, Span<double> outCoeff)
+        public void GetStiffnessScale(ReadOnlySpan<double> t, Span<double> outAlpha)
         {
-            Debug.Assert(outCoeff.Length >= 2);
-            outCoeff[0] = -2 * dt; // u_{n-1}
-            outCoeff[1] = 0.0; // u_{n-2}
+            outAlpha[0] = 0.0;
+            outAlpha[1] = 1.0;
+            outAlpha[2] = 0.0;
         }
 
-        public void GetHistoryMassCoefficients(double dt, Span<double> outCoeff)
+        public void GetMassScale(ReadOnlySpan<double> t, Span<double> outBeta)
         {
-            Debug.Assert(outCoeff.Length >= 2);
-            outCoeff[0] = 0.0; // u_{n-1}
-            outCoeff[1] = 1.0; // u_{n-2}
+            (var dt, var dt0, var dt1) = GetTimeSteps(t);
+            outBeta[0] = dt1 / (dt * dt0);
+            outBeta[1] = -(dt1 - dt0) / (dt1 * dt0);
+            outBeta[2] = -dt0 / (dt * dt1);
+        }
+
+        public void GetRobinMassScale(ReadOnlySpan<double> t, Span<double> outZeta)
+        {
+            outZeta[0] = 0.0;
+            outZeta[1] = -1.0;
+            outZeta[2] = 0.0;
+        }
+
+        public void GetSourceScale(ReadOnlySpan<double> t, Span<double> outGamma)
+        {
+            outGamma[0] = -1.0;
+            outGamma[1] = 0.0;
+            outGamma[2] = 0.0;
         }
     }
 
+    /// <summary>
+    /// <code>[G + (dt+dt0)/(dt⋅dt0)M + MS3]⋅u_n = b_n + (dt)/(dt1⋅dt0)M⋅u_{n-1} - (dt0)/(dt⋅dt1)M⋅u_{n-2}</code>
+    /// </summary>
+    /// <remarks>Formula [1, 7.24]</remarks>
     private sealed class ImplicitThreeLayerScheme : ITimeScheme
     {
-        public int SolutionLayerCount => 3;
+        public int Layers => 3;
 
-        public double GetStiffnessScale(double dt) => 2 * dt;
-        public double GetMassScale(double dt) => 1.0;
-        public double GetSourceScale(double dt) => 2 * dt;
+        private static (double dt, double dt0, double dt1) GetTimeSteps(ReadOnlySpan<double> t) 
+            => (
+                dt: t[2] - t[0],
+                dt0: t[1] - t[0],
+                dt1: t[2] - t[1]
+            );
 
-        public void GetHistoryStiffnessCoefficients(double dt, Span<double> outCoeff)
+        public void GetStiffnessScale(ReadOnlySpan<double> t, Span<double> outAlpha)
         {
-            Debug.Assert(outCoeff.Length >= 2);
-            outCoeff.Clear();
+            outAlpha[0] = 1.0;
+            outAlpha[1] = 0.0;
+            outAlpha[2] = 0.0;
         }
 
-        public void GetHistoryMassCoefficients(double dt, Span<double> outCoeff)
+        public void GetMassScale(ReadOnlySpan<double> t, Span<double> outBeta)
         {
-            Debug.Assert(outCoeff.Length >= 2);
-            outCoeff[0] = 0.0; // u_{n-1}
-            outCoeff[1] = 1.0; // u_{n-2}
+            (var dt, var dt0, var dt1) = GetTimeSteps(t);
+            outBeta[0] = (dt + dt0) / (dt * dt0);
+            outBeta[1] = -dt / (dt1 * dt0);
+            outBeta[2] = dt0 / (dt * dt1);
+        }
+
+        public void GetRobinMassScale(ReadOnlySpan<double> t, Span<double> outZeta)
+        {
+            outZeta[0] = 1.0;
+            outZeta[1] = 0.0;
+            outZeta[2] = 0.0;
+        }
+
+        public void GetSourceScale(ReadOnlySpan<double> t, Span<double> outGamma)
+        {
+            outGamma[0] = -1.0;
+            outGamma[1] = 0.0;
+            outGamma[2] = 0.0;
         }
     }
 }

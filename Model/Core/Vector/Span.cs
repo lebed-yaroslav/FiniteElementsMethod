@@ -44,5 +44,8 @@ public static class SpanAsVectorExtensions
             for (int i = 0; i < self.Length; ++i)
                 self[i] *= alpha;
         }
+
+        public void AddScaled(double alpha, ReadOnlySpan<double> rhs)
+            => self.AddScaled(alpha, rhs, self);
     }
 }

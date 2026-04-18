@@ -3,6 +3,7 @@ using Model.Core.CoordinateSystem;
 using Model.Core.Matrix;
 using Model.Core.Solver;
 using Model.Core.Util;
+using Model.Core.Vector;
 using Model.Fem.Assembly;
 using Model.Fem.Integrator;
 using Model.Fem.Mesh;
@@ -39,57 +40,44 @@ public sealed class ParabolicSolver<TSpace, TBoundary, TOps>(
         var assembler = new Assembler<TSpace, TBoundary, TOps>(mesh, dofManager, _matrixFactory, _integrator);
 
         var globalMatrix = assembler.CreateGlobalMatrix(); // A_ff
-        var rhsVector = dofManager.CreateFreeVector(); // b_ff
+        var rhsVector = dofManager.CreateFreeVector();
 
-        var solutions = new SlidingWindow<double[]>(_timeSchemes[^1].SolutionLayerCount); // u
+        var solutions = new SlidingWindow<double[]>(_timeSchemes[^1].Layers); // u_{n-i}
         solutions.Push(dofManager.CreateFullVector());
+
         assembler.CalculateInitialCondition(problem.InitialCondition, _algebraicSolver, solutions.Last, solverParams);
 
-        var alpha = 0.0;
-        var beta = 0.0;
-        var gamma = new double[_timeSchemes[^1].SolutionLayerCount - 1];
-        var delta = new double[_timeSchemes[^1].SolutionLayerCount - 1];
+        var loadVectors = new SlidingWindow<double[]>(_timeSchemes[^1].Layers); // b_ff{n-i}
+        loadVectors.Push(assembler.CreateRhsVector());
+        assembler.CalculateLoad(id => problem.Source(id, timePoints[0]), loadVectors.Last);
+        assembler.CalculateBoundaryLoadContribution(problem.BoundaryConditions, timePoints[0], loadVectors.Last);
 
-        void ApplyLocalStiffness(LocalMatrix local, ReadOnlySpan<int> indices, double dt)
+        void ApplyLocalMatrix(LocalMatrix local, ReadOnlySpan<int> indices, ReadOnlySpan<double> coefficients)
         {
-            // 1. History contributions: b += Sum(i, (γi)G  u_{n-i})
-            var k = solutions.Count - 2;
-            for (int i = 0; i <= k; ++i)
+            // 1. History contributions: b -= ∑ [i=1,k | (ci)A⋅u_{n-i}]
+            var k = solutions.Count - 1;
+            for (int i = 1; i <= k; ++i)
             {
+                if (coefficients[i] == 0) continue;
                 var oldSolution = solutions[k - i];
-                local.AddMatVec(dofManager.AsFreeSpan(oldSolution), indices, rhsVector, scale: gamma[i]);
-                assembler.AddFixedLoadContribution(local, indices, dofManager.AsFixedSpan(oldSolution), rhsVector, scale: -gamma[i]);
+                local.AddMatVec(dofManager.AsFreeSpan(oldSolution), indices, rhsVector, scale: -coefficients[i]);
+                assembler.AddFixedLoadContribution(local, indices, dofManager.AsFixedSpan(oldSolution), rhsVector, scale: coefficients[i]);
             }
 
-            // 2. Global matrix: A += αG_ff, b -= αG_fd * u_d
-            local *= alpha;
-            globalMatrix.AddLocalMatrix(local, indices);
-            assembler.AddFixedLoadContribution(local, indices, dofManager.AsFixedSpan(solutions.Last), rhsVector);
-        }
-
-        void ApplyLocalMass(LocalMatrix local, ReadOnlySpan<int> indices, double dt)
-        {
-            // 1. History contributions: b += Sum(i, (δi)M * u_{n-i})
-            var k = solutions.Count - 2;
-            for (int i = 0; i <= k; ++i)
+            // 2. Global matrix: A += (c0)A_ff, b -= (c0)A_fd⋅u_d
+            if (coefficients[0] != 0)
             {
-                var oldSolution = solutions[k - i];
-                local.AddMatVec(dofManager.AsFreeSpan(oldSolution), indices, rhsVector, scale: delta[i]);
-                assembler.AddFixedLoadContribution(local, indices, dofManager.AsFixedSpan(oldSolution), rhsVector, scale: -delta[i]);
+                local *= coefficients[0];
+                globalMatrix.AddLocalMatrix(local, indices);
+                assembler.AddFixedLoadContribution(local, indices, dofManager.AsFixedSpan(solutions.Last), rhsVector);
             }
-
-            // 2. Global matrix: A += βM_ff, b += -βM_fd * u_d
-            local *= beta;
-            globalMatrix.AddLocalMatrix(local, indices);
-            assembler.AddFixedLoadContribution(local, indices, dofManager.AsFixedSpan(solutions.Last), rhsVector);
         }
 
-        // globalMatrix += MS3_ff, And rhsVector += -MS3_fd * u_d
-        void ApplyLocalMatrix(LocalMatrix local, ReadOnlySpan<int> indices)
-        {
-            globalMatrix.AddLocalMatrix(local, indices);
-            assembler.AddFixedLoadContribution(local, indices, dofManager.AsFixedSpan(solutions.Last), rhsVector);
-        }
+
+        var alpha = new double[_timeSchemes[^1].Layers];
+        var beta = new double[_timeSchemes[^1].Layers];
+        var gamma = new double[_timeSchemes[^1].Layers];
+        var zeta = new double[_timeSchemes[^1].Layers];
 
         for (int i = 1; i < timePoints.Length; ++i)
         {
@@ -97,46 +85,49 @@ public sealed class ParabolicSolver<TSpace, TBoundary, TOps>(
             // 0. Cleanup for next step
             solutions.CycleOrPushNew(dofManager.CreateFullVector);
             // Array.Fill(solutions.Last, 0) - Reuse old solution as initial guess
+            loadVectors.CycleOrPushNew(dofManager.CreateFreeVector);
+            Array.Fill(loadVectors.Last, 0);
             Array.Fill(rhsVector, 0);
             globalMatrix.Fill(0);
 
+            // 1. Calculate time scheme coefficients
+            var currentScheme = _timeSchemes[int.Min(i, _timeSchemes.Length) - 1];
+            var timeSpan = timePoints.AsSpan(i - currentScheme.Layers + 1, currentScheme.Layers);
             var time = timePoints[i];
 
-            var currentScheme = _timeSchemes[int.Min(i, _timeSchemes.Length) - 1];
-
-            // 1. Calculate time scheme coefficients
-            var dt = time - timePoints[i - 1];
-            alpha = currentScheme.GetStiffnessScale(dt);
-            beta = currentScheme.GetMassScale(dt);
-            currentScheme.GetHistoryStiffnessCoefficients(dt, gamma);
-            currentScheme.GetHistoryMassCoefficients(dt, delta);
-            var zeta = currentScheme.GetSourceScale(dt);
+            currentScheme.GetStiffnessScale(timeSpan, alpha);
+            currentScheme.GetMassScale(timeSpan, beta);
+            currentScheme.GetSourceScale(timeSpan, gamma);
+            currentScheme.GetRobinMassScale(timeSpan, zeta);
 
             // 2. Calculate fixed solution at current time (u_d)
             assembler.CalculateFixedElements(
-                problem.BoundaryConditions, time,
+                problem.BoundaryConditions, timeSpan[^1],
                 _algebraicSolver,
                 dofManager.AsFixedSpan(solutions.Last),
                 solverParams
             );
 
-            // 3. Assemble main part: (αG + βM)u_n = ζf + Sum(i, [(γi)G +  (δi)M] * u_{n-i})
+            // 3. Assemble matrices part: ∑ [i=0,k | (αi)G + (βi)M + (ζi)MS3]⋅u_{n-i}
             assembler.CalculateStiffness(
                 id => problem.Lambda(id, time),
-                (local, indices) => ApplyLocalStiffness(local, indices, dt)
+                (local, indices) => ApplyLocalMatrix(local, indices, alpha)
             );
             assembler.CalculateMass(
                 id => problem.Sigma(id, time),
-                (local, indices) => ApplyLocalMass(local, indices, dt)
+                (local, indices) => ApplyLocalMatrix(local, indices, beta)
             );
-            assembler.CalculateLoad(id => problem.Source(id, time), rhsVector, scale: zeta);
-
-            // 4. Calculate boundary condition contribution
             assembler.CalculateRobinMassContribution(
                 problem.BoundaryConditions, time,
-                ApplyLocalMatrix
+                (local, indices) => ApplyLocalMatrix(local, indices, zeta)
             );
-            assembler.CalculateBoundaryLoadContribution(problem.BoundaryConditions, time, rhsVector);
+
+            // 4. Assemble load part: ∑ [(γi)⋅f_{n-i}] = 0
+            assembler.CalculateLoad(id => problem.Source(id, time), loadVectors.Last);
+            assembler.CalculateBoundaryLoadContribution(problem.BoundaryConditions, time, loadVectors.Last);
+            for (int j = 0; j < loadVectors.Count; ++j)
+                if (gamma[j] != 0)
+                    rhsVector.AddScaled(-gamma[j], loadVectors[j]);
 
             // 5. Solve system
             _algebraicSolver.Matrix = globalMatrix;
@@ -156,6 +147,6 @@ public sealed class ParabolicSolver<TSpace, TBoundary, TOps>(
     private static void DebugAssertSchemesAreCorrectTypes(ITimeScheme[] schemes)
     {
         for (int i = 0; i < schemes.Length; ++i)
-            Debug.Assert(schemes[i].SolutionLayerCount == i + 2);
+            Debug.Assert(schemes[i].Layers == i + 2);
     }
 }

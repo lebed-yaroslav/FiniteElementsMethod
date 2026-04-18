@@ -244,7 +244,7 @@ public class ParabolicProblemTriangleTests
                 mesh
             );
 
-            var solver = new ParabolicSolver2D([TimeSchemes.BackwardEuler,TimeSchemes.ImplicitThreeLayer],
+            var solver = new ParabolicSolver2D([TimeSchemes.BackwardEuler, TimeSchemes.ImplicitThreeLayer],
                 CsrMatrix.Factory,
                 NumericItegrator2D.Instance,
                 new PCGSolver(m => IdentityPreconditioner.Instance)
