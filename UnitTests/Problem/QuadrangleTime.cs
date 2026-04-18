@@ -81,7 +81,7 @@ public class ParabolicProblemQuadrangleTests
         );
 
         var solver = new ParabolicSolver2D(
-            [isImplicit ? TimeSchemes.BackwardEuler : TimeSchemes.ForwardEuler],
+            [isImplicit ? TimeSchemes.ImplicitTwoLayers : TimeSchemes.ExplicitTwoLayers],
             DenseMatrix.Factory,
             NumericItegrator2D.Instance,
             new PCGSolver(m => IdentityPreconditioner.Instance)
@@ -144,7 +144,7 @@ public class ParabolicProblemQuadrangleTests
         );
 
         var solver = new ParabolicSolver2D(
-            [isImplicit ? TimeSchemes.BackwardEuler : TimeSchemes.ForwardEuler],
+            [isImplicit ? TimeSchemes.ImplicitTwoLayers : TimeSchemes.ExplicitTwoLayers],
             DenseMatrix.Factory,
             NumericItegrator2D.Instance,
             new PCGSolver(m => IdentityPreconditioner.Instance)
@@ -203,7 +203,7 @@ public class ParabolicProblemQuadrangleTests
         );
 
         var solver = new ParabolicSolver2D(
-            [isImplicit ? TimeSchemes.BackwardEuler : TimeSchemes.ForwardEuler],
+            [isImplicit ? TimeSchemes.ImplicitTwoLayers : TimeSchemes.ExplicitTwoLayers],
             DenseMatrix.Factory,
             NumericItegrator2D.Instance,
             new PCGSolver(m => IdentityPreconditioner.Instance)
@@ -266,7 +266,7 @@ public class ParabolicProblemQuadrangleTests
         );
 
         var solver = new ParabolicSolver2D(
-            [isImplicit ? TimeSchemes.BackwardEuler : TimeSchemes.ForwardEuler],
+            [isImplicit ? TimeSchemes.ImplicitTwoLayers : TimeSchemes.ExplicitTwoLayers],
             DenseMatrix.Factory,
             NumericItegrator2D.Instance,
             new PCGSolver(m => IdentityPreconditioner.Instance)
@@ -341,7 +341,7 @@ public class ParabolicProblemQuadrangleTests
         );
 
         var solver = new ParabolicSolver2D(
-            [isImplicit ? TimeSchemes.BackwardEuler : TimeSchemes.ForwardEuler],
+            [isImplicit ? TimeSchemes.ImplicitTwoLayers : TimeSchemes.ExplicitTwoLayers],
             DenseMatrix.Factory,
             NumericItegrator2D.Instance,
             new PCGSolver(m => IdentityPreconditioner.Instance)
@@ -406,7 +406,7 @@ public class ParabolicProblemQuadrangleTests
         );
 
         var solver = new ParabolicSolver2D(
-            [isImplicit ? TimeSchemes.BackwardEuler : TimeSchemes.ForwardEuler],
+            [isImplicit ? TimeSchemes.ImplicitTwoLayers : TimeSchemes.ExplicitTwoLayers],
             DenseMatrix.Factory,
             NumericItegrator2D.Instance,
             new PCGSolver(m => IdentityPreconditioner.Instance)
@@ -469,7 +469,7 @@ public class ParabolicProblemQuadrangleTests
         );
 
         var solver = new ParabolicSolver2D(
-            [isImplicit ? TimeSchemes.BackwardEuler : TimeSchemes.ForwardEuler],
+            [isImplicit ? TimeSchemes.ImplicitTwoLayers : TimeSchemes.ExplicitTwoLayers],
             DenseMatrix.Factory,
             NumericItegrator2D.Instance,
             new PCGSolver(m => IdentityPreconditioner.Instance)
@@ -544,7 +544,7 @@ public class ParabolicProblemQuadrangleTests
         );
 
         var solver = new ParabolicSolver2D(
-            [isImplicit ? TimeSchemes.BackwardEuler : TimeSchemes.ForwardEuler],
+            [isImplicit ? TimeSchemes.ImplicitTwoLayers : TimeSchemes.ExplicitTwoLayers],
             DenseMatrix.Factory,
             NumericItegrator2D.Instance,
             new PCGSolver(m => IdentityPreconditioner.Instance)
@@ -625,7 +625,7 @@ public class ParabolicProblemQuadrangleTests
         );
 
         var solver = new ParabolicSolver2D(
-            [isImplicit ? TimeSchemes.BackwardEuler : TimeSchemes.ForwardEuler],
+            [isImplicit ? TimeSchemes.ImplicitTwoLayers : TimeSchemes.ExplicitTwoLayers],
             DenseMatrix.Factory,
             NumericItegrator2D.Instance,
             new PCGSolver(m => IdentityPreconditioner.Instance)
@@ -709,7 +709,7 @@ public class ParabolicProblemQuadrangleTests
         );
 
         var solver = new ParabolicSolver2D(
-            [isImplicit ? TimeSchemes.BackwardEuler : TimeSchemes.ForwardEuler],
+            [isImplicit ? TimeSchemes.ImplicitTwoLayers : TimeSchemes.ExplicitTwoLayers],
             DenseMatrix.Factory,
             NumericItegrator2D.Instance,
             new PCGSolver(m => IdentityPreconditioner.Instance)
@@ -782,7 +782,7 @@ public class ParabolicProblemQuadrangleTests
         );
 
         var solver = new ParabolicSolver2D(
-            [isImplicit ? TimeSchemes.BackwardEuler : TimeSchemes.ForwardEuler],
+            [isImplicit ? TimeSchemes.ImplicitTwoLayers : TimeSchemes.ExplicitTwoLayers],
             DenseMatrix.Factory,
             NumericItegrator2D.Instance,
             new PCGSolver(m => IdentityPreconditioner.Instance)
@@ -860,7 +860,7 @@ public class ParabolicProblemQuadrangleTests
         );
 
         var solver = new ParabolicSolver2D(
-            [isImplicit ? TimeSchemes.BackwardEuler : TimeSchemes.ForwardEuler],
+            [isImplicit ? TimeSchemes.ImplicitTwoLayers : TimeSchemes.ExplicitTwoLayers],
             DenseMatrix.Factory,
             NumericItegrator2D.Instance,
             new PCGSolver(m => IdentityPreconditioner.Instance)
@@ -950,7 +950,7 @@ public class ParabolicProblemQuadrangleTests
         );
 
         var solver = new ParabolicSolver2D(
-            [isImplicit ? TimeSchemes.BackwardEuler : TimeSchemes.ForwardEuler],
+            [isImplicit ? TimeSchemes.ImplicitTwoLayers : TimeSchemes.ExplicitTwoLayers],
             DenseMatrix.Factory,
             NumericItegrator2D.Instance,
             new PCGSolver(m => IdentityPreconditioner.Instance)
@@ -1047,7 +1047,7 @@ public class ParabolicProblemQuadrangleTests
         );
 
         var solver = new ParabolicSolver2D(
-            [isImplicit ? TimeSchemes.BackwardEuler : TimeSchemes.ForwardEuler],
+            [isImplicit ? TimeSchemes.ImplicitTwoLayers : TimeSchemes.ExplicitTwoLayers],
             DenseMatrix.Factory,
             NumericItegrator2D.Instance,
             new PCGSolver(m => IdentityPreconditioner.Instance)
@@ -1149,7 +1149,7 @@ public class ParabolicProblemQuadrangleTests
         );
 
         var solver = new ParabolicSolver2D(
-            [isImplicit ? TimeSchemes.BackwardEuler : TimeSchemes.ForwardEuler],
+            [isImplicit ? TimeSchemes.ImplicitTwoLayers : TimeSchemes.ExplicitTwoLayers],
             DenseMatrix.Factory,
             NumericItegrator2D.Instance,
             new PCGSolver(m => IdentityPreconditioner.Instance)
@@ -1254,7 +1254,7 @@ public class ParabolicProblemQuadrangleTests
         );
 
         var solver = new ParabolicSolver2D(
-            [isImplicit ? TimeSchemes.BackwardEuler : TimeSchemes.ForwardEuler],
+            [isImplicit ? TimeSchemes.ImplicitTwoLayers : TimeSchemes.ExplicitTwoLayers],
             DenseMatrix.Factory,
             NumericItegrator2D.Instance,
             new PCGSolver(m => IdentityPreconditioner.Instance)
@@ -1334,7 +1334,7 @@ public class ParabolicProblemQuadrangleTests
         );
 
         var solver = new ParabolicSolver2D(
-            isImplicit ? [TimeSchemes.BackwardEuler, TimeSchemes.ImplicitThreeLayer] : [TimeSchemes.ForwardEuler, TimeSchemes.ExplicitThreeLayer],
+            isImplicit ? [TimeSchemes.ImplicitTwoLayers, TimeSchemes.ImplicitThreeLayer] : [TimeSchemes.ExplicitTwoLayers, TimeSchemes.ExplicitThreeLayer],
             DenseMatrix.Factory,
             NumericItegrator2D.Instance,
             new PCGSolver(m => IdentityPreconditioner.Instance)
@@ -1412,7 +1412,7 @@ public class ParabolicProblemQuadrangleTests
         );
 
         var solver = new ParabolicSolver2D(
-            isImplicit ? [TimeSchemes.BackwardEuler, TimeSchemes.ImplicitThreeLayer] : [TimeSchemes.ForwardEuler, TimeSchemes.ExplicitThreeLayer],
+            isImplicit ? [TimeSchemes.ImplicitTwoLayers, TimeSchemes.ImplicitThreeLayer] : [TimeSchemes.ExplicitTwoLayers, TimeSchemes.ExplicitThreeLayer],
             DenseMatrix.Factory,
             NumericItegrator2D.Instance,
             new PCGSolver(m => IdentityPreconditioner.Instance)
@@ -1502,7 +1502,7 @@ public class ParabolicProblemQuadrangleTests
         );
 
         var solver = new ParabolicSolver2D(
-            isImplicit ? [TimeSchemes.BackwardEuler, TimeSchemes.ImplicitThreeLayer] : [TimeSchemes.ForwardEuler, TimeSchemes.ExplicitThreeLayer],
+            isImplicit ? [TimeSchemes.ImplicitTwoLayers, TimeSchemes.ImplicitThreeLayer] : [TimeSchemes.ExplicitTwoLayers, TimeSchemes.ExplicitThreeLayer],
             DenseMatrix.Factory,
             NumericItegrator2D.Instance,
             new PCGSolver(m => IdentityPreconditioner.Instance)
@@ -1602,7 +1602,7 @@ public class ParabolicProblemQuadrangleTests
         );
 
         var solver = new ParabolicSolver2D(
-            isImplicit ? [TimeSchemes.BackwardEuler, TimeSchemes.ImplicitThreeLayer] : [TimeSchemes.ForwardEuler, TimeSchemes.ExplicitThreeLayer],
+            isImplicit ? [TimeSchemes.ImplicitTwoLayers, TimeSchemes.ImplicitThreeLayer] : [TimeSchemes.ExplicitTwoLayers, TimeSchemes.ExplicitThreeLayer],
             DenseMatrix.Factory,
             NumericItegrator2D.Instance,
             new PCGSolver(m => IdentityPreconditioner.Instance)
@@ -1699,7 +1699,7 @@ public class ParabolicProblemQuadrangleTests
         );
 
         var solver = new ParabolicSolver2D(
-            isImplicit ? [TimeSchemes.BackwardEuler, TimeSchemes.ImplicitThreeLayer] : [TimeSchemes.ForwardEuler, TimeSchemes.ExplicitThreeLayer],
+            isImplicit ? [TimeSchemes.ImplicitTwoLayers, TimeSchemes.ImplicitThreeLayer] : [TimeSchemes.ExplicitTwoLayers, TimeSchemes.ExplicitThreeLayer],
             DenseMatrix.Factory,
             NumericItegrator2D.Instance,
             new PCGSolver(m => IdentityPreconditioner.Instance)
@@ -2379,10 +2379,10 @@ public class ParabolicProblemQuadrangleHermiteTests
 
         ITimeScheme[] timeSchemes = schemeKind switch
         {
-            TimeSchemeKind.ForwardEuler => [TimeSchemes.ForwardEuler],
-            TimeSchemeKind.BackwardEuler => [TimeSchemes.BackwardEuler],
-            TimeSchemeKind.ExplicitThreeLayer => [TimeSchemes.ForwardEuler, TimeSchemes.ExplicitThreeLayer],
-            TimeSchemeKind.ImplicitThreeLayer => [TimeSchemes.BackwardEuler, TimeSchemes.ImplicitThreeLayer],
+            TimeSchemeKind.ForwardEuler => [TimeSchemes.ExplicitTwoLayers],
+            TimeSchemeKind.BackwardEuler => [TimeSchemes.ImplicitTwoLayers],
+            TimeSchemeKind.ExplicitThreeLayer => [TimeSchemes.ExplicitTwoLayers, TimeSchemes.ExplicitThreeLayer],
+            TimeSchemeKind.ImplicitThreeLayer => [TimeSchemes.ImplicitTwoLayers, TimeSchemes.ImplicitThreeLayer],
             _ => throw new ArgumentOutOfRangeException(nameof(schemeKind))
         };
 

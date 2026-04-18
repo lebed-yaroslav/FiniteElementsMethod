@@ -146,7 +146,7 @@ public class ParabolicProblemTriangleTests
             );
 
             var solver = new ParabolicSolver2D(
-                [TimeSchemes.ForwardEuler],
+                [TimeSchemes.ExplicitTwoLayers],
                 CsrMatrix.Factory,
                 NumericItegrator2D.Instance,
                 new PCGSolver(m => IdentityPreconditioner.Instance)
@@ -196,7 +196,7 @@ public class ParabolicProblemTriangleTests
             );
 
             var solver = new ParabolicSolver2D(
-                [TimeSchemes.ForwardEuler],
+                [TimeSchemes.ExplicitTwoLayers],
                 CsrMatrix.Factory,
                 NumericItegrator2D.Instance,
                 new PCGSolver(m => IdentityPreconditioner.Instance)
@@ -244,7 +244,7 @@ public class ParabolicProblemTriangleTests
                 mesh
             );
 
-            var solver = new ParabolicSolver2D([TimeSchemes.BackwardEuler, TimeSchemes.ImplicitThreeLayer],
+            var solver = new ParabolicSolver2D([TimeSchemes.ImplicitTwoLayers, TimeSchemes.ImplicitThreeLayer],
                 CsrMatrix.Factory,
                 NumericItegrator2D.Instance,
                 new PCGSolver(m => IdentityPreconditioner.Instance)
@@ -294,7 +294,7 @@ public class ParabolicProblemTriangleTests
                 mesh
             );
 
-            var solver = new ParabolicSolver2D([TimeSchemes.ForwardEuler],
+            var solver = new ParabolicSolver2D([TimeSchemes.ExplicitTwoLayers],
                 CsrMatrix.Factory,
                 NumericItegrator2D.Instance,
                 new PCGSolver(m => IdentityPreconditioner.Instance)
@@ -343,7 +343,7 @@ public class ParabolicProblemTriangleTests
                 mesh
             );
 
-            var solver = new ParabolicSolver2D([TimeSchemes.ForwardEuler],
+            var solver = new ParabolicSolver2D([TimeSchemes.ExplicitTwoLayers],
                 CsrMatrix.Factory,
                 NumericItegrator2D.Instance,
                 new PCGSolver(m => IdentityPreconditioner.Instance)
@@ -392,7 +392,7 @@ public class ParabolicProblemTriangleTests
                 mesh
             );
 
-            var solver = new ParabolicSolver2D([TimeSchemes.ForwardEuler],
+            var solver = new ParabolicSolver2D([TimeSchemes.ExplicitTwoLayers],
                 CsrMatrix.Factory,
                 NumericItegrator2D.Instance,
                 new PCGSolver(m => IdentityPreconditioner.Instance)
@@ -442,7 +442,7 @@ public class ParabolicProblemTriangleTests
                 mesh
             );
 
-            var solver = new ParabolicSolver2D([TimeSchemes.ForwardEuler],
+            var solver = new ParabolicSolver2D([TimeSchemes.ExplicitTwoLayers],
                 CsrMatrix.Factory,
                 NumericItegrator2D.Instance,
                 new PCGSolver(m => IdentityPreconditioner.Instance)
@@ -493,7 +493,7 @@ public class ParabolicProblemTriangleTests
                 mesh
             );
 
-            var solver = new ParabolicSolver2D([TimeSchemes.ForwardEuler],
+            var solver = new ParabolicSolver2D([TimeSchemes.ExplicitTwoLayers],
                 CsrMatrix.Factory,
                 NumericItegrator2D.Instance,
                 new PCGSolver(m => IdentityPreconditioner.Instance)
@@ -550,7 +550,7 @@ public class ParabolicProblemTriangleTests
                 mesh
             );
 
-            var solver = new ParabolicSolver2D([TimeSchemes.BackwardEuler,TimeSchemes.ImplicitThreeLayer],
+            var solver = new ParabolicSolver2D([TimeSchemes.ImplicitTwoLayers,TimeSchemes.ImplicitThreeLayer],
                 CsrMatrix.Factory,
                 NumericItegrator2D.Instance,
                 new PCGSolver(m => IdentityPreconditioner.Instance)
@@ -609,7 +609,7 @@ public class ParabolicProblemTriangleTests
                 mesh
             );
 
-            var solver = new ParabolicSolver2D([TimeSchemes.ForwardEuler],
+            var solver = new ParabolicSolver2D([TimeSchemes.ExplicitTwoLayers],
                 CsrMatrix.Factory,
                 NumericItegrator2D.Instance,
                 new PCGSolver(m => IdentityPreconditioner.Instance)
@@ -669,7 +669,7 @@ public class ParabolicProblemTriangleTests
                 mesh
             );
 
-            var solver = new ParabolicSolver2D([TimeSchemes.BackwardEuler,TimeSchemes.ImplicitThreeLayer],
+            var solver = new ParabolicSolver2D([TimeSchemes.ImplicitTwoLayers,TimeSchemes.ImplicitThreeLayer],
                 CsrMatrix.Factory,
                 NumericItegrator2D.Instance,
                 new PCGSolver(m => IdentityPreconditioner.Instance)
@@ -729,7 +729,7 @@ public class ParabolicProblemTriangleTests
                 mesh
             );
 
-            var solver = new ParabolicSolver2D([TimeSchemes.BackwardEuler, TimeSchemes.ImplicitThreeLayer],
+            var solver = new ParabolicSolver2D([TimeSchemes.ImplicitTwoLayers, TimeSchemes.ImplicitThreeLayer],
                 CsrMatrix.Factory,
                 NumericItegrator2D.Instance,
                 new PCGSolver(m => IdentityPreconditioner.Instance)
@@ -791,7 +791,7 @@ public class ParabolicProblemTriangleTests
                 mesh
             );
 
-            var solver = new ParabolicSolver2D([TimeSchemes.ForwardEuler],
+            var solver = new ParabolicSolver2D([TimeSchemes.ExplicitTwoLayers],
                 CsrMatrix.Factory,
                 NumericItegrator2D.Instance,
                 new PCGSolver(m => IdentityPreconditioner.Instance)
@@ -845,7 +845,7 @@ public class ParabolicProblemTriangleTests
                 mesh
             );
 
-            var solver = new ParabolicSolver2D([TimeSchemes.ForwardEuler],
+            var solver = new ParabolicSolver2D([TimeSchemes.ExplicitTwoLayers],
                 CsrMatrix.Factory,
                 NumericItegrator2D.Instance,
                 new PCGSolver(m => IdentityPreconditioner.Instance)
@@ -903,7 +903,7 @@ public class ParabolicProblemTriangleTests
                 mesh
             );
 
-            var solver = new ParabolicSolver2D([TimeSchemes.BackwardEuler,TimeSchemes.ImplicitThreeLayer],
+            var solver = new ParabolicSolver2D([TimeSchemes.ImplicitTwoLayers,TimeSchemes.ImplicitThreeLayer],
                 CsrMatrix.Factory,
                 NumericItegrator2D.Instance,
                 new PCGSolver(m => IdentityPreconditioner.Instance)
@@ -959,7 +959,7 @@ public class ParabolicProblemTriangleTests
                 mesh
             );
 
-            var solver = new ParabolicSolver2D([TimeSchemes.BackwardEuler, TimeSchemes.ImplicitThreeLayer],
+            var solver = new ParabolicSolver2D([TimeSchemes.ImplicitTwoLayers, TimeSchemes.ImplicitThreeLayer],
                 CsrMatrix.Factory,
                 NumericItegrator2D.Instance,
                 new PCGSolver(m => IdentityPreconditioner.Instance)
@@ -1006,7 +1006,7 @@ public class ParabolicProblemTriangleTests
                 mesh
             );
 
-            var solver = new ParabolicSolver2D([TimeSchemes.BackwardEuler,TimeSchemes.ImplicitThreeLayer],
+            var solver = new ParabolicSolver2D([TimeSchemes.ImplicitTwoLayers,TimeSchemes.ImplicitThreeLayer],
                 CsrMatrix.Factory,
                 NumericItegrator2D.Instance,
                 new PCGSolver(m => IdentityPreconditioner.Instance)
@@ -1053,7 +1053,7 @@ public class ParabolicProblemTriangleTests
                 mesh
             );
 
-            var solver = new ParabolicSolver2D([TimeSchemes.BackwardEuler, TimeSchemes.ImplicitThreeLayer],
+            var solver = new ParabolicSolver2D([TimeSchemes.ImplicitTwoLayers, TimeSchemes.ImplicitThreeLayer],
                 CsrMatrix.Factory,
                 NumericItegrator2D.Instance,
                 new PCGSolver(m => IdentityPreconditioner.Instance)
@@ -1101,7 +1101,7 @@ public class ParabolicProblemTriangleTests
                 mesh
             );
 
-            var solver = new ParabolicSolver2D([TimeSchemes.BackwardEuler, TimeSchemes.ImplicitThreeLayer],
+            var solver = new ParabolicSolver2D([TimeSchemes.ImplicitTwoLayers, TimeSchemes.ImplicitThreeLayer],
                 CsrMatrix.Factory,
                 NumericItegrator2D.Instance,
                 new PCGSolver(m => IdentityPreconditioner.Instance)

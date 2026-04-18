@@ -55,11 +55,10 @@ public sealed class ParabolicSolver<TSpace, TBoundary, TOps>(
         void ApplyLocalMatrix(LocalMatrix local, ReadOnlySpan<int> indices, ReadOnlySpan<double> coefficients)
         {
             // 1. History contributions: b -= ∑ [i=1,k | (ci)A⋅u_{n-i}]
-            var k = solutions.Count - 1;
-            for (int i = 1; i <= k; ++i)
+            for (int i = 1; i < solutions.Count; ++i)
             {
                 if (coefficients[i] == 0) continue;
-                var oldSolution = solutions[k - i];
+                var oldSolution = solutions[^(i + 1)];
                 local.AddMatVec(dofManager.AsFreeSpan(oldSolution), indices, rhsVector, scale: -coefficients[i]);
                 assembler.AddFixedLoadContribution(local, indices, dofManager.AsFixedSpan(oldSolution), rhsVector, scale: coefficients[i]);
             }
@@ -127,7 +126,7 @@ public sealed class ParabolicSolver<TSpace, TBoundary, TOps>(
             assembler.CalculateBoundaryLoadContribution(problem.BoundaryConditions, time, loadVectors.Last);
             for (int j = 0; j < loadVectors.Count; ++j)
                 if (gamma[j] != 0)
-                    rhsVector.AddScaled(-gamma[j], loadVectors[j]);
+                    rhsVector.AddScaled(-gamma[j], loadVectors[^(j + 1)]);
 
             // 5. Solve system
             _algebraicSolver.Matrix = globalMatrix;

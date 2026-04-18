@@ -30,16 +30,16 @@ public interface ITimeScheme
 public static class TimeSchemes
 {
     /// <summary>
-    /// <code>[M + MS3]⋅u_n = b_{n-1} + [-(dt)G + M]⋅u_{n-1}</code>
+    /// <code>[M + MS3]⋅u_n = (dt)b_{n-1} + [-(dt)G + M]⋅u_{n-1}</code>
     /// </summary>
     /// <remarks>Formula [1, 7.12]</remarks>
-    public static ITimeScheme ForwardEuler { get; } = new ForwardEulerScheme();
+    public static ITimeScheme ExplicitTwoLayers { get; } = new ExplicitTwoLayersScheme();
 
     /// <summary>
     /// <code>[2M + (dt)G + (dt)MS3]⋅u_n = dt⋅[b_n + b_{n-1}] + [2M - (dt)G - (dt)MS3]⋅u_{n-1}</code>
     /// </summary>
     /// <remarks>Formula [1, 7.13]</remarks>
-    public static ITimeScheme BackwardEuler { get; } = new BackwardEulerScheme();
+    public static ITimeScheme ImplicitTwoLayers { get; } = new ImplicitTwoLayersScheme();
 
     /// <summary>
     /// <code>[dt1/(dt⋅dt0)M + MS3]⋅u_n = b_{n-1} + [-G + (dt+dt0)/(dt⋅dt0)M]⋅u_{n-1} + (dt0)/(dt⋅dt1)M⋅u_{n-2}</code>
@@ -57,7 +57,7 @@ public static class TimeSchemes
     /// <code>[M + MS3]⋅u_n = (dt)b_{n-1} + [-(dt)G + M]⋅u_{n-1}</code>
     /// </summary>
     /// <remarks>Formula [1, 7.12]</remarks>
-    private sealed class ForwardEulerScheme : ITimeScheme
+    private sealed class ExplicitTwoLayersScheme : ITimeScheme
     {
         public int Layers => 2;
 
@@ -81,8 +81,8 @@ public static class TimeSchemes
 
         public void GetSourceScale(ReadOnlySpan<double> t, Span<double> outGamma)
         {
-            outGamma[0] = -(t[1] - t[0]);
-            outGamma[1] = 0.0;
+            outGamma[0] = 0.0;
+            outGamma[1] = -(t[1] - t[0]);
         }
     }
 
@@ -90,7 +90,7 @@ public static class TimeSchemes
     /// <code>[2M + (dt)G + (dt)MS3]⋅u_n = dt⋅[b_n + b_{n-1}] + [2M - (dt)G - (dt)MS3]⋅u_{n-1}</code>
     /// </summary>
     /// <remarks>Formula [1, 7.13]</remarks>
-    private sealed class BackwardEulerScheme : ITimeScheme
+    private sealed class ImplicitTwoLayersScheme : ITimeScheme
     {
         public int Layers => 2;
 
