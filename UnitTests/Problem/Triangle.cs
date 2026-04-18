@@ -279,9 +279,9 @@ public class EllipticProblemTriangleTests
             {
                 var point = mesh[i];
                 Console.WriteLine(point);
-                Assert.Equal(u(point), solution.Evaluate(point),1e-12);
+                Assert.Equal(u(point), solution.Evaluate(point), 1e-12);
             }
-            
+
         }
         [Fact]
         public void HierarchicalQuadraticWithDirichletWithQuadraticFunc()
@@ -491,7 +491,76 @@ public class EllipticProblemTriangleTests
                 Assert.Equal(u(point), solution.Evaluate(point), 1e-12);
             }
         }
+        private const string TriangleMeshWithAllBC = """
+        9
+        0 0
+        2 0
+        0 2
+        2 2
+        4 0
+        4 2
+        0 4
+        2 4
+        4 4
+        8
+        0 1 2 0
+        1 2 3 0
+        1 4 3 0
+        3 4 5 0
+        2 3 6 0
+        3 6 7 0
+        3 5 7 0
+        5 7 8 0
+        8
+        0 2 0
+        2 6 0
+        4 5 0
+        5 8 0
+        0 1 1
+        1 4 1
+        6 7 2
+        7 8 2
+        """;
+        [Fact]
+        public void ApproximationAllBCWithConstTimeFuncExplicitTwoLayer()
+        {
+            static double analyticSolution(Vector2D p) => p.X * p.X + p.Y * p.Y;
 
+            var mesh = new StringReader(TriangleMeshWithAllBC).ReadMesh2D(
+                coordinateSystem: IdentityTransform<Vector2D>.Instance,
+                FiniteElements.Triangle.HierarchicalQuadratic,
+                FiniteElements.Segment.HierarchicalQuadratic
+            );
+
+            var problem = new EllipticProblem2D(
+                Materials: [new(
+                    Lambda: _ => 1.0,
+                    Gamma: _ => 0.0,
+                    Source: _ => -4.0
+                )],
+
+                BoundaryConditions: [
+                    new BoundaryCondition2D.Dirichlet(Value: (p, _) => analyticSolution(p)),
+                    new BoundaryCondition2D.Neumann(Flux: (p,_) => -2.0 * p.Y),
+                    new BoundaryCondition2D.Robin(Beta: (p,_) => 1.0,UBeta: (p,_) => p.X*p.X + 24.0)
+                ],
+                mesh
+            );
+
+            var solver = new EllipticSolver2D(
+                CsrMatrix.Factory,
+                NumericItegrator2D.Instance,
+                new PCGSolver(m => IdentityPreconditioner.Instance)
+            );
+
+            var solution = solver.Solve(problem, new ISolver.Params(1e-13, 10000));
+            for (int i = 0; i < mesh.VertexCount; i++)
+            {
+                var point = mesh[i];
+                Assert.Equal(analyticSolution(point), solution.Evaluate(point), 1e-12);
+            }
+
+        }
         private static string TwoNotMasterTriangles => """
         4
         0 0 
@@ -584,6 +653,8 @@ public class EllipticProblemTriangleTests
     }
 
 
+
+
     public class LagrangeCubic
     {
         [Fact]
@@ -619,9 +690,9 @@ public class EllipticProblemTriangleTests
             {
                 var point = mesh[i];
                 Console.WriteLine(point);
-                Assert.Equal(u(point), solution.Evaluate(point),1e-12);
+                Assert.Equal(u(point), solution.Evaluate(point), 1e-12);
             }
-            
+
         }
         [Fact]
         public void LagrangeCubicWithDirichletWithQuadraticFunc()
@@ -1012,8 +1083,9 @@ public class EllipticProblemTriangleTests
                 Assert.Equal(u(point), solution.Evaluate(point), 1e-12);
             }
         }
-    }    
+    }
 }
+
 
 
 
