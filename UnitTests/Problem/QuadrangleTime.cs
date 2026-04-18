@@ -632,7 +632,7 @@ public class ParabolicProblemQuadrangleTests
         var solution = solver.Solve(
             problem,
             TimePoints,
-            new ISolver.Params(1e-12, 10000)
+            new ISolver.Params(1e-15, 10000)
         );
 
         AssertScaled(solution.Last().Coefficients, [
@@ -647,7 +647,7 @@ public class ParabolicProblemQuadrangleTests
     [Theory]
     [InlineData(true)]
     [InlineData(false)]
-    public void РавномернаяСеткаСВнутреннимУзлом_КвадратичнаяФункция_ПостоянноеПоВремениA(bool isImplicit)
+    public void РавномернаяСеткаСВнутреннимУзлом_КвадратичнаяФункция_ПостоянноеПоВремени(bool isImplicit)
     {
         string TestMesh1 =
         """
@@ -719,13 +719,20 @@ public class ParabolicProblemQuadrangleTests
             new ISolver.Params(1e-12, 10000)
         );
 
-        AssertScaled(solution.Last().Coefficients, [
+        double[] spatialValues = [
             0.2500, 0.2500, 0.0625, 0.5625, 0.2500,
         0.0625, 0.5625, 0.0625, 0.5625, 0.5625,
         1.0000, 0.0000, 0.0625, 1.0000, 0.5625,
         0.0000, 0.0625, 1.0000, 0.2500, 0.0000,
         1.0000, 0.0000, 1.0000, 0.2500, 0.0000
-        ]);
+        ];
+
+        //AssertScaled(ReadOnlySpan<double> solution, ReadOnlySpan<double> spatialValues)
+        var scale = A(TEnd);
+
+        Assert.Equal(spatialValues.Length, 25);
+        for (int i = 0; i < 25; i++)
+            Assert.Equal(scale * spatialValues[i], solution.Last().Coefficients[i], 1e-8);
     }
 }
 
