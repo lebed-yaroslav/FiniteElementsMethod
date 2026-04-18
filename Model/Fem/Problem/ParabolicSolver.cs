@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using Model.Core.CoordinateSystem;
 using Model.Core.Matrix;
 using Model.Core.Solver;
@@ -11,7 +12,7 @@ namespace Model.Fem.Problem;
 
 
 public sealed class ParabolicSolver<TSpace, TBoundary, TOps>(
-    ITimeScheme timeScheme,
+    ITimeScheme[] timeSchemes,
     IMatrixFactory matrixFactory,
     IIntegrator<TSpace, TBoundary, TOps> integrator,
     ISolver algebraicSolver
@@ -20,7 +21,7 @@ public sealed class ParabolicSolver<TSpace, TBoundary, TOps>(
     where TBoundary : IVectorBase<TBoundary>
     where TOps : IMatrixOperations<TSpace, TSpace, TOps>
 {
-    private readonly ITimeScheme _timeScheme = timeScheme;
+    private readonly ITimeScheme[] _timeSchemes = timeSchemes;
     private readonly IMatrixFactory _matrixFactory = matrixFactory;
     private readonly IIntegrator<TSpace, TBoundary, TOps> _integrator = integrator;
     private readonly ISolver _algebraicSolver = algebraicSolver;
@@ -31,6 +32,8 @@ public sealed class ParabolicSolver<TSpace, TBoundary, TOps>(
         ISolver.Params solverParams = new()
     )
     {
+        DebugAssertSchemesAreCorrectTypes(_timeSchemes);
+
         var mesh = (IMeshWithBoundaries<TSpace, TBoundary>)problem.Mesh;
         var dofManager = DofManager.NumerateDof(mesh, problem.BoundaryConditions);
         var assembler = new Assembler<TSpace, TBoundary, TOps>(mesh, dofManager, _matrixFactory, _integrator);
@@ -42,14 +45,14 @@ public sealed class ParabolicSolver<TSpace, TBoundary, TOps>(
         var globalMatrix = assembler.CreateGlobalMatrix(); // A_ff
         var rhsVector = new double[freeDofCount]; // b_ff
 
-        var solutions = new SlidingWindow<double[]>(_timeScheme.SolutionLayerCount); // u
+        var solutions = new SlidingWindow<double[]>(_timeSchemes[^1].SolutionLayerCount); // u
         solutions.Push(new double[dofCount]);
         assembler.CalculateInitialCondition(problem.InitialCondition, _algebraicSolver, solutions.Last, solverParams);
 
         var alpha = 0.0;
         var beta = 0.0;
-        var gamma = new double[_timeScheme.SolutionLayerCount - 1];
-        var delta = new double[_timeScheme.SolutionLayerCount - 1];
+        var gamma = new double[_timeSchemes[^1].SolutionLayerCount - 1];
+        var delta = new double[_timeSchemes[^1].SolutionLayerCount - 1];
 
         void ApplyLocalStiffness(LocalMatrix local, ReadOnlySpan<int> indices, double dt)
         {
@@ -103,13 +106,15 @@ public sealed class ParabolicSolver<TSpace, TBoundary, TOps>(
 
             var time = timePoints[i];
 
+            var currentScheme = _timeSchemes[int.Min(i, _timeSchemes.Length) - 1];
+
             // 1. Calculate time scheme coefficients
             var dt = time - timePoints[i - 1];
-            alpha = _timeScheme.GetStiffnessScale(dt);
-            beta = _timeScheme.GetMassScale(dt);
-            _timeScheme.GetHistoryStiffnessCoefficients(dt, gamma);
-            _timeScheme.GetHistoryMassCoefficients(dt, delta);
-            var zeta = _timeScheme.GetSourceScale(dt);
+            alpha = currentScheme.GetStiffnessScale(dt);
+            beta = currentScheme.GetMassScale(dt);
+            currentScheme.GetHistoryStiffnessCoefficients(dt, gamma);
+            currentScheme.GetHistoryMassCoefficients(dt, delta);
+            var zeta = currentScheme.GetSourceScale(dt);
 
             // 2. Calculate fixed solution at current time (u_d)
             assembler.CalculateFixedElements(
@@ -149,5 +154,12 @@ public sealed class ParabolicSolver<TSpace, TBoundary, TOps>(
         }
 
         yield break;
+    }
+
+    [Conditional("DEBUG")]
+    private static void DebugAssertSchemesAreCorrectTypes(ITimeScheme[] schemes)
+    {
+        for (int i = 0; i < schemes.Length; ++i)
+            Debug.Assert(schemes[i].SolutionLayerCount == i + 2);
     }
 }

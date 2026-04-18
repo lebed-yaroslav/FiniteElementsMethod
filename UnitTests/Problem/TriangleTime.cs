@@ -54,7 +54,8 @@ public class ParabolicProblemTriangleTests
                 mesh
             );
 
-            var solver = new ParabolicSolver2D(TimeSchemes.ForwardEuler,
+            var solver = new ParabolicSolver2D(
+                [TimeSchemes.ForwardEuler],
                 CsrMatrix.Factory,
                 NumericItegrator2D.Instance,
                 new PCGSolver(m => IdentityPreconditioner.Instance)
@@ -115,7 +116,8 @@ public class ParabolicProblemTriangleTests
                 mesh
             );
 
-            var solver = new ParabolicSolver2D(TimeSchemes.ForwardEuler,
+            var solver = new ParabolicSolver2D(
+                [TimeSchemes.ForwardEuler],
                 CsrMatrix.Factory,
                 NumericItegrator2D.Instance,
                 new PCGSolver(m => IdentityPreconditioner.Instance)

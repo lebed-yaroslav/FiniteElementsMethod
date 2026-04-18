@@ -53,13 +53,13 @@ public static class TimeSchemes
 
         public void GetHistoryStiffnessCoefficients(double dt, Span<double> outCoeff)
         {
-            Debug.Assert(outCoeff.Length == 1);
+            Debug.Assert(outCoeff.Length >= 1);
             outCoeff[0] = -dt;
         }
 
         public void GetHistoryMassCoefficients(double dt, Span<double> outCoeff)
         {
-            Debug.Assert(outCoeff.Length == 1);
+            Debug.Assert(outCoeff.Length >= 1);
             outCoeff[0] = 1.0;
         }
     }
@@ -74,13 +74,13 @@ public static class TimeSchemes
 
         public void GetHistoryStiffnessCoefficients(double dt, Span<double> outCoeff)
         {
-            Debug.Assert(outCoeff.Length == 1);
+            Debug.Assert(outCoeff.Length >= 1);
             outCoeff[0] = 0.0;
         }
 
         public void GetHistoryMassCoefficients(double dt, Span<double> outCoeff)
         {
-            Debug.Assert(outCoeff.Length == 1);
+            Debug.Assert(outCoeff.Length >= 1);
             outCoeff[0] = 1.0;
         }
     }
@@ -95,14 +95,14 @@ public static class TimeSchemes
 
         public void GetHistoryStiffnessCoefficients(double dt, Span<double> outCoeff)
         {
-            Debug.Assert(outCoeff.Length == 2);
+            Debug.Assert(outCoeff.Length >= 2);
             outCoeff[0] = -2 * dt; // u_{n-1}
             outCoeff[1] = 0.0; // u_{n-2}
         }
 
         public void GetHistoryMassCoefficients(double dt, Span<double> outCoeff)
         {
-            Debug.Assert(outCoeff.Length == 2);
+            Debug.Assert(outCoeff.Length >= 2);
             outCoeff[0] = 0.0; // u_{n-1}
             outCoeff[1] = 1.0; // u_{n-2}
         }
@@ -118,13 +118,13 @@ public static class TimeSchemes
 
         public void GetHistoryStiffnessCoefficients(double dt, Span<double> outCoeff)
         {
-            Debug.Assert(outCoeff.Length == 2);
+            Debug.Assert(outCoeff.Length >= 2);
             outCoeff.Clear();
         }
 
         public void GetHistoryMassCoefficients(double dt, Span<double> outCoeff)
         {
-            Debug.Assert(outCoeff.Length == 2);
+            Debug.Assert(outCoeff.Length >= 2);
             outCoeff[0] = 0.0; // u_{n-1}
             outCoeff[1] = 1.0; // u_{n-2}
         }
