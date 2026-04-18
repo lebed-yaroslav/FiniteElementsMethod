@@ -1,3 +1,5 @@
+using System.Diagnostics;
+using Model.Core.Vector;
 using Quasar.Native;
 
 namespace Model.Core.Matrix;
@@ -29,9 +31,9 @@ public sealed class PardisoMatrix(PardisoMatrix.Portrait portrait) : IPardisoMat
 
     public object Clone() => new PardisoMatrix(this);
 
-
     // TODO: Implement IGlobalMatrix
     public void AddLocalMatrix(LocalMatrix matrix, ReadOnlySpan<int> indices) => throw new NotImplementedException();
+
     public void MulVec(ReadOnlySpan<double> vec, Span<double> res) => throw new NotImplementedException();
     public void Fill(double value) => Array.Fill(_a, value);
     public void Scale(double factor)

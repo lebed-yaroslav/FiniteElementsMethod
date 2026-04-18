@@ -1,5 +1,6 @@
 using System.Diagnostics;
 using Model.Core.Util;
+using Model.Core.Vector;
 
 namespace Model.Core.Matrix;
 

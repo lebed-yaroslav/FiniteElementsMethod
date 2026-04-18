@@ -27,10 +27,10 @@ public sealed class StationarySolution<TSpace, TBoundary>(
             CoordinateSpace.Mesh => point,
             _ => throw new NotSupportedException()
         };
-
         _searchTree ??= SearchTree<TSpace>.BuildFor(Mesh);
-        var element = _searchTree.FindElementAt(point);
-        return (element == null) ? 0 : element.Evaluate(_coefficients, point);
+        var element = _searchTree.FindElementAt(point) ??
+            throw new ArgumentException("Failed to find element at the point", nameof(point));
+        return element.Evaluate(_coefficients, point);
     }
 
     /// <summary>

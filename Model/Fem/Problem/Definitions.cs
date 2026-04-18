@@ -75,6 +75,17 @@ public sealed record EllipticProblem<TSpace>
 public sealed record HyperbolicProblem<TSpace>
 (
     HyperbolicMaterial<TSpace>[] Materials,
+    Func<TSpace, double> InitialCondition,
     BoundaryCondition<TSpace>[] BoundaryConditions,
     IMesh<TSpace> Mesh
-) where TSpace : IVectorBase<TSpace>;
+) where TSpace : IVectorBase<TSpace>
+{
+    public Func<TSpace, double> Lambda(int materialIndex, double time) =>
+        p => Materials[materialIndex].Lambda(p, time);
+
+    public Func<TSpace, double> Sigma(int materialIndex, double time) =>
+        p => Materials[materialIndex].Sigma(p, time);
+
+    public Func<TSpace, double> Source(int materialIndex, double time) =>
+        p => Materials[materialIndex].Source(p, time);
+}

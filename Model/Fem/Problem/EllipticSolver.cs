@@ -33,48 +33,56 @@ public sealed class EllipticSolver<TSpace, TBoundary, TOps>(
         ISolver.Params solverParams = new()
     )
     {
-        const double time = 0.0; // Время равно 0, так как задача стационарная
+        const double time = 0.0; // As task is stationary time is zero
         var mesh = (IMeshWithBoundaries<TSpace, TBoundary>)problem.Mesh;
         var dofManager = DofManager.NumerateDof(mesh, problem.BoundaryConditions);
         var assembler = new Assembler<TSpace, TBoundary, TOps>(mesh, dofManager, _matrixFactory, _integrator);
 
-        // Учитываем условия Дирихле
-        assembler.CalculateFixedElements(problem.BoundaryConditions, time, _algebraicSolver, solverParams);
+        var globalMatrix = assembler.CreateGlobalMatrix();
+        var rhsVector = assembler.CreateRhsVector();
+        var solution = new double[dofManager.TotalDofCount];
 
-        // Сборка глобальной матрицы
-        // Добавляем матрицу жесткости G
-        assembler.CalculateStiffness(matId => problem.Materials[matId].Lambda);
+        void AddLocalMatrixWithFixedLoadContribution(LocalMatrix local, ReadOnlySpan<int> indices)
+        {
+            globalMatrix.AddLocalMatrix(local, indices);
+            assembler.AddFixedLoadContribution(local, indices, dofManager.AsFixedSpan(solution), rhsVector);
+        }
 
-        // Добавляем матрицу масс M 
-        assembler.CalculateMass(matId => problem.Materials[matId].Gamma);
+        // 1. Assemble global matrix A = (M_ff + G_ff + MS3_ff) and add
+        //    dirichlet contribution b = -(M_fd + G_fd + MS3_fd) * u_d
+        assembler.CalculateFixedElements(
+            problem.BoundaryConditions, time, _algebraicSolver,
+            dofManager.AsFixedSpan(solution),
+            solverParams
+        );
+        assembler.CalculateStiffness(
+            id => problem.Materials[id].Lambda,
+            AddLocalMatrixWithFixedLoadContribution
+        );
+        assembler.CalculateMass(
+            id => problem.Materials[id].Gamma,
+            AddLocalMatrixWithFixedLoadContribution
+        );
+        assembler.CalculateRobinMassContribution(
+            problem.BoundaryConditions, time,
+            AddLocalMatrixWithFixedLoadContribution
+        );
 
-        // Добавляем вклад от 3го краевого в матрицу
-        assembler.CalculateRobinMassContribution(problem.BoundaryConditions, time);
+        // 2. Calculate rhs vector: b += f_ff + f_ff(Neumann)
+        assembler.CalculateLoad(id => problem.Materials[id].Source, rhsVector);
+        assembler.CalculateBoundaryLoadContribution(problem.BoundaryConditions, time, rhsVector);
 
-        // Сборка правой части уравнения 
-        // Добавляем источники (f)
-        assembler.CalculateLoad(matId => problem.Materials[matId].Source);
-        
-        // Добавляем потоки (условия Неймана и Робина)
-        assembler.CalculateBoundaryLoadContribution(problem.BoundaryConditions, time);
+        // 3. Solve SLAE
+        _algebraicSolver.Matrix = globalMatrix;
+        _algebraicSolver.Solve(
+            rhsVector,
+            dofManager.AsFreeSpan(solution),
+            solverParams
+        );
 
-        // Решение СЛАУ
-        var freeSolution = new double[assembler.DofManager.FreeDofCount];
-        _algebraicSolver.Matrix = assembler.Matrix;
-        _algebraicSolver.Solve(assembler.RhsVector, freeSolution, solverParams);
-
-        // Формирование итогового ответа 
         return new(
             mesh: mesh,
-            coefficients: CombineCoefficients(freeSolution, assembler.FixedSolution, assembler.DofManager)
+            coefficients: solution
         );
-    }
-
-    private static double[] CombineCoefficients(ReadOnlySpan<double> freeSolution, ReadOnlySpan<double> fixedSolution, DofManager dofManager)
-    {
-        var result = new double[dofManager.TotalDofCount];
-        freeSolution.CopyTo(result);
-        fixedSolution.CopyTo(result.AsSpan(start: dofManager.FreeDofCount));
-        return result;
     }
 }
