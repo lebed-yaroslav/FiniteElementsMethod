@@ -13,6 +13,7 @@ public interface ITimeScheme
 
     void GetHistoryStiffnessCoefficients(double dt, Span<double> outCoeff);
     void GetHistoryMassCoefficients(double dt, Span<double> outCoeff);
+    void GetHistorySourceCoefficients(double dt, Span<double> outCoeff);
 }
 
 
@@ -20,7 +21,7 @@ public static class TimeSchemes
 {
     /// <summary>
     /// Explicit two-layer scheme:
-    /// <code>M * u_n = (dt)f_n - (dt)G * u_{n-1} + M * u_{n-1}</code>
+    /// <code>M * u_n = (dt)f_{n-1} - (dt)G * u_{n-1} + M * u_{n-1}</code>
     /// </summary>
     public static ITimeScheme ForwardEuler { get; } = new ForwardEulerScheme();
 
@@ -32,13 +33,13 @@ public static class TimeSchemes
 
     /// <summary>
     /// Explicit three-layer scheme:
-    /// <code>M * u_n = (2dt)f_n - (2dt)G * u_{n-1} + M * u_{n-2}</code>
+    /// <code>M * u_n = (2dt)f_{n-1} - (2dt)G * u_{n-1} + M * u_{n-2}</code>
     /// </summary>
     public static ITimeScheme ExplicitThreeLayer { get; } = new ExplicitThreeLayerScheme();
 
     /// <summary>
     /// Implicit three-layer scheme:
-    /// <code>[(2dt)G + M] * u_n = (2dt)f_n + M * u_{n-2}</code>
+    /// <code>[(2dt)G + M] * u_n = (2dt)f_{n-1} + M * u_{n-2}</code>
     /// </summary>
     public static ITimeScheme ImplicitThreeLayer { get; } = new ImplicitThreeLayerScheme();
 
@@ -49,7 +50,7 @@ public static class TimeSchemes
 
         public double GetStiffnessScale(double dt) => 0.0;
         public double GetMassScale(double dt) => 1.0;
-        public double GetSourceScale(double dt) => dt;
+        public double GetSourceScale(double dt) => 0.0;
 
         public void GetHistoryStiffnessCoefficients(double dt, Span<double> outCoeff)
         {
@@ -61,6 +62,12 @@ public static class TimeSchemes
         {
             Debug.Assert(outCoeff.Length == 1);
             outCoeff[0] = 1.0;
+        }
+
+        public void GetHistorySourceCoefficients(double dt, Span<double> outCoeff)
+        {
+            Debug.Assert(outCoeff.Length == 1);
+            outCoeff[0] = dt;
         }
     }
 
@@ -83,6 +90,12 @@ public static class TimeSchemes
             Debug.Assert(outCoeff.Length == 1);
             outCoeff[0] = 1.0;
         }
+
+        public void GetHistorySourceCoefficients(double dt, Span<double> outCoeff)
+        {
+            Debug.Assert(outCoeff.Length == 1);
+            outCoeff[0] = 0.0;
+        }
     }
 
     private sealed class ExplicitThreeLayerScheme : ITimeScheme
@@ -91,7 +104,7 @@ public static class TimeSchemes
 
         public double GetStiffnessScale(double dt) => 0.0;
         public double GetMassScale(double dt) => 1.0;
-        public double GetSourceScale(double dt) => 2 * dt;
+        public double GetSourceScale(double dt) => 0.0;
 
         public void GetHistoryStiffnessCoefficients(double dt, Span<double> outCoeff)
         {
@@ -106,6 +119,13 @@ public static class TimeSchemes
             outCoeff[0] = 0.0; // u_{n-1}
             outCoeff[1] = 1.0; // u_{n-2}
         }
+
+        public void GetHistorySourceCoefficients(double dt, Span<double> outCoeff)
+        {
+            Debug.Assert(outCoeff.Length == 2);
+            outCoeff[0] = 2 * dt; // f_{n-1}
+            outCoeff[1] = 0.0; // f_{n-2}
+        }
     }
 
     private sealed class ImplicitThreeLayerScheme : ITimeScheme
@@ -114,7 +134,7 @@ public static class TimeSchemes
 
         public double GetStiffnessScale(double dt) => 2 * dt;
         public double GetMassScale(double dt) => 1.0;
-        public double GetSourceScale(double dt) => 2 * dt;
+        public double GetSourceScale(double dt) => 0.0;
 
         public void GetHistoryStiffnessCoefficients(double dt, Span<double> outCoeff)
         {
@@ -127,6 +147,13 @@ public static class TimeSchemes
             Debug.Assert(outCoeff.Length == 2);
             outCoeff[0] = 0.0; // u_{n-1}
             outCoeff[1] = 1.0; // u_{n-2}
+        }
+
+        public void GetHistorySourceCoefficients(double dt, Span<double> outCoeff)
+        {
+            Debug.Assert(outCoeff.Length == 2);
+            outCoeff[0] = 2 * dt; // f_{n-1}
+            outCoeff[1] = 0.0; // f_{n-2}
         }
     }
 }

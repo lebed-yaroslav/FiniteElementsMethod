@@ -37,7 +37,6 @@ public sealed class ParabolicSolver<TSpace, TBoundary, TOps>(
 
         int dofCount = dofManager.TotalDofCount;
         int freeDofCount = dofManager.FreeDofCount;
-        int fixedDofCount = dofManager.FixedDofCount;
 
         var globalMatrix = assembler.CreateGlobalMatrix(); // A_ff
         var rhsVector = new double[freeDofCount]; // b_ff
@@ -50,6 +49,7 @@ public sealed class ParabolicSolver<TSpace, TBoundary, TOps>(
         var beta = 0.0;
         var gamma = new double[_timeScheme.SolutionLayerCount - 1];
         var delta = new double[_timeScheme.SolutionLayerCount - 1];
+        var epsilon = new double[_timeScheme.SolutionLayerCount - 1];
 
         void ApplyLocalStiffness(LocalMatrix local, ReadOnlySpan<int> indices, double dt)
         {
@@ -105,11 +105,42 @@ public sealed class ParabolicSolver<TSpace, TBoundary, TOps>(
 
             // 1. Calculate time scheme coefficients
             var dt = time - timePoints[i - 1];
-            alpha = _timeScheme.GetStiffnessScale(dt);
-            beta = _timeScheme.GetMassScale(dt);
-            _timeScheme.GetHistoryStiffnessCoefficients(dt, gamma);
-            _timeScheme.GetHistoryMassCoefficients(dt, delta);
-            var zeta = _timeScheme.GetSourceScale(dt);
+            if (dt <= 0)
+                throw new ArgumentException("Time points must be strictly increasing.", nameof(timePoints));
+
+            if (_timeScheme.SolutionLayerCount >= 3 && i > 1)
+            {
+                var prevDt = timePoints[i - 1] - timePoints[i - 2];
+                var scale = Math.Max(1.0, Math.Max(Math.Abs(dt), Math.Abs(prevDt)));
+                if (Math.Abs(dt - prevDt) > 1e-9 * scale)
+                    throw new ArgumentException("Three-layer time schemes require a uniform time step.", nameof(timePoints));
+            }
+
+            var zeta = 0.0;
+            var needsBootstrap = _timeScheme.SolutionLayerCount >= 3 && i == 1;
+            if (needsBootstrap)
+            {
+                // Start three-layer scheme with one Crank-Nicolson step:
+                // (M + 0.5*dt*G)u_1 = (M - 0.5*dt*G)u_0 + 0.5*dt*(f_1 + f_0)
+                alpha = 0.5 * dt;
+                beta = 1.0;
+                Array.Clear(gamma);
+                Array.Clear(delta);
+                Array.Clear(epsilon);
+                gamma[0] = -0.5 * dt;
+                delta[0] = 1.0;
+                zeta = 0.5 * dt;
+                epsilon[0] = 0.5 * dt;
+            }
+            else
+            {
+                alpha = _timeScheme.GetStiffnessScale(dt);
+                beta = _timeScheme.GetMassScale(dt);
+                _timeScheme.GetHistoryStiffnessCoefficients(dt, gamma);
+                _timeScheme.GetHistoryMassCoefficients(dt, delta);
+                _timeScheme.GetHistorySourceCoefficients(dt, epsilon);
+                zeta = _timeScheme.GetSourceScale(dt);
+            }
 
             // 2. Calculate fixed solution at current time (u_d)
             assembler.CalculateFixedElements(
@@ -128,7 +159,20 @@ public sealed class ParabolicSolver<TSpace, TBoundary, TOps>(
                 id => problem.Sigma(id, time),
                 (local, indices) => ApplyLocalMass(local, indices, dt)
             );
-            assembler.CalculateLoad(id => problem.Source(id, time), rhsVector, scale: zeta);
+            if (Math.Abs(zeta) > 0.0)
+                assembler.CalculateLoad(id => problem.Source(id, time), rhsVector, scale: zeta);
+            for (int j = 0; j < epsilon.Length; ++j)
+            {
+                var sourceCoeff = epsilon[j];
+                if (Math.Abs(sourceCoeff) <= 0.0)
+                    continue;
+
+                var sourceTimeIndex = i - 1 - j;
+                if (sourceTimeIndex < 0)
+                    continue;
+                var sourceTime = timePoints[sourceTimeIndex];
+                assembler.CalculateLoad(id => problem.Source(id, sourceTime), rhsVector, scale: sourceCoeff);
+            }
 
             // 4. Calculate boundary condition contribution
             assembler.CalculateRobinMassContribution(
