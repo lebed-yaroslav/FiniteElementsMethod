@@ -75,8 +75,8 @@ public static class TimeSchemes
 
         public void GetRobinMassScale(ReadOnlySpan<double> t, Span<double> outZeta)
         {
-            outZeta[0] = 1.0;
-            outZeta[1] = 0.0;
+            outZeta[0] = 0.0;
+            outZeta[1] = t[1] - t[0];
         }
 
         public void GetSourceScale(ReadOnlySpan<double> t, Span<double> outGamma)
@@ -123,7 +123,7 @@ public static class TimeSchemes
     }
 
     /// <summary>
-    /// <code>[dt1/(dt⋅dt0)M + MS3]⋅u_n = b_{n-1} + [-G + (dt+dt0)/(dt⋅dt0)M]⋅u_{n-1} + (dt0)/(dt⋅dt1)M⋅u_{n-2}</code>
+    /// <code>[dt1/(dt⋅dt0)M]⋅u_n = b_{n-1} + [-G - MS3 + (dt1 - dt0)/(dt1⋅dt0)M]⋅u_{n-1} + (dt0)/(dt⋅dt1)M⋅u_{n-2}</code>
     /// </summary>
     private sealed class ExplicitThreeLayerScheme : ITimeScheme
     {
@@ -154,7 +154,7 @@ public static class TimeSchemes
         public void GetRobinMassScale(ReadOnlySpan<double> t, Span<double> outZeta)
         {
             outZeta[0] = 0.0;
-            outZeta[1] = -1.0;
+            outZeta[1] = 1.0;
             outZeta[2] = 0.0;
         }
 

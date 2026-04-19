@@ -188,9 +188,9 @@ public class ParabolicProblemTriangleTests
                 )],
                 InitialCondition: p => analyticSolution(p, 0),
                 BoundaryConditions: [
-                    new BoundaryCondition2D.Dirichlet(Value: (p, t) => analyticSolution(p,t)),
+                    new BoundaryCondition2D.Dirichlet(Value: analyticSolution),
                     new BoundaryCondition2D.Neumann(Flux: (p,t) => 0.0),
-                    new BoundaryCondition2D.Robin(Beta: (p,t) => 2.0,UBeta: (p,t) => t)
+                    new BoundaryCondition2D.Robin(Beta: (p,t) => 2.0, UBeta: (p,t) => t)
                 ],
                 mesh
             );
