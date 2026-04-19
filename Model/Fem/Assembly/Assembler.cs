@@ -42,19 +42,12 @@ public sealed record Assembler<TSpace, TBoundary, TOps>(
     where TBoundary : IVectorBase<TBoundary>
     where TOps : IMatrixOperations<TSpace, TSpace, TOps>
 {
-    private readonly List<HashSet<int>> _adjacencyList = PortraitGenerator.CreateAdjacencyList(
-        Mesh.AllElementsDof, minDofIndex: 0, maxDofIndex: DofManager.FreeDofCount - 1
-    );
+    private readonly List<HashSet<int>> _adjacencyList = DofManager.CreateFreeAdjacencyList(Mesh);
 
     // A_dd matrix
-    private readonly Lazy<IGlobalMatrix> _fixedMatrix = new(() => MatrixFactory.Create(PortraitGenerator.CreateAdjacencyList(
-        Mesh.AllElementsDof,
-        minDofIndex: DofManager.FreeDofCount,
-        maxDofIndex: DofManager.TotalDofCount - 1
-    )));
+    private readonly Lazy<IGlobalMatrix> _fixedMatrix = new(() => MatrixFactory.Create(DofManager.CreateFixedAdjacencyList(Mesh)));
 
     public IGlobalMatrix CreateGlobalMatrix() => MatrixFactory.Create(_adjacencyList);
-    public double[] CreateRhsVector() => new double[DofManager.FreeDofCount];
 
     public void CalculateInitialCondition(
         Func<TSpace, double> InitialCondition,
@@ -65,14 +58,9 @@ public sealed record Assembler<TSpace, TBoundary, TOps>(
     {
         Debug.Assert(outInitialSolution.Length == DofManager.TotalDofCount);
 
-        var adjacencyList = PortraitGenerator.CreateAdjacencyList(
-            Mesh.AllElementsDof,
-            minDofIndex: 0,
-            maxDofIndex: DofManager.TotalDofCount - 1
-        );
-
+        var adjacencyList = DofManager.CreateFullAdjacencyList(Mesh);
         var matrix = MatrixFactory.Create(adjacencyList);
-        var rhsVector = new double[DofManager.TotalDofCount];
+        var rhsVector = DofManager.CreateFullVector();
 
         foreach (var element in Mesh.FiniteElements)
         {
@@ -126,7 +114,7 @@ public sealed record Assembler<TSpace, TBoundary, TOps>(
             _fixedMatrix.Value.Fill(0);
         var matrix = _fixedMatrix.Value;
 
-        var rhsVector = new double[DofManager.FixedDofCount];
+        var rhsVector = DofManager.CreateFixedVector();
 
         foreach (var element in Mesh.BoundaryElements)
         {
@@ -311,8 +299,9 @@ public sealed record Assembler<TSpace, TBoundary, TOps>(
 
         for (int i = 0; i < n; ++i)
         {
-            int gi = element.DOF.Dof[i] - DofManager.FreeDofCount;
-            if (gi >= 0) rhsVector[gi] += load[i]; // Ignore free dof
+            int gi = element.DOF.Dof[i];
+            if (DofManager.TryGlobalToFixed(gi, out int fi))
+                rhsVector[fi] += load[i];
         }
     }
 
@@ -350,8 +339,8 @@ public sealed record Assembler<TSpace, TBoundary, TOps>(
         for (int i = 0; i < elementDof.Count; ++i)
         {
             int dof = elementDof.Dof[i];
-            if (dof < DofManager.FreeDofCount) // Ignore fixed dof
-                outLoad[dof] += scale * local[i];
+            if (DofManager.TryGlobalToFree(dof, out int fi)) // Ignore fixed dof
+                outLoad[fi] += scale * local[i];
         }
     }
 }

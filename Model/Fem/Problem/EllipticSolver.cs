@@ -39,8 +39,8 @@ public sealed class EllipticSolver<TSpace, TBoundary, TOps>(
         var assembler = new Assembler<TSpace, TBoundary, TOps>(mesh, dofManager, _matrixFactory, _integrator);
 
         var globalMatrix = assembler.CreateGlobalMatrix();
-        var rhsVector = assembler.CreateRhsVector();
-        var solution = new double[dofManager.TotalDofCount];
+        var rhsVector = dofManager.CreateFreeVector();
+        var solution = dofManager.CreateFullVector();
 
         void AddLocalMatrixWithFixedLoadContribution(LocalMatrix local, ReadOnlySpan<int> indices)
         {

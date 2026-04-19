@@ -25,77 +25,114 @@ public sealed class DofManager
 
         return new() { TotalDofCount = totalDofCount, FreeDofCount = freeDofCount };
     }
+}
 
-    /// <summary>
-    /// Create index mapping for free dof system, to use in
-    /// <see cref="Core.Matrix.IGlobalMatrix.AddLocalMatrix(Core.Matrix.LocalMatrix, ReadOnlySpan{int})"/>.
-    /// Negative indices corresponds to fixed dof
-    /// </summary>
-    /// <param name="elementDof">Element which indices is mapped</param>
-    public int[] CreateFreeLocalToGlobalIndexMapping(IElementDof elementDof)
+public static class DofManagerApi
+{
+    extension(DofManager self)
     {
-        var indices = new int[elementDof.Count];
-        CreateFreeLocalToGlobalIndexMapping(elementDof, indices);
-        return indices;
-    }
+        public List<HashSet<int>> CreateFixedAdjacencyList<TSpace, TBoundary>(IMeshWithBoundaries<TSpace, TBoundary> mesh)
+            where TSpace : IVectorBase<TSpace>
+            where TBoundary : IVectorBase<TBoundary>
+        => PortraitGenerator.CreateAdjacencyList(mesh.AllElementsDof, self.FreeDofCount, self.TotalDofCount - 1);
 
-    /// <summary>
-    /// Create index mapping for free dof system, to use in
-    /// <see cref="Core.Matrix.IGlobalMatrix.AddLocalMatrix(Core.Matrix.LocalMatrix, ReadOnlySpan{int})"/>.
-    /// </summary>
-    /// <param name="elementDof">Element which indices is mapped</param>
-    /// <param name="outIndices">Output parameter</param>
-    public void CreateFreeLocalToGlobalIndexMapping(IElementDof elementDof, Span<int> outIndices)
-    {
-        Debug.Assert(outIndices.Length == elementDof.Count);
-        for (int i = 0; i < elementDof.Count; ++i)
+        public List<HashSet<int>> CreateFreeAdjacencyList<TSpace, TBoundary>(IMeshWithBoundaries<TSpace, TBoundary> mesh)
+            where TSpace : IVectorBase<TSpace>
+            where TBoundary : IVectorBase<TBoundary>
+        => PortraitGenerator.CreateAdjacencyList(mesh.AllElementsDof, 0, self.FreeDofCount - 1);
+
+        public List<HashSet<int>> CreateFullAdjacencyList<TSpace, TBoundary>(IMeshWithBoundaries<TSpace, TBoundary> mesh)
+            where TSpace : IVectorBase<TSpace>
+            where TBoundary : IVectorBase<TBoundary>
+        => PortraitGenerator.CreateAdjacencyList(mesh.AllElementsDof, 0, self.TotalDofCount - 1);
+
+        public double[] CreateFreeVector() => new double[self.FreeDofCount];
+        public double[] CreateFixedVector() => new double[self.FixedDofCount];
+        public double[] CreateFullVector() => new double[self.TotalDofCount];
+
+        public bool TryGlobalToFixed(int globalDof, out int fixedDof)
         {
-            var dof = elementDof.Dof[i];
-            outIndices[i] = (dof < FreeDofCount) ? dof : -(dof + 1); // IGlobalMatrix.AddLocalMatrix ignores negative indices
+            fixedDof = globalDof - self.FreeDofCount;
+            return fixedDof >= 0;
         }
-    }
 
-    /// <summary>
-    /// Recovers fixed dof index that mapped by <see cref="CreateFreeLocalToGlobalIndexMapping(IElementDof, Span{int})"/>
-    /// </summary>
-    public int MappedFreeToFixed(int dofIndex)
-    {
-        Debug.Assert(dofIndex < 0 && -dofIndex >= FreeDofCount);
-        return -dofIndex - 1 - FreeDofCount;
-    }
+        public bool TryGlobalToFree(int globalDof, out int freeDof)
+        {
+            freeDof = globalDof;
+            return 0 <= freeDof && freeDof < self.FreeDofCount;
+        }
 
-    /// <summary>
-    /// Create index mapping for fixed dof system, to use in
-    /// <see cref="Core.Matrix.IGlobalMatrix.AddLocalMatrix(Core.Matrix.LocalMatrix, ReadOnlySpan{int})"/>.
-    /// </summary>
-    /// <param name="elementDof">Element which indices is mapped</param>
-    /// <param name="outIndices">Output parameter</param>
-    public void CreateFixedLocalToGlobalIndexMapping(IElementDof elementDof, Span<int> outIndices)
-    {
-        Debug.Assert(outIndices.Length == elementDof.Count);
-        for (int i = 0; i < outIndices.Length; ++i)
-            outIndices[i] = elementDof.Dof[i] - FreeDofCount; // IGlobalMatrix.AddLocalMatrix ignores negative indices
-    }
+        /// <summary>
+        /// Create index mapping for free dof system, to use in
+        /// <see cref="Core.Matrix.IGlobalMatrix.AddLocalMatrix(Core.Matrix.LocalMatrix, ReadOnlySpan{int})"/>.
+        /// Negative indices corresponds to fixed dof
+        /// </summary>
+        /// <param name="elementDof">Element which indices is mapped</param>
+        public int[] CreateFreeLocalToGlobalIndexMapping(IElementDof elementDof)
+        {
+            var indices = new int[elementDof.Count];
+            self.CreateFreeLocalToGlobalIndexMapping(elementDof, indices);
+            return indices;
+        }
 
-    /// <summary>
-    /// Recovers fixed dof index that mapped by <see cref="CreateFixedLocalToGlobalIndexMapping(IElementDof, Span{int})"/>
-    /// </summary>
-    public int MappedFixedToFree(int dofIndex)
-    {
-        Debug.Assert(dofIndex < 0 && -dofIndex < FreeDofCount);
-        return dofIndex + FreeDofCount;
-    }
+        /// <summary>
+        /// Create index mapping for free dof system, to use in
+        /// <see cref="Core.Matrix.IGlobalMatrix.AddLocalMatrix(Core.Matrix.LocalMatrix, ReadOnlySpan{int})"/>.
+        /// </summary>
+        /// <param name="elementDof">Element which indices is mapped</param>
+        /// <param name="outIndices">Output parameter</param>
+        public void CreateFreeLocalToGlobalIndexMapping(IElementDof elementDof, Span<int> outIndices)
+        {
+            Debug.Assert(outIndices.Length == elementDof.Count);
+            for (int i = 0; i < elementDof.Count; ++i)
+            {
+                var dof = elementDof.Dof[i];
+                outIndices[i] = (dof < self.FreeDofCount) ? dof : -(dof + 1); // IGlobalMatrix.AddLocalMatrix ignores negative indices
+            }
+        }
 
-    public Span<double> AsFreeSpan(Span<double> solution)
-    {
-        Debug.Assert(solution.Length == TotalDofCount);
-        return solution[..FreeDofCount];
-    }
+        /// <summary>
+        /// Recovers fixed dof index that mapped by <see cref="CreateFreeLocalToGlobalIndexMapping(IElementDof, Span{int})"/>
+        /// </summary>
+        public int MappedFreeToFixed(int dofIndex)
+        {
+            Debug.Assert(dofIndex < 0 && -dofIndex >= self.FreeDofCount);
+            return -dofIndex - 1 - self.FreeDofCount;
+        }
 
-    public Span<double> AsFixedSpan(Span<double> solution)
-    {
-        Debug.Assert(solution.Length == TotalDofCount);
-        return solution[FreeDofCount..];
+        /// <summary>
+        /// Create index mapping for fixed dof system, to use in
+        /// <see cref="Core.Matrix.IGlobalMatrix.AddLocalMatrix(Core.Matrix.LocalMatrix, ReadOnlySpan{int})"/>.
+        /// </summary>
+        /// <param name="elementDof">Element which indices is mapped</param>
+        /// <param name="outIndices">Output parameter</param>
+        public void CreateFixedLocalToGlobalIndexMapping(IElementDof elementDof, Span<int> outIndices)
+        {
+            Debug.Assert(outIndices.Length == elementDof.Count);
+            for (int i = 0; i < outIndices.Length; ++i)
+                outIndices[i] = elementDof.Dof[i] - self.FreeDofCount; // IGlobalMatrix.AddLocalMatrix ignores negative indices
+        }
+
+        /// <summary>
+        /// Recovers fixed dof index that mapped by <see cref="CreateFixedLocalToGlobalIndexMapping(IElementDof, Span{int})"/>
+        /// </summary>
+        public int MappedFixedToFree(int dofIndex)
+        {
+            Debug.Assert(dofIndex < 0 && -dofIndex < self.FreeDofCount);
+            return dofIndex + self.FreeDofCount;
+        }
+
+        public Span<double> AsFreeSpan(Span<double> solution)
+        {
+            Debug.Assert(solution.Length == self.TotalDofCount);
+            return solution[..self.FreeDofCount];
+        }
+
+        public Span<double> AsFixedSpan(Span<double> solution)
+        {
+            Debug.Assert(solution.Length == self.TotalDofCount);
+            return solution[self.FreeDofCount..];
+        }
     }
 }
 

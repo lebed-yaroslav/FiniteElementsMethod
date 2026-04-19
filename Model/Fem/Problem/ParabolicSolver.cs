@@ -38,15 +38,11 @@ public sealed class ParabolicSolver<TSpace, TBoundary, TOps>(
         var dofManager = DofManager.NumerateDof(mesh, problem.BoundaryConditions);
         var assembler = new Assembler<TSpace, TBoundary, TOps>(mesh, dofManager, _matrixFactory, _integrator);
 
-        int dofCount = dofManager.TotalDofCount;
-        int freeDofCount = dofManager.FreeDofCount;
-        int fixedDofCount = dofManager.FixedDofCount;
-
         var globalMatrix = assembler.CreateGlobalMatrix(); // A_ff
-        var rhsVector = new double[freeDofCount]; // b_ff
+        var rhsVector = dofManager.CreateFreeVector(); // b_ff
 
         var solutions = new SlidingWindow<double[]>(_timeSchemes[^1].SolutionLayerCount); // u
-        solutions.Push(new double[dofCount]);
+        solutions.Push(dofManager.CreateFullVector());
         assembler.CalculateInitialCondition(problem.InitialCondition, _algebraicSolver, solutions.Last, solverParams);
 
         var alpha = 0.0;
@@ -99,7 +95,7 @@ public sealed class ParabolicSolver<TSpace, TBoundary, TOps>(
         {
 
             // 0. Cleanup for next step
-            solutions.CycleOrPushNew(() => new double[dofCount]);
+            solutions.CycleOrPushNew(dofManager.CreateFullVector);
             // Array.Fill(solutions.Last, 0) - Reuse old solution as initial guess
             Array.Fill(rhsVector, 0);
             globalMatrix.Fill(0);
