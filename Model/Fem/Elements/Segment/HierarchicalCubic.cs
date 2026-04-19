@@ -26,7 +26,7 @@ public sealed class HierarchicalCubicSegmentFactory : IBoundaryElementFactory2D
         new OrientedBasisFunction1D(SegmentBasis.N0N1N0SubN1)
     );
 
-    public sealed class Dof(IBasisSet1D basis) : DofManager(dofCount: 4)
+    public sealed class Dof(IBasisSet1D basis) : ElementDof(dofCount: 4)
     {
         private readonly IBasisSet1D _basis = basis;
         public override int NumberOfDofOnVertex => 1;

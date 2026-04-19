@@ -24,7 +24,7 @@ public sealed class LagrangeCubicSegmentFactory : IBoundaryElementFactory2D
         SegmentBasis.Lagrange1D.Create(3, 2)
     );
 
-    public sealed class Dof() : DofManager(dofCount: 4)
+    public sealed class Dof() : ElementDof(dofCount: 4)
     {
         public override int NumberOfDofOnVertex => 1;
         public override int NumberOfDofOnEdge => 2;

@@ -22,7 +22,7 @@ public sealed class LagrangeQuadraticSegmentFactory : IBoundaryElementFactory2D
         SegmentBasis.Lagrange1D.Create(2, 1)
     );
 
-    public sealed class Dof() : DofManager(dofCount: 3)
+    public sealed class Dof() : ElementDof(dofCount: 3)
     {
         //|-----|-----|
         public override int NumberOfDofOnVertex => 1;

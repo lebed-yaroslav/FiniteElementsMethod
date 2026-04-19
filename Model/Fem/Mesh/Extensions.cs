@@ -15,7 +15,7 @@ public static class MeshExtensions
             .Select(e => new FiniteElementBase<TSpace>(e.Geometry, e.DOF))
             .Concat(self.BoundaryElements.Select(e => new FiniteElementBase<TSpace>(e.Geometry, e.DOF)));
 
-        public IEnumerable<IDofManager> AllElementsDof => self.FiniteElements
+        public IEnumerable<IElementDof> AllElementsDof => self.FiniteElements
             .Select(e => e.DOF)
             .Concat(self.BoundaryElements.Select(e => e.DOF));
 

@@ -20,7 +20,7 @@ namespace Model.Fem.Elements.Quadrangle
             QuadrangleBasis.Q1
         );
 
-        public sealed class Dof() : DofManager(dofCount: 4)
+        public sealed class Dof() : ElementDof(dofCount: 4)
         {
             public override int NumberOfDofOnVertex => 1;
             public override int NumberOfDofOnEdge => 0;

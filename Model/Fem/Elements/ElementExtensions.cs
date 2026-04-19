@@ -87,7 +87,7 @@ public static class FiniteElementComposition
         public ReadOnlySpan<IBasisFunction<TBoundary>> Basis => self.BasisSet.Basis;
     }
 
-    extension(IDofManager self)
+    extension(IElementDof self)
     {
         public int Count => self.Dof.Length;
     }

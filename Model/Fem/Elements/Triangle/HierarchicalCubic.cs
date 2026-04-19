@@ -32,7 +32,7 @@ public sealed class HierarchicalCubicTriangleFactory : IFiniteElementFactory2D
         TriangleBasis.L1L2L3
     );
 
-    public sealed class Dof(IBasisSet2D basis) : DofManager(dofCount: 10)
+    public sealed class Dof(IBasisSet2D basis) : ElementDof(dofCount: 10)
     {
         private readonly IBasisSet2D _basis = basis;
 

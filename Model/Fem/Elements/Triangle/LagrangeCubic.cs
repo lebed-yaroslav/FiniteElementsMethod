@@ -31,7 +31,7 @@ public sealed class LagrangeCubicTriangleFactory : IFiniteElementFactory2D
         TriangleBasis.Lagrange.L1L2L3
     );
 
-    public sealed class Dof() : DofManager(dofCount: 10)
+    public sealed class Dof() : ElementDof(dofCount: 10)
     {
         public override int NumberOfDofOnVertex => 1;
         public override int NumberOfDofOnEdge => 2;

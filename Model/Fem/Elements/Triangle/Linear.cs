@@ -21,7 +21,7 @@ public sealed class LinearTriangleFactory : IFiniteElementFactory2D
         TriangleBasis.L2
    );
 
-    public sealed class Dof() : DofManager(dofCount: 3)
+    public sealed class Dof() : ElementDof(dofCount: 3)
     {
         public override int NumberOfDofOnVertex => 1;
         public override int NumberOfDofOnEdge => 0;

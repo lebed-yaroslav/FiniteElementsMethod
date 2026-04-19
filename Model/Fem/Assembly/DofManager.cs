@@ -32,7 +32,7 @@ public sealed class DofManager
     /// Negative indices corresponds to fixed dof
     /// </summary>
     /// <param name="elementDof">Element which indices is mapped</param>
-    public int[] CreateFreeLocalToGlobalIndexMapping(IDofManager elementDof)
+    public int[] CreateFreeLocalToGlobalIndexMapping(IElementDof elementDof)
     {
         var indices = new int[elementDof.Count];
         CreateFreeLocalToGlobalIndexMapping(elementDof, indices);
@@ -45,7 +45,7 @@ public sealed class DofManager
     /// </summary>
     /// <param name="elementDof">Element which indices is mapped</param>
     /// <param name="outIndices">Output parameter</param>
-    public void CreateFreeLocalToGlobalIndexMapping(IDofManager elementDof, Span<int> outIndices)
+    public void CreateFreeLocalToGlobalIndexMapping(IElementDof elementDof, Span<int> outIndices)
     {
         Debug.Assert(outIndices.Length == elementDof.Count);
         for (int i = 0; i < elementDof.Count; ++i)
@@ -56,7 +56,7 @@ public sealed class DofManager
     }
 
     /// <summary>
-    /// Recovers fixed dof index that mapped by <see cref="CreateFreeLocalToGlobalIndexMapping(IDofManager, Span{int})"/>
+    /// Recovers fixed dof index that mapped by <see cref="CreateFreeLocalToGlobalIndexMapping(IElementDof, Span{int})"/>
     /// </summary>
     public int MappedFreeToFixed(int dofIndex)
     {
@@ -70,7 +70,7 @@ public sealed class DofManager
     /// </summary>
     /// <param name="elementDof">Element which indices is mapped</param>
     /// <param name="outIndices">Output parameter</param>
-    public void CreateFixedLocalToGlobalIndexMapping(IDofManager elementDof, Span<int> outIndices)
+    public void CreateFixedLocalToGlobalIndexMapping(IElementDof elementDof, Span<int> outIndices)
     {
         Debug.Assert(outIndices.Length == elementDof.Count);
         for (int i = 0; i < outIndices.Length; ++i)
@@ -78,7 +78,7 @@ public sealed class DofManager
     }
 
     /// <summary>
-    /// Recovers fixed dof index that mapped by <see cref="CreateFixedLocalToGlobalIndexMapping(IDofManager, Span{int})"/>
+    /// Recovers fixed dof index that mapped by <see cref="CreateFixedLocalToGlobalIndexMapping(IElementDof, Span{int})"/>
     /// </summary>
     public int MappedFixedToFree(int dofIndex)
     {
@@ -212,8 +212,8 @@ public static partial class DofNumerator<TSpace, TBoundary>
     /// <param name="totalDofCount">Общее количество степеней свободы</param>
     /// <returns>Количество свободных узлов</returns>
     public static int RenumberFixedDof(
-        IEnumerable<IDofManager> fixedElementsDof,
-        IEnumerable<IDofManager> elementsDof,
+        IEnumerable<IElementDof> fixedElementsDof,
+        IEnumerable<IElementDof> elementsDof,
         int totalDofCount
     )
     {

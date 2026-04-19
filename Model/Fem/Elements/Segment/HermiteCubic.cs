@@ -133,7 +133,7 @@ public sealed class HermiteSegmentFactory : IBoundaryElementFactory2D
         return basis;
     }
 
-    public sealed class Dof(BoundaryMode mode) : DofManager(dofCount: 4)
+    public sealed class Dof(BoundaryMode mode) : ElementDof(dofCount: 4)
     {
         private readonly BoundaryMode _mode = mode;
 

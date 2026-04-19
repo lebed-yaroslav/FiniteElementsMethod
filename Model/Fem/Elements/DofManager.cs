@@ -3,7 +3,7 @@ using System.Diagnostics;
 namespace Model.Fem.Elements;
 
 
-public interface IDofManager
+public interface IElementDof
 {
     ReadOnlySpan<int> Dof { get; }
     int NumberOfDofOnVertex { get; }
@@ -16,9 +16,9 @@ public interface IDofManager
 }
 
 
-public abstract class DofManager(
+public abstract class ElementDof(
     int dofCount
-) : IDofManager
+) : IElementDof
 {
     protected int[] _dof = new int[dofCount];
     public ReadOnlySpan<int> Dof => _dof;

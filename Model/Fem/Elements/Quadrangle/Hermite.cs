@@ -105,7 +105,7 @@ public sealed class HermiteQuadrangleFactory : IFiniteElementFactory2D
         QuadrangleBasis.Q3_Hermite
     );
 
-    public sealed class Dof() : DofManager(dofCount: 16)
+    public sealed class Dof() : ElementDof(dofCount: 16)
     {
         public override int NumberOfDofOnVertex => 4;
         public override int NumberOfDofOnEdge => 0;

@@ -23,7 +23,7 @@ public sealed class HierarchicalQuadraticSegmentFactory : IBoundaryElementFactor
         SegmentBasis.N0N1
    );
 
-    public sealed class Dof() : DofManager(dofCount: 3)
+    public sealed class Dof() : ElementDof(dofCount: 3)
     {
         public override int NumberOfDofOnVertex => 1;
         public override int NumberOfDofOnEdge => 1;

@@ -6,7 +6,7 @@ namespace Model.Fem.Elements;
 
 public sealed record FiniteElementBase<TSpace>(
     IElementGeometryBase<TSpace> Geometry,
-    IDofManager DOF
+    IElementDof DOF
 ) where TSpace : IVectorBase<TSpace>;
 
 public interface IFiniteElementBase<TSpace, TBoundary>
@@ -14,7 +14,7 @@ public interface IFiniteElementBase<TSpace, TBoundary>
     where TBoundary : IVectorBase<TBoundary>
 {
     IElementGeometry<TSpace, TBoundary> Geometry { get; }
-    IDofManager DOF { get; }
+    IElementDof DOF { get; }
     IBasisSet<TBoundary> BasisSet { get; }
 }
 
@@ -49,7 +49,7 @@ public interface IBoundaryElementFactory<TSpace, TBoundary>
 
 public sealed record class VolumeElement<TSpace>(
     IElementGeometry<TSpace, TSpace> Geometry,
-    IDofManager DOF,
+    IElementDof DOF,
     IBasisSet<TSpace> BasisSet,
     int MaterialIndex
 ) : IFiniteElement<TSpace>
@@ -58,7 +58,7 @@ public sealed record class VolumeElement<TSpace>(
 
 public sealed record class FiniteElement<TSpace, TBoundary>(
     IElementGeometry<TSpace, TBoundary> Geometry,
-    IDofManager DOF,
+    IElementDof DOF,
     IBasisSet<TBoundary> BasisSet,
     int BoundaryIndex
 ) : IBoundaryElement<TSpace, TBoundary>

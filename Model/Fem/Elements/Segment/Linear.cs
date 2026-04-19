@@ -21,7 +21,7 @@ public sealed class LinearSegmentFactory : IBoundaryElementFactory2D
         SegmentBasis.N1
    );
 
-    public sealed class Dof() : DofManager(dofCount: 2)
+    public sealed class Dof() : ElementDof(dofCount: 2)
     {
         public override int NumberOfDofOnVertex => 1;
         public override int NumberOfDofOnEdge => 0;

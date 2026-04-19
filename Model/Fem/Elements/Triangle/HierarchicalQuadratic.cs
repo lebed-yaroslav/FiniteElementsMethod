@@ -25,7 +25,7 @@ public sealed class HierarchicalQuadraticTriangleFactory : IFiniteElementFactory
         TriangleBasis.L2L3
     );
 
-    public sealed class Dof() : DofManager(dofCount: 6)
+    public sealed class Dof() : ElementDof(dofCount: 6)
     {
         public override int NumberOfDofOnVertex => 1;
         public override int NumberOfDofOnEdge => 1;

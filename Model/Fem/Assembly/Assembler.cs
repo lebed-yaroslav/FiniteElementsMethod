@@ -340,7 +340,7 @@ public sealed record Assembler<TSpace, TBoundary, TOps>(
 
     private void AddLocalLoad(
         ReadOnlySpan<double> local,
-        IDofManager elementDof,
+        IElementDof elementDof,
         Span<double> outLoad,
         double scale = 1.0
     )

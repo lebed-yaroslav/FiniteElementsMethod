@@ -13,7 +13,7 @@ public static class PortraitGenerator
     /// <param name="minDofIndex">Минимальный индекс степени свободы, включаемой в смежную структуру</param>
     /// <param name="maxDofIndex">Максимальный индекс степени свободы, включаемой в смежную структуру</param>
     public static List<HashSet<int>> CreateAdjacencyList(
-        IEnumerable<IDofManager> elementsDof,
+        IEnumerable<IElementDof> elementsDof,
         int minDofIndex,
         int maxDofIndex
     )

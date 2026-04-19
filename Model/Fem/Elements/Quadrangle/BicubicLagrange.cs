@@ -19,7 +19,7 @@ public sealed class BicubicLagrangeQuadrangleFactory : IFiniteElementFactory2D
         QuadrangleBasis.Q3_Lagrange
     );
 
-    public sealed class Dof() : DofManager(dofCount: 16)
+    public sealed class Dof() : ElementDof(dofCount: 16)
     {
         public override int NumberOfDofOnVertex => 1;
         public override int NumberOfDofOnEdge => 2;
