@@ -18,6 +18,10 @@ public sealed class StationarySolution<TSpace, TBoundary>(
 
     private SearchTree<TSpace>? _searchTree = null;
 
+    public StationarySolution<TSpace, TBoundary> WithCoefficients(double[] coefficients)
+        => new(Mesh, coefficients) { _searchTree = _searchTree };
+
+    public void BuildSearchTree() => _searchTree ??= SearchTree<TSpace>.BuildFor(Mesh);
 
     public double Evaluate(TSpace point, CoordinateSpace coordSpace = CoordinateSpace.Mesh)
     {

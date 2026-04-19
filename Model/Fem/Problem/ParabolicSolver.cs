@@ -73,10 +73,12 @@ public sealed class ParabolicSolver<TSpace, TBoundary, TOps>(
             }
         }
 
-
         var alpha = new double[timeLayers];
         var beta = new double[timeLayers];
         var gamma = new double[timeLayers];
+
+        var solution = new StationarySolution<TSpace, TBoundary>(mesh, []);
+        solution.BuildSearchTree();
 
         for (int i = 1; i < timePoints.Length; ++i)
         {
@@ -137,7 +139,7 @@ public sealed class ParabolicSolver<TSpace, TBoundary, TOps>(
                 solverParams
             );
 
-            yield return new(mesh, [.. solutions.Last]);
+            yield return solution.WithCoefficients([.. solutions.Last]);
         }
 
         yield break;
