@@ -101,8 +101,8 @@ public sealed record Assembler<TSpace, TBoundary, TOps>(
     /// After solving, u_d is stored in <paramref name="outFixedSolution"/>.
     /// </remarks>
     public void CalculateFixedElements(
-        BoundaryCondition<TSpace>[] boundaryConditions, 
-        double time, ISolver solver, 
+        BoundaryCondition<TSpace>[] boundaryConditions,
+        double time, ISolver solver,
         Span<double> outFixedSolution,
         ISolver.Params solverParams = new()
     )
@@ -110,10 +110,9 @@ public sealed record Assembler<TSpace, TBoundary, TOps>(
         Debug.Assert(outFixedSolution.Length == DofManager.FixedDofCount);
         outFixedSolution.Clear();
 
-        if (_fixedMatrix.IsValueCreated)
-            _fixedMatrix.Value.Fill(0);
-        var matrix = _fixedMatrix.Value;
+        var shouldBuildMatrix = !_fixedMatrix.IsValueCreated;
 
+        var matrix = _fixedMatrix.Value;
         var rhsVector = DofManager.CreateFixedVector();
 
         foreach (var element in Mesh.BoundaryElements)
@@ -121,7 +120,8 @@ public sealed record Assembler<TSpace, TBoundary, TOps>(
             if (boundaryConditions[element.BoundaryIndex] is not BoundaryCondition<TSpace>.Dirichlet bc)
                 continue;
 
-            CalculateFixedElementMass(element, matrix);
+            if (shouldBuildMatrix)
+                CalculateFixedElementMass(element, matrix);
             CalculateFixedElementLoad(element, boundaryValue: p => bc.Value(p, time), rhsVector);
         }
 
