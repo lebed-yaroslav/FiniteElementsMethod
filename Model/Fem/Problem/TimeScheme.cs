@@ -133,14 +133,14 @@ public static class TimeSchemes
         {
             (var dt, var dt0, var dt1) = GetTimeSteps(t);
             outBeta[0] = dt1 / (dt * dt0);
-            outBeta[1] = -(dt1 - dt0) / (dt1 * dt0);
+            outBeta[1] = (dt0 - dt1) / (dt1 * dt0);
             outBeta[2] = -dt0 / (dt * dt1);
         }
 
         public void GetSourceScale(ReadOnlySpan<double> t, Span<double> outGamma)
         {
-            outGamma[0] = -1.0;
-            outGamma[1] = 0.0;
+            outGamma[0] = 0.0;
+            outGamma[1] = -1.0;
             outGamma[2] = 0.0;
         }
     }
