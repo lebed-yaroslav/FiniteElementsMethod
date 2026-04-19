@@ -22,7 +22,6 @@ public interface ITimeScheme
 
     void GetStiffnessScale(ReadOnlySpan<double> t, Span<double> outAlpha);
     void GetMassScale(ReadOnlySpan<double> t, Span<double> outBeta);
-    void GetRobinMassScale(ReadOnlySpan<double> t, Span<double> outZeta);
     void GetSourceScale(ReadOnlySpan<double> t, Span<double> outGamma);
 }
 
@@ -73,12 +72,6 @@ public static class TimeSchemes
             outBeta[1] = -1.0;
         }
 
-        public void GetRobinMassScale(ReadOnlySpan<double> t, Span<double> outZeta)
-        {
-            outZeta[0] = 0.0;
-            outZeta[1] = t[1] - t[0];
-        }
-
         public void GetSourceScale(ReadOnlySpan<double> t, Span<double> outGamma)
         {
             outGamma[0] = 0.0;
@@ -105,13 +98,6 @@ public static class TimeSchemes
         {
             outBeta[0] = 2.0;
             outBeta[1] = -2.0;
-        }
-
-        public void GetRobinMassScale(ReadOnlySpan<double> t, Span<double> outZeta)
-        {
-            var dt = t[1] - t[0];
-            outZeta[0] = dt;
-            outZeta[1] = dt;
         }
 
         public void GetSourceScale(ReadOnlySpan<double> t, Span<double> outGamma)
@@ -151,13 +137,6 @@ public static class TimeSchemes
             outBeta[2] = -dt0 / (dt * dt1);
         }
 
-        public void GetRobinMassScale(ReadOnlySpan<double> t, Span<double> outZeta)
-        {
-            outZeta[0] = 0.0;
-            outZeta[1] = 1.0;
-            outZeta[2] = 0.0;
-        }
-
         public void GetSourceScale(ReadOnlySpan<double> t, Span<double> outGamma)
         {
             outGamma[0] = -1.0;
@@ -194,13 +173,6 @@ public static class TimeSchemes
             outBeta[0] = (dt + dt0) / (dt * dt0);
             outBeta[1] = -dt / (dt1 * dt0);
             outBeta[2] = dt0 / (dt * dt1);
-        }
-
-        public void GetRobinMassScale(ReadOnlySpan<double> t, Span<double> outZeta)
-        {
-            outZeta[0] = 1.0;
-            outZeta[1] = 0.0;
-            outZeta[2] = 0.0;
         }
 
         public void GetSourceScale(ReadOnlySpan<double> t, Span<double> outGamma)
