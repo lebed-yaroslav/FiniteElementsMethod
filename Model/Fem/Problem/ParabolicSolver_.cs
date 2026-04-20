@@ -12,9 +12,7 @@ using Telma.Extensions;
 namespace Model.Fem.Problem;
 
 
-[Obsolete($"Will be replaced with {nameof(ParabolicSolver_<,,>)}")]
-public sealed class ParabolicSolver<TSpace, TBoundary, TOps>(
-    ITimeScheme[] timeSchemes,
+public sealed class ParabolicSolver_<TSpace, TBoundary, TOps>(
     IMatrixFactory matrixFactory,
     IIntegrator<TSpace, TBoundary, TOps> integrator,
     ISolver algebraicSolver
@@ -23,36 +21,46 @@ public sealed class ParabolicSolver<TSpace, TBoundary, TOps>(
     where TBoundary : IVectorBase<TBoundary>
     where TOps : IMatrixOperations<TSpace, TSpace, TOps>
 {
-    private readonly ITimeScheme[] _timeSchemes = timeSchemes;
     private readonly IMatrixFactory _matrixFactory = matrixFactory;
     private readonly IIntegrator<TSpace, TBoundary, TOps> _integrator = integrator;
     private readonly ISolver _algebraicSolver = algebraicSolver;
 
     public IEnumerable<StationarySolution<TSpace, TBoundary>> Solve(
-        HyperbolicProblem<TSpace> problem,
-        double[] timePoints,
+        HyperbolicProblem_<TSpace> problem,
+        ITimeScheme[] timeSchemes,
         ISolver.Params solverParams = new()
     )
     {
-        DebugAssertSchemesAreCorrectTypes(_timeSchemes);
-        var timeLayers = _timeSchemes[^1].Layers;
+        DebugAssertSchemesCanBeUsed(problem, timeSchemes);
 
         var mesh = (IMeshWithBoundaries<TSpace, TBoundary>)problem.Mesh;
         var dofManager = DofManager.NumerateDof(mesh, problem.BoundaryConditions);
         var assembler = new Assembler<TSpace, TBoundary, TOps>(mesh, dofManager, _matrixFactory, _integrator);
 
-        var globalMatrix = assembler.CreateGlobalMatrix(); // A_ff
-        var rhsVector = dofManager.CreateFreeVector();
+        int initialConditions = problem.InitialConditions.Length;
+        int timeLayers = timeSchemes.Max(s => s.Layers);
+        var t = problem.TimePoints;
+
+        var solution = new StationarySolution<TSpace, TBoundary>(mesh, []);
+        solution.BuildSearchTree();
 
         var solutions = new SlidingWindow<double[]>(timeLayers); // u_{n-i}
-        solutions.Push(dofManager.CreateFullVector());
-
-        assembler.ProjectToSolutionSpace(problem.InitialCondition, _algebraicSolver, solutions.Last, solverParams);
-
         var loadVectors = new SlidingWindow<double[]>(timeLayers); // b_ff{n-i}
-        loadVectors.Push(dofManager.CreateFreeVector());
-        assembler.CalculateLoad(id => problem.Source(id, timePoints[0]), loadVectors.Last);
-        assembler.CalculateBoundaryLoadContribution(problem.BoundaryConditions, timePoints[0], loadVectors.Last);
+
+        for (int i = 0; i < initialConditions; ++i)
+        {
+            solutions.Push(dofManager.CreateFullVector());
+            assembler.ProjectToSolutionSpace(problem.InitialConditions[i], _algebraicSolver, solutions.Last, solverParams);
+
+            loadVectors.Push(dofManager.CreateFreeVector());
+            assembler.CalculateLoad(id => problem.Source(id, t[i]), loadVectors.Last);
+            assembler.CalculateBoundaryLoadContribution(problem.BoundaryConditions, t[i], loadVectors.Last);
+
+            yield return solution.WithCoefficients([.. solutions.Last]);
+        }
+
+        var globalMatrix = assembler.CreateGlobalMatrix(); // A_ff
+        var rhsVector = dofManager.CreateFreeVector();
 
         void ApplyLocalMatrix(LocalMatrix local, ReadOnlySpan<int> indices, ReadOnlySpan<double> coefficients)
         {
@@ -78,12 +86,8 @@ public sealed class ParabolicSolver<TSpace, TBoundary, TOps>(
         var beta = new double[timeLayers];
         var gamma = new double[timeLayers];
 
-        var solution = new StationarySolution<TSpace, TBoundary>(mesh, []);
-        solution.BuildSearchTree();
-
-        for (int i = 1; i < timePoints.Length; ++i)
+        for (int i = initialConditions; i < t.Length; ++i)
         {
-
             // 0. Cleanup for next step
             solutions.CycleOrPushNew(dofManager.CreateFullVector);
             // Array.Fill(solutions.Last, 0) - Reuse old solution as initial guess
@@ -93,9 +97,9 @@ public sealed class ParabolicSolver<TSpace, TBoundary, TOps>(
             globalMatrix.Fill(0);
 
             // 1. Calculate time scheme coefficients
-            var currentScheme = _timeSchemes[int.Min(i, _timeSchemes.Length) - 1];
-            var timeSpan = timePoints.AsSpan(i - currentScheme.Layers + 1, currentScheme.Layers);
-            var time = timePoints[i];
+            var currentScheme = timeSchemes[int.Min(i, timeSchemes.Length) - 1];
+            var timeSpan = t.AsSpan(i - currentScheme.Layers + 1, currentScheme.Layers);
+            var time = t[i];
 
             currentScheme.GetStiffnessScale(timeSpan, alpha);
             currentScheme.GetMassScale(timeSpan, beta);
@@ -147,9 +151,10 @@ public sealed class ParabolicSolver<TSpace, TBoundary, TOps>(
     }
 
     [Conditional("DEBUG")]
-    private static void DebugAssertSchemesAreCorrectTypes(ITimeScheme[] schemes)
+    private static void DebugAssertSchemesCanBeUsed(HyperbolicProblem_<TSpace> problem, ITimeScheme[] schemes)
     {
-        for (int i = 0; i < schemes.Length; ++i)
-            Debug.Assert(schemes[i].Layers == i + 2);
+        var conditions = problem.InitialConditions.Length;
+        foreach (var scheme in schemes)
+            Debug.Assert(scheme.Layers >= conditions + 1);
     }
 }

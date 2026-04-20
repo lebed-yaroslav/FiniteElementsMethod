@@ -44,22 +44,26 @@ public sealed record Assembler<TSpace, TBoundary, TOps>(
 {
     private readonly List<HashSet<int>> _adjacencyList = DofManager.CreateFreeAdjacencyList(Mesh);
 
+    // A matrix
+    private readonly Lazy<IGlobalMatrix> _fullMatrix = new(() => MatrixFactory.Create(DofManager.CreateFullAdjacencyList(Mesh)));
+
     // A_dd matrix
     private readonly Lazy<IGlobalMatrix> _fixedMatrix = new(() => MatrixFactory.Create(DofManager.CreateFixedAdjacencyList(Mesh)));
 
     public IGlobalMatrix CreateGlobalMatrix() => MatrixFactory.Create(_adjacencyList);
 
-    public void CalculateInitialCondition(
-        Func<TSpace, double> InitialCondition,
+    public void ProjectToSolutionSpace(
+        Func<TSpace, double> function,
         ISolver solver,
-        Span<double> outInitialSolution,
+        Span<double> outCoefficients,
         ISolver.Params solverParams = new()
     )
     {
-        Debug.Assert(outInitialSolution.Length == DofManager.TotalDofCount);
+        Debug.Assert(outCoefficients.Length == DofManager.TotalDofCount);
 
-        var adjacencyList = DofManager.CreateFullAdjacencyList(Mesh);
-        var matrix = MatrixFactory.Create(adjacencyList);
+        if (_fullMatrix.IsValueCreated)
+            _fullMatrix.Value.Fill(0);
+        var matrix = _fullMatrix.Value;
         var rhsVector = DofManager.CreateFullVector();
 
         foreach (var element in Mesh.FiniteElements)
@@ -69,7 +73,7 @@ public sealed record Assembler<TSpace, TBoundary, TOps>(
                 element.DOF.Dof
             );
             var load = new double[element.DOF.Count];
-            Integrator.CalculateLocalLoad(element, InitialCondition, load);
+            Integrator.CalculateLocalLoad(element, function, load);
             for (int i = 0; i < element.DOF.Count; ++i)
             {
                 int dof = element.DOF.Dof[i];
@@ -78,7 +82,7 @@ public sealed record Assembler<TSpace, TBoundary, TOps>(
         }
 
         solver.Matrix = matrix;
-        solver.Solve(rhsVector, outInitialSolution, solverParams);
+        solver.Solve(rhsVector, outCoefficients, solverParams);
     }
 
     /// <summary>
