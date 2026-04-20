@@ -33,7 +33,7 @@ namespace Model.Fem.Assembly;
 /// To perform fixed dof elimination call <see cref="AddFixedLoadContribution"/> in callback
 /// </remarks>
 public sealed record Assembler<TSpace, TBoundary, TOps>(
-    IMeshWithBoundaries<TSpace, TBoundary> Mesh,
+    IMesh<TSpace, TBoundary> Mesh,
     DofManager DofManager,
     IMatrixFactory MatrixFactory,
     IIntegrator<TSpace, TBoundary, TOps> Integrator

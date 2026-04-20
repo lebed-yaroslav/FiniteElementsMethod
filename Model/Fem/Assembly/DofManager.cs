@@ -14,7 +14,7 @@ public sealed class DofManager
     public int FixedDofCount => TotalDofCount - FreeDofCount;
 
     public static DofManager NumerateDof<TSpace, TBoundary>(
-        IMeshWithBoundaries<TSpace, TBoundary> mesh,
+        IMesh<TSpace, TBoundary> mesh,
         BoundaryCondition<TSpace>[] boundaryConditions
     )
         where TSpace : IVectorBase<TSpace>
@@ -31,17 +31,17 @@ public static class DofManagerApi
 {
     extension(DofManager self)
     {
-        public List<HashSet<int>> CreateFixedAdjacencyList<TSpace, TBoundary>(IMeshWithBoundaries<TSpace, TBoundary> mesh)
+        public List<HashSet<int>> CreateFixedAdjacencyList<TSpace, TBoundary>(IMesh<TSpace, TBoundary> mesh)
             where TSpace : IVectorBase<TSpace>
             where TBoundary : IVectorBase<TBoundary>
         => PortraitGenerator.CreateAdjacencyList(mesh.AllElementsDof, self.FreeDofCount, self.TotalDofCount - 1);
 
-        public List<HashSet<int>> CreateFreeAdjacencyList<TSpace, TBoundary>(IMeshWithBoundaries<TSpace, TBoundary> mesh)
+        public List<HashSet<int>> CreateFreeAdjacencyList<TSpace, TBoundary>(IMesh<TSpace, TBoundary> mesh)
             where TSpace : IVectorBase<TSpace>
             where TBoundary : IVectorBase<TBoundary>
         => PortraitGenerator.CreateAdjacencyList(mesh.AllElementsDof, 0, self.FreeDofCount - 1);
 
-        public List<HashSet<int>> CreateFullAdjacencyList<TSpace, TBoundary>(IMeshWithBoundaries<TSpace, TBoundary> mesh)
+        public List<HashSet<int>> CreateFullAdjacencyList<TSpace, TBoundary>(IMesh<TSpace, TBoundary> mesh)
             where TSpace : IVectorBase<TSpace>
             where TBoundary : IVectorBase<TBoundary>
         => PortraitGenerator.CreateAdjacencyList(mesh.AllElementsDof, 0, self.TotalDofCount - 1);
@@ -144,7 +144,7 @@ public static partial class DofNumerator<TSpace, TBoundary>
     /// Производит первичную нумерацию степеней свободы
     /// </summary>
     /// <returns>Общее количество степеней свободы</returns>
-    public static int PreNumerateDof(IMeshWithBoundaries<TSpace, TBoundary> mesh)
+    public static int PreNumerateDof(IMesh<TSpace, TBoundary> mesh)
     {
         int dofCount = 0;
 
@@ -155,7 +155,7 @@ public static partial class DofNumerator<TSpace, TBoundary>
         return dofCount;
     }
 
-    private static void NumerateVertexDof(IMeshWithBoundaries<TSpace, TBoundary> mesh, ref int dofCount)
+    private static void NumerateVertexDof(IMesh<TSpace, TBoundary> mesh, ref int dofCount)
     {
         // 1. Count dof per vertex
         int[] dofByVertex = new int[mesh.VertexCount]; // Stores max dof count for given vertex
@@ -182,7 +182,7 @@ public static partial class DofNumerator<TSpace, TBoundary>
     }
 
 
-    private static void NumerateEdgeDof(IMeshWithBoundaries<TSpace, TBoundary> mesh, ref int dofCount)
+    private static void NumerateEdgeDof(IMesh<TSpace, TBoundary> mesh, ref int dofCount)
     {
         // 1. Count dof per edge
         Dictionary<Edge, int> dofCountByEdge = []; // Stores max dof count for given edge
@@ -217,7 +217,7 @@ public static partial class DofNumerator<TSpace, TBoundary>
         }
     }
 
-    private static void NumerateElementDof(IMeshWithBoundaries<TSpace, TBoundary> mesh, ref int dofCount)
+    private static void NumerateElementDof(IMesh<TSpace, TBoundary> mesh, ref int dofCount)
     {
         foreach (var element in mesh.AllElements)
             for (int i = 0; i < element.DOF.NumberOfDofOnElement; i++)
@@ -231,7 +231,7 @@ public static partial class DofNumerator<TSpace, TBoundary>
     /// <param name="totalDofCount">Общее количество степеней свободы</param>
     /// <returns>Количество свободных узлов</returns>
     public static int RenumberFixedDof(
-        IMeshWithBoundaries<TSpace, TBoundary> mesh,
+        IMesh<TSpace, TBoundary> mesh,
         BoundaryCondition<TSpace>[] boundaryConditions,
         int totalDofCount
     ) => RenumberFixedDof(

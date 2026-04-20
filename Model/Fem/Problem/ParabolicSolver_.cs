@@ -33,7 +33,7 @@ public sealed class ParabolicSolver_<TSpace, TBoundary, TOps>(
     {
         DebugAssertSchemesCanBeUsed(problem, timeSchemes);
 
-        var mesh = (IMeshWithBoundaries<TSpace, TBoundary>)problem.Mesh;
+        var mesh = (IMesh<TSpace, TBoundary>)problem.Mesh;
         var dofManager = DofManager.NumerateDof(mesh, problem.BoundaryConditions);
         var assembler = new Assembler<TSpace, TBoundary, TOps>(mesh, dofManager, _matrixFactory, _integrator);
 

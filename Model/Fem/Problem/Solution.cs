@@ -6,13 +6,13 @@ namespace Model.Fem.Problem;
 
 
 public sealed class StationarySolution<TSpace, TBoundary>(
-    IMeshWithBoundaries<TSpace, TBoundary> mesh,
+    IMesh<TSpace, TBoundary> mesh,
     double[] coefficients
 )
     where TSpace : IVectorBase<TSpace>
     where TBoundary : IVectorBase<TBoundary>
 {
-    public IMeshWithBoundaries<TSpace, TBoundary> Mesh { get; } = mesh;
+    public IMesh<TSpace, TBoundary> Mesh { get; } = mesh;
     private readonly double[] _coefficients = coefficients;
     public ReadOnlySpan<double> Coefficients => _coefficients;
 

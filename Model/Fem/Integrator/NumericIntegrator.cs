@@ -41,7 +41,7 @@ public class NumericIntegrator<TSpace, TBoundary, TOps> : IIntegrator<TSpace, TB
                     var gradPhiI = element.Basis[i].Derivatives(ep);
                     var gradPhiJ = element.Basis[j].Derivatives(ep);
 
-                    // product = grad(phi_i)^T * J^(-T) * J(-1) * grad(phi_j)
+                    // product = grad(phi_i)^T * J^(-T) * J^(-1) * grad(phi_j)
                     var product = (gradPhiI * invJ) * (gradPhiJ * invJ);
 
                     var jacobian = Math.Abs(1.0 / invJ.Det());

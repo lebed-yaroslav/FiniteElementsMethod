@@ -26,7 +26,7 @@ public sealed class PolarCoordinateSystem : ICoordinateTransform<Vector2D, Vecto
 }
 
 
-public sealed class InversePolarJacobyMatrix : IJacobyMatrix<Vector2D, Vector2D>
+public sealed class InversePolarJacobyMatrix : IJacobyMatrix2X2
 {
     public static readonly InversePolarJacobyMatrix Instance = new();
     private InversePolarJacobyMatrix() { }

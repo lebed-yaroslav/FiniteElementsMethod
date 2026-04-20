@@ -16,7 +16,7 @@ public interface IMesh<TSpace>
 
 
 // FIXME: This is dirty workaround because TBoundary cannot be deduced from TSpace
-public interface IMeshWithBoundaries<TSpace, TBoundary> : IMesh<TSpace>
+public interface IMesh<TSpace, TBoundary> : IMesh<TSpace>
     where TSpace : IVectorBase<TSpace>
     where TBoundary : IVectorBase<TBoundary>
 {
@@ -25,7 +25,7 @@ public interface IMeshWithBoundaries<TSpace, TBoundary> : IMesh<TSpace>
 
 
 public sealed class Mesh<TSpace, TBoundary>(ICoordinateTransform<TSpace, TSpace> coordinateSystem) :
-    IMesh<TSpace>, IMeshWithBoundaries<TSpace, TBoundary>
+    IMesh<TSpace, TBoundary>
     where TSpace : IVectorBase<TSpace>
     where TBoundary : IVectorBase<TBoundary>
 {

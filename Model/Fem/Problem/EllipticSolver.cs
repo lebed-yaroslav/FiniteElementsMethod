@@ -34,7 +34,7 @@ public sealed class EllipticSolver<TSpace, TBoundary, TOps>(
     )
     {
         const double time = 0.0; // As task is stationary time is zero
-        var mesh = (IMeshWithBoundaries<TSpace, TBoundary>)problem.Mesh;
+        var mesh = (IMesh<TSpace, TBoundary>)problem.Mesh;
         var dofManager = DofManager.NumerateDof(mesh, problem.BoundaryConditions);
         var assembler = new Assembler<TSpace, TBoundary, TOps>(mesh, dofManager, _matrixFactory, _integrator);
 

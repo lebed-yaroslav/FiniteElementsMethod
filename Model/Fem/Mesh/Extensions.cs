@@ -7,7 +7,7 @@ namespace Model.Fem.Mesh;
 
 public static class MeshExtensions
 {
-    extension<TSpace, TBoundary>(IMeshWithBoundaries<TSpace, TBoundary> self)
+    extension<TSpace, TBoundary>(IMesh<TSpace, TBoundary> self)
         where TSpace : IVectorBase<TSpace>
         where TBoundary : IVectorBase<TBoundary>
     {
