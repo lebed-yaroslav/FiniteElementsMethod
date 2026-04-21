@@ -35,8 +35,8 @@ public static class SegmentBasis
 
     private readonly struct SegmentN0N1N0SubN1 : IBasisFunction1D
     {
-        public double Value(Vector1D point) => point * (1 - point) * (2 * point - 1);
-        public Vector1D Derivatives(Vector1D point) => -6 * point * (point - 1) - 1;
+        public double Value(Vector1D point) => -point * (1 - point) * (2 * point - 1);
+        public Vector1D Derivatives(Vector1D point) => 6 * point * point - 6 * point + 1/*-6 * point * (point - 1) - 1*/;
     }
 
     public readonly struct Lagrange1D(double[] nodes, int index) : IBasisFunction1D

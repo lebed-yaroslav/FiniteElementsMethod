@@ -353,6 +353,7 @@ public class EllipticProblemTriangleTests
             {
                 var point = mesh[i];
                 Console.WriteLine(point);
+                Console.WriteLine($"u: {u(point)} solution: {solution.Evaluate(point)}");
                 Assert.Equal(u(point), solution.Evaluate(point), 1e-12);
             }
         }
@@ -472,7 +473,7 @@ public class EllipticProblemTriangleTests
                 BoundaryConditions: [
                     new BoundaryCondition2D.Dirichlet(Value: (p,_) => u(p)),
                 new BoundaryCondition2D.Robin(Beta: (p,_) => 1.0,UBeta: (p,_) => 2.0*p.X/Math.Sqrt(2.0) + p.X*p.X),
-                new BoundaryCondition2D.Robin(Beta: (p,_) => 1.0,UBeta: (p,_) => -2.0 * p.X),
+                new BoundaryCondition2D.Robin(Beta: (p,_) => 1.0,UBeta: (p,_) => -2.0 * p.X+ p.X*p.X),
                 ],
                 mesh
             );
@@ -491,76 +492,7 @@ public class EllipticProblemTriangleTests
                 Assert.Equal(u(point), solution.Evaluate(point), 1e-12);
             }
         }
-        private const string TriangleMeshWithAllBC = """
-        9
-        0 0
-        2 0
-        0 2
-        2 2
-        4 0
-        4 2
-        0 4
-        2 4
-        4 4
-        8
-        0 1 2 0
-        1 2 3 0
-        1 4 3 0
-        3 4 5 0
-        2 3 6 0
-        3 6 7 0
-        3 5 7 0
-        5 7 8 0
-        8
-        0 2 0
-        2 6 0
-        4 5 0
-        5 8 0
-        0 1 1
-        1 4 1
-        6 7 2
-        7 8 2
-        """;
-        [Fact]
-        public void ApproximationAllBCWithConstTimeFuncExplicitTwoLayer()
-        {
-            static double analyticSolution(Vector2D p) => p.X * p.X + p.Y * p.Y;
 
-            var mesh = new StringReader(TriangleMeshWithAllBC).ReadMesh2D(
-                coordinateSystem: IdentityTransform<Vector2D>.Instance,
-                FiniteElements.Triangle.HierarchicalQuadratic,
-                FiniteElements.Segment.HierarchicalQuadratic
-            );
-
-            var problem = new EllipticProblem2D(
-                Materials: [new(
-                    Lambda: _ => 1.0,
-                    Gamma: _ => 0.0,
-                    Source: _ => -4.0
-                )],
-
-                BoundaryConditions: [
-                    new BoundaryCondition2D.Dirichlet(Value: (p, _) => analyticSolution(p)),
-                    new BoundaryCondition2D.Neumann(Flux: (p,_) => -2.0 * p.Y),
-                    new BoundaryCondition2D.Robin(Beta: (p,_) => 1.0,UBeta: (p,_) => p.X*p.X + 24.0)
-                ],
-                mesh
-            );
-
-            var solver = new EllipticSolver2D(
-                CsrMatrix.Factory,
-                NumericItegrator2D.Instance,
-                new PCGSolver(m => IdentityPreconditioner.Instance)
-            );
-
-            var solution = solver.Solve(problem, new ISolver.Params(1e-13, 10000));
-            for (int i = 0; i < mesh.VertexCount; i++)
-            {
-                var point = mesh[i];
-                Assert.Equal(analyticSolution(point), solution.Evaluate(point), 1e-12);
-            }
-
-        }
         private static string TwoNotMasterTriangles => """
         4
         0 0 
@@ -621,17 +553,17 @@ public class EllipticProblemTriangleTests
                 FiniteElements.Triangle.HierarchicalQuadratic,
                 FiniteElements.Segment.HierarchicalQuadratic
             );
-            static double u(Vector2D p) => p.X * p.X;
+            static double u(Vector2D p) => p.X * p.X + p.Y * p.Y;
             var problem = new EllipticProblem2D(
                 Materials: [new(
                 Lambda: _ => 1.0,
                 Gamma: _ => 1.0,
-                Source: p => -2 + p.X*p.X
+                Source: p => -4 + p.X * p.X + p.Y*p.Y
             )],
                 BoundaryConditions: [
                     new BoundaryCondition2D.Dirichlet(Value: (p,_) => u(p)),
                 new BoundaryCondition2D.Neumann(Flux: (p,_) => 2.0 * p.X),
-                new BoundaryCondition2D.Robin(Beta: (p,_) => 1.0,UBeta: (p,_) => p.X*p.X),
+                new BoundaryCondition2D.Robin(Beta: (p,_) => 1.0,UBeta: (p,_) => 2*p.Y + p.X*p.X + p.Y*p.Y),
                 ],
                 mesh
             );
@@ -654,7 +586,936 @@ public class EllipticProblemTriangleTests
 
 
 
+    public class HierarchicalCubicCartezian
+    {
 
+        [Fact]
+        public void HierarchicalCubicWithDirichletWithLinearFunc()
+        {
+            var mesh = new StringReader(Linear.TestMesh1).ReadMesh2D(
+                coordinateSystem: IdentityTransform<Vector2D>.Instance,
+                FiniteElements.Triangle.HierarchicalCubic,
+                FiniteElements.Segment.HierarchicalCubic
+            );
+            static double u(Vector2D p) => p.X;
+            var problem = new EllipticProblem2D(
+                Materials: [new(
+                Lambda: _ => 1.0,
+                Gamma: _ => 1.0,
+                Source: p => p.X
+            )],
+                BoundaryConditions: [
+                    new BoundaryCondition2D.Dirichlet(Value: (p,_) => u(p))
+                ],
+                mesh
+            );
+
+            var solver = new EllipticSolver2D(
+                DenseMatrix.Factory,
+                NumericItegrator2D.Instance,
+                new PCGSolver(m => IdentityPreconditioner.Instance)
+            );
+
+            var solution = solver.Solve(problem, new ISolver.Params(1e-13, 10000));
+
+            for (int i = 0; i < mesh.VertexCount; i++)
+            {
+                var point = mesh[i];
+                Console.WriteLine(point);
+                Assert.Equal(u(point), solution.Evaluate(point), 1e-12);
+            }
+
+        }
+        [Fact]
+        public void HierarchicalCubicWithDirichletWithQuadraticFunc()
+        {
+            var mesh = new StringReader(Linear.TestMesh1).ReadMesh2D(
+                coordinateSystem: IdentityTransform<Vector2D>.Instance,
+                FiniteElements.Triangle.HierarchicalCubic,
+                FiniteElements.Segment.HierarchicalCubic
+            );
+            static double u(Vector2D p) => p.X * p.X;
+            var problem = new EllipticProblem2D(
+                Materials: [new(
+                Lambda: _ => 1.0,
+                Gamma: _ => 1.0,
+                Source: p => -2 + p.X * p.X
+            )],
+                BoundaryConditions: [
+                    new BoundaryCondition2D.Dirichlet(Value: (p,_) => u(p))
+                ],
+                mesh
+            );
+
+            var solver = new EllipticSolver2D(
+                DenseMatrix.Factory,
+                NumericItegrator2D.Instance,
+                new PCGSolver(m => IdentityPreconditioner.Instance)
+            );
+
+            var solution = solver.Solve(problem, new ISolver.Params(1e-13, 10000));
+
+            for (int i = 0; i < mesh.VertexCount; i++)
+            {
+                var point = mesh[i];
+                Console.WriteLine(point);
+                Assert.Equal(u(point), solution.Evaluate(point), 1e-12);
+            }
+        }
+        [Fact]
+        public void HierarchicalCubicWithDirichletWithCubicFunc()
+        {
+            var mesh = new StringReader(Linear.TestMesh1).ReadMesh2D(
+                coordinateSystem: IdentityTransform<Vector2D>.Instance,
+                FiniteElements.Triangle.HierarchicalCubic,
+                FiniteElements.Segment.HierarchicalCubic
+            );
+            static double u(Vector2D p) => p.X * p.X * p.X;
+            var problem = new EllipticProblem2D(
+                Materials: [new(
+                Lambda: _ => 1.0,
+                Gamma: _ => 1.0,
+                Source: p => p.X * p.X * p.X - 6 * p.X
+            )],
+                BoundaryConditions: [
+                    new BoundaryCondition2D.Dirichlet(Value: (p,_) => u(p))
+                ],
+                mesh
+            );
+
+            var solver = new EllipticSolver2D(
+                DenseMatrix.Factory,
+                NumericItegrator2D.Instance,
+                new PCGSolver(m => IdentityPreconditioner.Instance)
+            );
+
+            var solution = solver.Solve(problem, new ISolver.Params(1e-16, 10000));
+
+            for (int i = 0; i < mesh.VertexCount; i++)
+            {
+                var point = mesh[i];
+                Console.WriteLine(point);
+                Console.WriteLine($"u: {u(point)} solution: {solution.Evaluate(point)}");
+                Assert.Equal(u(point), solution.Evaluate(point), 1e-11);
+            }
+            Console.WriteLine($"u: {u(new Telma.Vector2D(1, 0.5))} solution: {solution.Evaluate(new Telma.Vector2D(1, 0.5))}");
+        }
+        public static string TriangleWithDirichletNeumannH => """
+        3
+        0 0
+        3 0
+        0 1
+        1
+        0 1 2 0
+        3
+        0 1 0
+        1 2 0
+        2 0 1
+        """;
+
+        [Fact]
+
+
+        public void HierarchicalCubicWithDirichletNeumannWithLinearFunc()
+        {
+            var mesh = new StringReader(TriangleWithDirichletNeumannH).ReadMesh2D(
+                coordinateSystem: IdentityTransform<Vector2D>.Instance,
+                FiniteElements.Triangle.HierarchicalCubic,
+                FiniteElements.Segment.HierarchicalCubic
+            );
+            static double u(Vector2D p) => p.X;
+            var problem = new EllipticProblem2D(
+                Materials: [new(
+                Lambda: _ => 1.0,
+                Gamma: _ => 1.0,
+                Source: p => p.X
+            )],
+                BoundaryConditions: [
+                    new BoundaryCondition2D.Dirichlet(Value: (p,_) => u(p)),
+                new BoundaryCondition2D.Neumann(Flux: (p,_) => -1.0)
+                ],
+                mesh
+            );
+
+            var solver = new EllipticSolver2D(
+                DenseMatrix.Factory,
+                NumericItegrator2D.Instance,
+                new PCGSolver(m => IdentityPreconditioner.Instance)
+            );
+
+            var solution = solver.Solve(problem, new ISolver.Params(1e-13, 10000));
+
+            for (int i = 0; i < mesh.VertexCount; i++)
+            {
+                var point = mesh[i];
+                Console.WriteLine(point);
+                Console.WriteLine($"u: {u(point)} solution: {solution.Evaluate(point)}");
+                Assert.Equal(u(point), solution.Evaluate(point), 1e-11);
+            }
+        }
+        [Fact]
+        public void HierarchicalCubicWithDirichletNeumannWithQuadraticFunc()
+        {
+            var mesh = new StringReader(Linear.TriangleWithDirichletNeumann).ReadMesh2D(
+                coordinateSystem: IdentityTransform<Vector2D>.Instance,
+                FiniteElements.Triangle.HierarchicalCubic,
+                FiniteElements.Segment.HierarchicalCubic
+            );
+            static double u(Vector2D p) => p.X * p.X;
+            var problem = new EllipticProblem2D(
+                Materials: [new(
+                Lambda: _ => 1.0,
+                Gamma: _ => 1.0,
+                Source: p => -2 + p.X * p.X
+            )],
+                BoundaryConditions: [
+                    new BoundaryCondition2D.Dirichlet(Value: (p,_) => u(p)),
+                new BoundaryCondition2D.Neumann(Flux: (p,_) => -2 * p.X)
+                ],
+                mesh
+            );
+
+            var solver = new EllipticSolver2D(
+                DenseMatrix.Factory,
+                NumericItegrator2D.Instance,
+                new PCGSolver(m => IdentityPreconditioner.Instance)
+            );
+
+            var solution = solver.Solve(problem, new ISolver.Params(1e-13, 10000));
+            for (int i = 0; i < mesh.VertexCount; i++)
+            {
+                var point = mesh[i];
+                Console.WriteLine(point);
+                Assert.Equal(u(point), solution.Evaluate(point), 1e-12);
+            }
+        }
+        public static string TriangleWithAllBC => """
+        3
+        0 0
+        2 0
+        0 2
+        1
+        0 1 2 0
+        3
+        0 1 0
+        1 2 1
+        0 2 2
+        """;
+        [Fact]
+        public void HierarchicalCubicWithAllBCWithQuadraticFunc()
+        {
+            var mesh = new StringReader(TriangleWithAllBC).ReadMesh2D(
+                coordinateSystem: IdentityTransform<Vector2D>.Instance,
+                FiniteElements.Triangle.HierarchicalCubic,
+                FiniteElements.Segment.HierarchicalCubic
+            );
+            static double u(Vector2D p) => p.X * p.X;
+            var problem = new EllipticProblem2D(
+                Materials: [new(
+                Lambda: _ => 1.0,
+                Gamma: _ => 1.0,
+                Source: p => -2 + p.X * p.X
+            )],
+                BoundaryConditions: [
+                    new BoundaryCondition2D.Dirichlet(Value: (p,_) => u(p)),
+                new BoundaryCondition2D.Neumann(Flux: (p,_) => 2.0 * p.X/Math.Sqrt(2.0)),
+                new BoundaryCondition2D.Robin(Beta: (p,_) => 1.0,UBeta: (p,_) => -2.0 * p.X),
+                ],
+                mesh
+            );
+
+            var solver = new EllipticSolver2D(
+                DenseMatrix.Factory,
+                NumericItegrator2D.Instance,
+                new PCGSolver(m => IdentityPreconditioner.Instance)
+            );
+
+            var solution = solver.Solve(problem, new ISolver.Params(1e-13, 10000));
+            for (int i = 0; i < mesh.VertexCount; i++)
+            {
+                var point = mesh[i];
+                Console.WriteLine(point);
+                Assert.Equal(u(point), solution.Evaluate(point), 1e-12);
+            }
+
+        }
+        private static string TriangleWithDirichletRobin => """
+        3
+        0 0
+        2 0
+        0 2
+        1
+        0 1 2 0
+        3
+        0 1 0
+        1 2 1
+        2 0 2
+        """;
+        [Fact]
+        public void HierarchicalCubicWithDirichletRobinWithCubicFunc3()
+        {
+            var mesh = new StringReader(TriangleWithDirichletRobin).ReadMesh2D(
+                coordinateSystem: IdentityTransform<Vector2D>.Instance,
+                FiniteElements.Triangle.HierarchicalCubic,
+                FiniteElements.Segment.HierarchicalCubic
+            );
+            static double u(Vector2D p) => p.X * p.X * p.X;
+            var problem = new EllipticProblem2D(
+                Materials: [new(
+                Lambda: _ => 1.0,
+                Gamma: _ => 1.0,
+                Source: p => -6*p.X + p.X*p.X*p.X
+            )],
+                BoundaryConditions: [
+                    new BoundaryCondition2D.Dirichlet(Value: (p,_) => u(p)),
+                new BoundaryCondition2D.Neumann(Flux: (p,_) => 3.0 * p.X*p.X*Math.Sqrt(2.0)/2.0),
+                new BoundaryCondition2D.Robin(Beta: (p,_) => 1.0,UBeta: (p,_) =>
+                            -3.0*p.X*p.X + p.X*p.X*p.X),
+                ],
+                mesh
+            );
+
+            var solver = new EllipticSolver2D(
+                DenseMatrix.Factory,
+                NumericItegrator2D.Instance,
+                new PCGSolver(m => IdentityPreconditioner.Instance)
+            );
+
+            var solution = solver.Solve(problem, new ISolver.Params(1e-13, 10000));
+            for (int i = 0; i < mesh.VertexCount; i++)
+            {
+                var point = mesh[i];
+                Console.WriteLine(point);
+                Console.WriteLine($"u: {u(point)} solution: {solution.Evaluate(point)}");
+                Assert.Equal(u(point), solution.Evaluate(point), 1e-12);
+            }
+        }
+        [Fact]
+        public void HierarchicalCubicWithDirichletRobinWithCubicFunc2()
+        {
+            var mesh = new StringReader(TriangleWithDirichletRobin).ReadMesh2D(
+                coordinateSystem: IdentityTransform<Vector2D>.Instance,
+                FiniteElements.Triangle.HierarchicalCubic,
+                FiniteElements.Segment.HierarchicalCubic
+            );
+            static double u(Vector2D p) => p.X * p.X * p.X;
+            var problem = new EllipticProblem2D(
+                Materials: [new(
+                Lambda: _ => 1.0,
+                Gamma: _ => 1.0,
+                Source: p => -6*p.X + p.X*p.X*p.X
+            )],
+                BoundaryConditions: [
+                    new BoundaryCondition2D.Dirichlet(Value: (p,_) => u(p)),
+                new BoundaryCondition2D.Robin(Beta: (p,_) => 1.0,UBeta: (p,_) =>
+                            3.0/2.0*Math.Sqrt(2.0)*p.X*p.X + p.X*p.X*p.X),
+                new BoundaryCondition2D.Robin(Beta: (p,_) => 1.0,UBeta: (p,_) =>
+                            -3.0*p.X*p.X + p.X*p.X*p.X),
+                ],
+                mesh
+            );
+
+            var solver = new EllipticSolver2D(
+                DenseMatrix.Factory,
+                NumericItegrator2D.Instance,
+                new PCGSolver(m => IdentityPreconditioner.Instance)
+            );
+
+            var solution = solver.Solve(problem, new ISolver.Params(1e-13, 10000));
+            for (int i = 0; i < mesh.VertexCount; i++)
+            {
+                var point = mesh[i];
+                Console.WriteLine(point);
+                Console.WriteLine($"u: {u(point)} solution: {solution.Evaluate(point)}");
+                Assert.Equal(u(point), solution.Evaluate(point), 1e-12);
+            }
+        }
+
+        private static string TwoNotMasterTriangles => """
+        4
+        0 0 
+        2 0
+        0 1
+        2 1
+        2
+        0 1 2 0
+        1 2 3 0
+        4
+        0 1 0 
+        2 3 2 
+        2 0 0 
+        3 1 1 
+        """;
+
+        [Fact]
+        public void HierarchicalCubicMeshWithAllBCWithQuadraticFunc()
+        {
+            var mesh = new StringReader(TwoNotMasterTriangles).ReadMesh2D(
+                coordinateSystem: IdentityTransform<Vector2D>.Instance,
+                FiniteElements.Triangle.HierarchicalCubic,
+                FiniteElements.Segment.HierarchicalCubic
+            );
+            static double u(Vector2D p) => p.X * p.X;
+            var problem = new EllipticProblem2D(
+                Materials: [new(
+                Lambda: _ => 1.0,
+                Gamma: _ => 1.0,
+                Source: p => -2 + p.X*p.X
+            )],
+                BoundaryConditions: [
+                    new BoundaryCondition2D.Dirichlet(Value: (p,_) => u(p)),
+                new BoundaryCondition2D.Neumann(Flux: (p,_) => 2.0 * p.X),
+                new BoundaryCondition2D.Robin(Beta: (p,_) => 1.0,UBeta: (p,_) => p.X*p.X),
+                ],
+                mesh
+            );
+
+            var solver = new EllipticSolver2D(
+                DenseMatrix.Factory,
+                NumericItegrator2D.Instance,
+                new PCGSolver(m => IdentityPreconditioner.Instance)
+            );
+
+            var solution = solver.Solve(problem, new ISolver.Params(1e-13, 10000));
+            for (int i = 0; i < mesh.VertexCount; i++)
+            {
+                var point = mesh[i];
+                Console.WriteLine(point);
+                Assert.Equal(u(point), solution.Evaluate(point), 1e-12);
+            }
+        }
+
+        [Fact]
+        public void HierarchicalCubicMeshWithAllBCWithCubicFunc2()
+        {
+            var mesh = new StringReader(TwoNotMasterTriangles).ReadMesh2D(
+                coordinateSystem: IdentityTransform<Vector2D>.Instance,
+                FiniteElements.Triangle.HierarchicalCubic,
+                FiniteElements.Segment.HierarchicalCubic
+            );
+            static double u(Vector2D p) => p.X * p.X * p.X;
+            var problem = new EllipticProblem2D(
+                Materials: [new(
+                Lambda: _ => 1.0,
+                Gamma: _ => 1.0,
+                Source: p => -6*p.X + p.X*p.X*p.X
+            )],
+                BoundaryConditions: [
+                    new BoundaryCondition2D.Dirichlet(Value: (p,_) => u(p)),
+                    new BoundaryCondition2D.Neumann(Flux: (p,_) => 3*p.X*p.X),
+                    new BoundaryCondition2D.Robin(Beta: (p,_) => 1.0,UBeta: (p,_) => u(p)),
+                ],
+                mesh
+            );
+
+            var solver = new EllipticSolver2D(
+                DenseMatrix.Factory,
+                NumericItegrator2D.Instance,
+                new PCGSolver(m => IdentityPreconditioner.Instance)
+            );
+
+            var solution = solver.Solve(problem, new ISolver.Params(1e-13, 10000));
+            for (int i = 0; i < mesh.VertexCount; i++)
+            {
+                var point = mesh[i];
+                Console.WriteLine(point);
+                Console.WriteLine($"u: {u(point)} solution: {solution.Evaluate(point)}");
+                Assert.Equal(u(point), solution.Evaluate(point), 1e-11);
+            }
+        }
+
+
+        private static string TwoNotMasterTrianglesCorrect => """
+        4
+        0 0 
+        2 0
+        0 1
+        2 1
+        2
+        0 1 2 0
+        2 1 3 0
+        4
+        0 1 0 
+        3 2 2 
+        2 0 0 
+        1 3 1 
+        """;
+        [Fact]
+        public void CSRHierarchicalCubicMeshWithAllBCWithCubicFunc()
+        {
+            var mesh = new StringReader(TwoNotMasterTriangles).ReadMesh2D(
+                coordinateSystem: IdentityTransform<Vector2D>.Instance,
+                FiniteElements.Triangle.HierarchicalCubic,
+                FiniteElements.Segment.HierarchicalCubic
+            );
+            static double u(Vector2D p) => p.X * p.X * p.X + p.Y * p.Y * p.Y;
+            var problem = new EllipticProblem2D(
+                Materials: [new(
+                Lambda: _ => 1.0,
+                Gamma: _ => 1.0,
+                Source: p => -6*p.X - 6*p.Y + p.X * p.X*p.X + p.Y*p.Y*p.Y
+            )],
+                BoundaryConditions: [
+                    new BoundaryCondition2D.Dirichlet(Value: (p,_) => u(p)),
+                new BoundaryCondition2D.Neumann(Flux: (p,_) => 3*p.X*p.X),
+                new BoundaryCondition2D.Robin(Beta: (p,_) => 1.0,UBeta: (p,_) => 4 + p.X * p.X * p.X),
+                ],
+                mesh
+            );
+
+            var solver = new EllipticSolver2D(
+                CsrMatrix.Factory,
+                NumericItegrator2D.Instance,
+                new PCGSolver(m => IdentityPreconditioner.Instance)
+            );
+
+            var solution = solver.Solve(problem, new ISolver.Params(1e-13, 10000));
+
+            Console.WriteLine(solution.Evaluate(new Vector2D(0.75, 0.6)));
+            Console.WriteLine(solution.Evaluate(new Vector2D(0.75, 0.4)));
+
+
+            for (int i = 0; i < mesh.VertexCount; i++)
+            {
+                var point = mesh[i];
+                Console.WriteLine(point);
+                Console.WriteLine($"u: {u(point)} solution: {solution.Evaluate(point)}");
+                Assert.Equal(u(point), solution.Evaluate(point), 1e-11);
+            }
+        }
+
+        private static string TriangleWithDirichletRobinOne => """
+        3
+        0 0
+        2 0
+        0 2
+        1
+        0 1 2 0
+        3
+        0 1 0
+        1 2 1
+        2 0 2
+        """;
+        [Fact]
+        public void CSRHierarchicalCubicMeshWithAllBCWithCubicFuncOneElem()
+        {
+            var mesh = new StringReader(TriangleWithDirichletRobinOne).ReadMesh2D(
+                coordinateSystem: IdentityTransform<Vector2D>.Instance,
+                FiniteElements.Triangle.HierarchicalCubic,
+                FiniteElements.Segment.HierarchicalCubic
+            );
+            static double u(Vector2D p) => p.X * p.X * p.X + p.Y * p.Y * p.Y;
+            var problem = new EllipticProblem2D(
+                Materials: [new(
+                Lambda: _ => 1.0,
+                Gamma: _ => 1.0,
+                Source: p => -6*p.X - 6*p.Y + p.X * p.X*p.X + p.Y*p.Y*p.Y
+            )],
+                BoundaryConditions: [
+                    new BoundaryCondition2D.Dirichlet(Value: (p,_) => u(p)),
+                new BoundaryCondition2D.Neumann(Flux: (p,_) => (3*p.X*p.X + 3*p.Y*p.Y)* Math.Sqrt(2.0)/2.0),
+                new BoundaryCondition2D.Robin(Beta: (p,_) => 1.0,UBeta: (p,_) => p.Y * p.Y * p.Y),
+                ],
+                mesh
+            );
+
+            var solver = new EllipticSolver2D(
+                CsrMatrix.Factory,
+                NumericItegrator2D.Instance,
+                new PCGSolver(m => IdentityPreconditioner.Instance)
+            );
+
+            var solution = solver.Solve(problem, new ISolver.Params(1e-13, 10000));
+
+            Console.WriteLine(solution.Evaluate(new Vector2D(0.75, 0.6)));
+            Console.WriteLine(solution.Evaluate(new Vector2D(0.75, 0.4)));
+
+
+            for (int i = 0; i < mesh.VertexCount; i++)
+            {
+                var point = mesh[i];
+                Console.WriteLine(point);
+                Console.WriteLine($"u: {u(point)} solution: {solution.Evaluate(point)}");
+                Assert.Equal(u(point), solution.Evaluate(point), 1e-11);
+            }
+        }
+    }
+
+    public class HierarchicalCubicCylindric
+    {
+        [Fact]
+        public void HierarchicalCubicWithDirichletWithQuadraticPlusQuadraticFunc()
+        {
+            var mesh = new StringReader(Linear.TestMesh1).ReadMesh2D(
+                coordinateSystem: CylindricCoordinateSystem.Instance,
+                FiniteElements.Triangle.HierarchicalCubic,
+                FiniteElements.Segment.HierarchicalCubic
+            );
+            static double u(Vector2D p) => p.X * p.X + p.Y * p.Y;
+            var problem = new EllipticProblem2D(
+                Materials: [new(
+                Lambda: _ => 1.0,
+                Gamma: _ => 1.0,
+                Source: p => p.X*p.X + p.Y*p.Y - 6
+            )],
+                BoundaryConditions: [
+                    new BoundaryCondition2D.Dirichlet(Value: (p,_) => u(p))
+                ],
+                mesh
+            );
+
+            var solver = new EllipticSolver2D(
+                DenseMatrix.Factory,
+                NumericItegrator2D.Instance,
+                new PCGSolver(m => IdentityPreconditioner.Instance)
+            );
+
+            var solution = solver.Solve(problem, new ISolver.Params(1e-13, 10000));
+
+            for (int i = 0; i < mesh.VertexCount; i++)
+            {
+                var point = mesh[i];
+                Console.WriteLine(point);
+                Console.WriteLine($"u: {u(point)} solution: {solution.Evaluate(point)}");
+                Assert.Equal(u(point), solution.Evaluate(point), 1e-11);
+            }
+            Console.WriteLine($"u: {u(new Telma.Vector2D(1, 0.5))} solution: {solution.Evaluate(new Telma.Vector2D(1, 0.5))}");
+
+        }
+        [Fact]
+        public void HierarchicalCubicWithDirichletWithLinearPlusCubicFunc()
+        {
+            var mesh = new StringReader(Linear.TestMesh1).ReadMesh2D(
+                coordinateSystem: CylindricCoordinateSystem.Instance,
+                FiniteElements.Triangle.HierarchicalCubic,
+                FiniteElements.Segment.HierarchicalCubic
+            );
+            static double u(Vector2D p) => p.X + p.Y * p.Y + p.Y;
+            var problem = new EllipticProblem2D(
+                Materials: [new(
+                Lambda: _ => 1.0,
+                Gamma: _ => 1.0,
+                Source: p => p.X + p.Y*p.Y*p.Y - 6 * p.Y
+            )],
+                BoundaryConditions: [
+                    new BoundaryCondition2D.Dirichlet(Value: (p,_) => u(p))
+                ],
+                mesh
+            );
+
+            var solver = new EllipticSolver2D(
+                DenseMatrix.Factory,
+                NumericItegrator2D.Instance,
+                new PCGSolver(m => IdentityPreconditioner.Instance)
+            );
+
+            var solution = solver.Solve(problem, new ISolver.Params(1e-13, 10000));
+
+            for (int i = 0; i < mesh.VertexCount; i++)
+            {
+                var point = mesh[i];
+                Console.WriteLine(point);
+                Console.WriteLine($"u: {u(point)} solution: {solution.Evaluate(point)}");
+                Assert.Equal(u(point), solution.Evaluate(point), 1e-11);
+            }
+
+        }
+        [Fact]
+        public void HierarchicalCubicWithDirichletWithCubicPlusCubicFunc()
+        {
+            var mesh = new StringReader(Linear.TestMesh1).ReadMesh2D(
+                coordinateSystem: CylindricCoordinateSystem.Instance,
+                FiniteElements.Triangle.HierarchicalCubic,
+                FiniteElements.Segment.HierarchicalCubic
+            );
+            static double u(Vector2D p) => p.X * p.X * p.X + p.Y * p.Y * p.Y;
+            var problem = new EllipticProblem2D(
+                Materials: [new(
+                Lambda: _ => 1.0,
+                Gamma: _ => 1.0,
+                Source: p => p.X * p.X * p.X + p.Y*p.Y*p.Y - 9*p.X - 6 * p.Y
+            )],
+                BoundaryConditions: [
+                    new BoundaryCondition2D.Dirichlet(Value: (p,_) => u(p))
+                ],
+                mesh
+            );
+
+            var solver = new EllipticSolver2D(
+                DenseMatrix.Factory,
+                NumericItegrator2D.Instance,
+                new PCGSolver(m => IdentityPreconditioner.Instance)
+            );
+
+            var solution = solver.Solve(problem, new ISolver.Params(1e-16, 10000));
+
+            for (int i = 0; i < mesh.VertexCount; i++)
+            {
+                var point = mesh[i];
+                Console.WriteLine(point);
+                Console.WriteLine($"u: {u(point)} solution: {solution.Evaluate(point)}");
+                Assert.Equal(u(point), solution.Evaluate(point), 1e-11);
+            }
+        }
+        public static string TriangleWithDirichletNeumannH => """
+        3
+        0 0
+        3 0
+        0 1
+        1
+        0 1 2 0
+        3
+        0 1 0
+        1 2 0
+        2 0 1
+        """;
+
+        [Fact]
+        public void HierarchicalCubicWithDirichletNeumannWithCubicFunc()
+        {
+            var mesh = new StringReader(TriangleWithDirichletNeumannH).ReadMesh2D(
+                coordinateSystem: CylindricCoordinateSystem.Instance,
+                FiniteElements.Triangle.HierarchicalCubic,
+                FiniteElements.Segment.HierarchicalCubic
+            );
+            static double u(Vector2D p) => p.X * p.X * p.X;
+            var problem = new EllipticProblem2D(
+                Materials: [new(
+                Lambda: _ => 1.0,
+                Gamma: _ => 1.0,
+                Source: p => -9*p.X + p.X*p.X*p.X
+            )],
+                BoundaryConditions: [
+                    new BoundaryCondition2D.Dirichlet(Value: (p,_) => u(p)),
+                new BoundaryCondition2D.Neumann(Flux: (p,_) => 0)
+                ],
+                mesh
+            );
+
+            var solver = new EllipticSolver2D(
+                DenseMatrix.Factory,
+                NumericItegrator2D.Instance,
+                new PCGSolver(m => IdentityPreconditioner.Instance)
+            );
+
+            var solution = solver.Solve(problem, new ISolver.Params(1e-13, 10000));
+
+            for (int i = 0; i < mesh.VertexCount; i++)
+            {
+                var point = mesh[i];
+                Console.WriteLine(point);
+                Console.WriteLine($"u: {u(point)} solution: {solution.Evaluate(point)}");
+                Assert.Equal(u(point), solution.Evaluate(point), 1e-11);
+            }
+            Console.WriteLine($"u: {u(new Telma.Vector2D(1, 0.5))} solution: {solution.Evaluate(new Telma.Vector2D(1, 0.5))}");
+        }
+        [Fact]
+        public void HierarchicalCubicWithDirichletNeumannWithQuadraticFunc()
+        {
+            var mesh = new StringReader(Linear.TriangleWithDirichletNeumann).ReadMesh2D(
+                coordinateSystem: CylindricCoordinateSystem.Instance,
+                FiniteElements.Triangle.HierarchicalCubic,
+                FiniteElements.Segment.HierarchicalCubic
+            );
+            static double u(Vector2D p) => p.X * p.X;
+            var problem = new EllipticProblem2D(
+                Materials: [new(
+                Lambda: _ => 1.0,
+                Gamma: _ => 1.0,
+                Source: p => -2 + p.X * p.X
+            )],
+                BoundaryConditions: [
+                    new BoundaryCondition2D.Dirichlet(Value: (p,_) => u(p)),
+                new BoundaryCondition2D.Neumann(Flux: (p,_) => -2 * p.X)
+                ],
+                mesh
+            );
+
+            var solver = new EllipticSolver2D(
+                DenseMatrix.Factory,
+                NumericItegrator2D.Instance,
+                new PCGSolver(m => IdentityPreconditioner.Instance)
+            );
+
+            var solution = solver.Solve(problem, new ISolver.Params(1e-13, 10000));
+            for (int i = 0; i < mesh.VertexCount; i++)
+            {
+                var point = mesh[i];
+                Console.WriteLine(point);
+                Assert.Equal(u(point), solution.Evaluate(point), 1e-12);
+            }
+        }
+        public static string TriangleWithAllBC => """
+        3
+        0 0
+        2 0
+        0 2
+        1
+        0 1 2 0
+        3
+        0 1 0
+        1 2 1
+        0 2 2
+        """;
+
+        private static string TriangleWithDirichletRobin => """
+        3
+        0 0
+        2 0
+        0 2
+        1
+        0 1 2 0
+        3
+        0 1 0
+        1 2 1
+        0 2 2
+        """;
+        [Fact]
+        public void HierarchicalCubicWithDirichletRobinWithQuadraticFunc2()
+        {
+            var mesh = new StringReader(TriangleWithDirichletRobin).ReadMesh2D(
+                coordinateSystem: CylindricCoordinateSystem.Instance,
+                FiniteElements.Triangle.HierarchicalCubic,
+                FiniteElements.Segment.HierarchicalCubic
+            );
+            static double u(Vector2D p) => p.X * p.X;
+            var problem = new EllipticProblem2D(
+                Materials: [new(
+                Lambda: _ => 1.0,
+                Gamma: _ => 1.0,
+                Source: p => -4 + p.X * p.X
+            )],
+                BoundaryConditions: [
+                    new BoundaryCondition2D.Dirichlet(Value: (p,_) => u(p)),
+                new BoundaryCondition2D.Robin(Beta: (p,_) => 1.0,UBeta: (p,_) => 2.0*p.X/Math.Sqrt(2.0) + p.X*p.X),
+                new BoundaryCondition2D.Robin(Beta: (p,_) => 1.0,UBeta: (p,_) => -2.0 * p.X),
+                ],
+                mesh
+            );
+
+            var solver = new EllipticSolver2D(
+                DenseMatrix.Factory,
+                NumericItegrator2D.Instance,
+                new PCGSolver(m => IdentityPreconditioner.Instance)
+            );
+
+            var solution = solver.Solve(problem, new ISolver.Params(1e-13, 10000));
+            for (int i = 0; i < mesh.VertexCount; i++)
+            {
+                var point = mesh[i];
+                Console.WriteLine(point);
+                Assert.Equal(u(point), solution.Evaluate(point), 1e-11);
+                Console.WriteLine($"u: {u(point)} solution: {solution.Evaluate(point)}");
+            }
+        }
+
+        private static string TwoNotMasterTriangles => """
+        4
+        0 0 
+        2 0
+        0 1
+        2 1
+        2
+        0 1 2 0
+        1 2 3 0
+        4
+        0 1 0 
+        2 3 2 
+        0 2 0 
+        1 3 1 
+        """;
+        private static string TwoNotMasterTriangles2 => """
+        4
+        1 1 
+        3 1
+        1 2
+        3 2
+        2
+        0 1 2 0
+        1 2 3 0
+        4
+        0 1 0 
+        2 3 2 
+        0 2 0 
+        1 3 1 
+        """;
+        [Fact]
+        public void HierarchicalCubicMeshWithAllBCWithCubicFunc()
+        {
+            var mesh = new StringReader(TwoNotMasterTriangles2).ReadMesh2D(
+                coordinateSystem: CylindricCoordinateSystem.Instance,
+                FiniteElements.Triangle.HierarchicalCubic,
+                FiniteElements.Segment.HierarchicalCubic
+            );
+            static double u(Vector2D p) => p.X * p.X * p.X + p.Y * p.Y * p.Y;
+            var problem = new EllipticProblem2D(
+                Materials: [new(
+                Lambda: _ => 1.0,
+                Gamma: _ => 0,
+                Source: p => -9*p.X - 6*p.Y
+            )],
+                BoundaryConditions: [
+                    new BoundaryCondition2D.Dirichlet(Value: (p,_) => u(p)),
+                new BoundaryCondition2D.Neumann(Flux: (p,_) => 27),
+                new BoundaryCondition2D.Robin(Beta: (p,_) => 1.0,UBeta: (p,_) => p.X*p.X*p.X + 20),
+                ],
+                mesh
+            );
+
+            var solver = new EllipticSolver2D(
+                DenseMatrix.Factory,
+                NumericItegrator2D.Instance,
+                new PCGSolver(m => IdentityPreconditioner.Instance)
+            );
+
+            var solution = solver.Solve(problem, new ISolver.Params(1e-13, 10000));
+            for (int i = 0; i < mesh.VertexCount; i++)
+            {
+                var point = mesh[i];
+                Console.WriteLine(point);
+                Console.WriteLine($"u: {u(point)} solution: {solution.Evaluate(point)}");
+                Assert.Equal(u(point), solution.Evaluate(point), 1e-11);
+            }
+        }
+        [Fact]
+        public void CSRHierarchicalCubicMeshWithAllBCWithQuadraticFunc()
+        {
+            var mesh = new StringReader(TwoNotMasterTriangles).ReadMesh2D(
+                coordinateSystem: CylindricCoordinateSystem.Instance,
+                FiniteElements.Triangle.HierarchicalCubic,
+                FiniteElements.Segment.HierarchicalCubic
+            );
+            static double u(Vector2D p) => p.X * p.X;
+            var problem = new EllipticProblem2D(
+                Materials: [new(
+                Lambda: _ => 1.0,
+                Gamma: _ => 1.0,
+                Source: p => -4 + p.X*p.X
+            )],
+                BoundaryConditions: [
+                    new BoundaryCondition2D.Dirichlet(Value: (p,_) => u(p)),
+                new BoundaryCondition2D.Neumann(Flux: (p,_) => 2.0 * p.X),
+                new BoundaryCondition2D.Robin(Beta: (p,_) => 1.0,UBeta: (p,_) => p.X*p.X),
+                ],
+                mesh
+            );
+
+            var solver = new EllipticSolver2D(
+                CsrMatrix.Factory,
+                NumericItegrator2D.Instance,
+                new PCGSolver(m => IdentityPreconditioner.Instance)
+            );
+
+            var solution = solver.Solve(problem, new ISolver.Params(1e-13, 10000));
+            for (int i = 0; i < mesh.VertexCount; i++)
+            {
+                var point = mesh[i];
+                Console.WriteLine(point);
+                Console.WriteLine($"u: {u(point)} solution: {solution.Evaluate(point)}");
+                Assert.Equal(u(point), solution.Evaluate(point), 1e-11);
+            }
+        }
+    }
     public class LagrangeCubic
     {
         [Fact]
@@ -693,6 +1554,49 @@ public class EllipticProblemTriangleTests
                 Assert.Equal(u(point), solution.Evaluate(point), 1e-12);
             }
 
+        }
+        [Fact]
+        public void CSRLagrangeCubicMeshWithAllBCWithCubicFunc()
+        {
+            var mesh = new StringReader(TwoNotMasterTriangles).ReadMesh2D(
+                coordinateSystem: IdentityTransform<Vector2D>.Instance,
+                FiniteElements.Triangle.LagrangeCubic,
+                FiniteElements.Segment.LagrangeCubic
+            );
+            static double u(Vector2D p) => p.X * p.X * p.X + p.Y * p.Y * p.Y;
+            var problem = new EllipticProblem2D(
+                Materials: [new(
+                Lambda: _ => 1.0,
+                Gamma: _ => 1.0,
+                Source: p => -6*p.X - 6*p.Y + p.X * p.X*p.X + p.Y*p.Y*p.Y
+            )],
+                BoundaryConditions: [
+                    new BoundaryCondition2D.Dirichlet(Value: (p,_) => u(p)),
+                new BoundaryCondition2D.Neumann(Flux: (p,_) => 3*p.X*p.X),
+                new BoundaryCondition2D.Robin(Beta: (p,_) => 1.0,UBeta: (p,_) => 4 + p.X * p.X * p.X),
+                ],
+                mesh
+            );
+
+            var solver = new EllipticSolver2D(
+                CsrMatrix.Factory,
+                NumericItegrator2D.Instance,
+                new PCGSolver(m => IdentityPreconditioner.Instance)
+            );
+
+            var solution = solver.Solve(problem, new ISolver.Params(1e-13, 10000));
+
+            Console.WriteLine(solution.Evaluate(new Vector2D(0.75, 0.6)));
+            Console.WriteLine(solution.Evaluate(new Vector2D(0.75, 0.4)));
+
+
+            for (int i = 0; i < mesh.VertexCount; i++)
+            {
+                var point = mesh[i];
+                Console.WriteLine(point);
+                Console.WriteLine($"u: {u(point)} solution: {solution.Evaluate(point)}");
+                //Assert.Equal(u(point), solution.Evaluate(point), 1e-12);
+            }
         }
         [Fact]
         public void LagrangeCubicWithDirichletWithQuadraticFunc()
@@ -1085,8 +1989,3 @@ public class EllipticProblemTriangleTests
         }
     }
 }
-
-
-
-
-
