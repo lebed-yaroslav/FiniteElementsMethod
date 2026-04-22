@@ -1238,7 +1238,7 @@ public class ParabolicProblemTriangleTests
     public class HiararchicalCubic
     {
         [Fact]
-        public void DirichletWithLinearTimeFuncExplicitTwoLayer()
+        public void DirichletWithLinearTimeFuncExplicitThreeLayer()
         {
             static double analyticSolution(Vector2D p, double t) => t;
 
@@ -1262,7 +1262,7 @@ public class ParabolicProblemTriangleTests
                 mesh
             );
 
-            var solver = new ParabolicSolver2D([TimeSchemes.ForwardEuler],
+            var solver = new ParabolicSolver2D([TimeSchemes.BackwardEuler,TimeSchemes.ExplicitThreeLayer],
                 CsrMatrix.Factory,
                 NumericItegrator2D.Instance,
                 new PCGSolver(m => IdentityPreconditioner.Instance)
@@ -1285,7 +1285,7 @@ public class ParabolicProblemTriangleTests
             }
         }
         [Fact]
-        public void TwoTriangleAllBCWithLinearTimeFuncExplicitTwoLayerXY()
+        public void TwoTriangleAllBCWithLinearTimeFuncExplicitThreeLayerXY()
         {
             static double analyticSolution(Vector2D p, double t) => p.X * p.X + p.Y * p.Y + t;
 
@@ -1311,7 +1311,7 @@ public class ParabolicProblemTriangleTests
                 mesh
             );
 
-            var solver = new ParabolicSolver2D([TimeSchemes.ForwardEuler],
+            var solver = new ParabolicSolver2D([TimeSchemes.ForwardEuler,TimeSchemes.ImplicitThreeLayer],
                 CsrMatrix.Factory,
                 NumericItegrator2D.Instance,
                 new PCGSolver(m => IdentityPreconditioner.Instance)
@@ -1360,7 +1360,7 @@ public class ParabolicProblemTriangleTests
                 mesh
             );
 
-            var solver = new ParabolicSolver2D([TimeSchemes.ForwardEuler],
+            var solver = new ParabolicSolver2D([TimeSchemes.ForwardEuler, TimeSchemes.ImplicitThreeLayer],
                 CsrMatrix.Factory,
                 NumericItegrator2D.Instance,
                 new PCGSolver(m => IdentityPreconditioner.Instance)
@@ -1377,7 +1377,7 @@ public class ParabolicProblemTriangleTests
                 for (int i = 0; i < mesh.VertexCount; i++)
                 {
                     var point = mesh[i];
-                    Assert.Equal(analyticSolution(point, currentTime), solution.Evaluate(point), 1e-7);
+                    Assert.Equal(analyticSolution(point, currentTime), solution.Evaluate(point), 1e-12);
                 }
                 timeId++;
             }
@@ -1411,6 +1411,54 @@ public class ParabolicProblemTriangleTests
             );
 
             var solver = new ParabolicSolver2D([TimeSchemes.ForwardEuler],
+                CsrMatrix.Factory,
+                NumericItegrator2D.Instance,
+                new PCGSolver(m => IdentityPreconditioner.Instance)
+            );
+            double[] timeLayers = [0, 0.1, 0.2, 0.3, 0.4];
+
+            var solutions = solver.Solve(problem, timeLayers, new ISolver.Params(1e-13, 10000));
+
+            int timeId = 1;
+            foreach (var solution in solutions)
+            {
+                double currentTime = timeLayers[timeId];
+                for (int i = 0; i < mesh.VertexCount; i++)
+                {
+                    var point = mesh[i];
+                    Assert.Equal(analyticSolution(point, currentTime), solution.Evaluate(point), 1e-12);
+                }
+                timeId++;
+            }
+        }
+        [Fact]
+        public void AllBCWithLinearTimeFuncExplicitTwoLayerCylindric()
+        {
+            static double analyticSolution(Vector2D p, double t) => t;
+
+            var mesh = new StringReader(TriangleWithAllBCCubic).ReadMesh2D(
+                coordinateSystem: CylindricCoordinateSystem.Instance,
+                FiniteElements.Triangle.HierarchicalCubic,
+                FiniteElements.Segment.HierarchicalCubic
+            );
+
+            var problem = new HyperbolicProblem2D(
+                Materials: [new(
+                    Lambda: (p,t) => 1.0,
+                    Sigma: (p,t) => 1.0,
+                    Xi: (p,t) => 0.0,
+                    Source: (p,t) => 1.0
+                )],
+                InitialCondition: p => analyticSolution(p, 0),
+                BoundaryConditions: [
+                    new BoundaryCondition2D.Dirichlet(Value: (p, t) => analyticSolution(p,t)),
+                    new BoundaryCondition2D.Neumann(Flux: (p,t) => 0.0),
+                    new BoundaryCondition2D.Robin(Beta: (p,t) => 2.0,UBeta: (p,t) => t)
+                ],
+                mesh
+            );
+
+            var solver = new ParabolicSolver2D([TimeSchemes.ForwardEuler, TimeSchemes.ImplicitThreeLayer],
                 CsrMatrix.Factory,
                 NumericItegrator2D.Instance,
                 new PCGSolver(m => IdentityPreconditioner.Instance)
