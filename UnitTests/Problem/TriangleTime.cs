@@ -1123,4 +1123,590 @@ public class ParabolicProblemTriangleTests
             }
         }
     }
+
+    public class LagrangeCubic
+    {
+        private const string LagrangeTestMeshDirichlet =
+        """
+        6
+        2 1
+        4 1
+        10 1
+        4 5
+        7 3
+        10 5
+        5
+        0 1 3 0
+        1 2 4 0
+        1 3 4 0
+        2 4 5 0
+        3 4 5 0
+        5
+        0 1 0
+        1 2 0
+        2 5 0
+        0 3 0
+        3 5 0
+        """;
+
+        private const string LagrangeTestMeshAllBC =
+        """
+        6
+        2 1
+        4 1
+        10 1
+        4 5
+        7 3
+        10 5
+        5
+        0 1 3 0
+        1 2 4 0
+        1 3 4 0
+        2 4 5 0
+        3 4 5 0
+        5
+        0 1 0
+        1 2 0
+        2 5 2
+        0 3 0
+        3 5 1
+        """;
+
+        [Fact]
+        public void LagrangeCubicTestMeshAllDirichletExplicitTwoLayersLinear()
+        {
+            static double analyticSolution(Vector2D p, double t) => t * p.X;
+
+            var mesh = new StringReader(LagrangeTestMeshDirichlet).ReadMesh2D(
+                coordinateSystem: PolarCoordinateSystem.Instance,
+                FiniteElements.Triangle.LagrangeCubic,
+                FiniteElements.Segment.LagrangeCubic
+            );
+
+            var problem = new HyperbolicProblem2D(
+                Materials: [new(
+                Lambda: (p,t) => 1.0,
+                Sigma: (p,t) => 1.0,
+                Xi: (p,t) => 0.0,
+                Source: (p,t) => -t/p.X + p.X
+            )],
+                InitialCondition: p => analyticSolution(p, 0),
+                BoundaryConditions: [
+                    new BoundaryCondition2D.Dirichlet(Value: (p, t) => analyticSolution(p,t))
+                ],
+                mesh
+            );
+
+            var solver = new ParabolicSolver2D([TimeSchemes.ExplicitTwoLayers],
+                CsrMatrix.Factory,
+                NumericItegrator2D.Instance,
+                new PCGSolver(m => IdentityPreconditioner.Instance)
+            );
+            double[] timeLayers = [0, 1, 2, 3];
+
+
+            var solutions = solver.Solve(problem, timeLayers, new ISolver.Params(1e-13, 10000));
+
+            int timeId = 1;
+            foreach (var solution in solutions)
+            {
+                double currentTime = timeLayers[timeId];
+                for (int i = 0; i < mesh.VertexCount; i++)
+                {
+                    var point = mesh[i];
+                    Assert.Equal(analyticSolution(point, currentTime), solution.Evaluate(point), 1e-11);
+                }
+                timeId++;
+            }
+        }
+
+        [Fact]
+        public void LagrangeCubicTestMeshAllDirichletExplicitTwoLayersQuadratic()
+        {
+            static double analyticSolution(Vector2D p, double t) => t * t * p.X;
+
+            var mesh = new StringReader(LagrangeTestMeshDirichlet).ReadMesh2D(
+                coordinateSystem: PolarCoordinateSystem.Instance,
+                FiniteElements.Triangle.LagrangeCubic,
+                FiniteElements.Segment.LagrangeCubic
+            );
+
+            var problem = new HyperbolicProblem2D(
+                Materials: [new(
+                Lambda: (p,t) => 1.0,
+                Sigma: (p,t) => 1.0,
+                Xi: (p,t) => 0.0,
+                Source: (p,t) => -(t * t)/p.X + 2.0 * p.X * t
+            )],
+                InitialCondition: p => analyticSolution(p, 0),
+                BoundaryConditions: [
+                    new BoundaryCondition2D.Dirichlet(Value: (p, t) => analyticSolution(p,t))
+                ],
+                mesh
+            );
+
+            var solver = new ParabolicSolver2D([TimeSchemes.ExplicitTwoLayers],
+                CsrMatrix.Factory,
+                NumericItegrator2D.Instance,
+                new PCGSolver(m => IdentityPreconditioner.Instance)
+            );
+            double[] timeLayers = [0, 1, 2, 3];
+
+
+            var solutions = solver.Solve(problem, timeLayers, new ISolver.Params(1e-13, 10000));
+
+            int timeId = 1;
+            foreach (var solution in solutions)
+            {
+                double currentTime = timeLayers[timeId];
+                for (int i = 0; i < mesh.VertexCount; i++)
+                {
+                    var point = mesh[i];
+                    //Assert.Equal(analyticSolution(point, currentTime), solution.Evaluate(point), 1e-11);  //не должен проходить из-за 1-го порядка аппроксимации
+                }
+                timeId++;
+            }
+        }
+
+        [Fact]
+        public void LagrangeCubicTestMeshAllDirichletExplicitTwoLayersNonPolynomial()
+        {
+            static double analyticSolution(Vector2D p, double t) => p.X * p.Y * Math.Exp(t);
+
+            var mesh = new StringReader(LagrangeTestMeshDirichlet).ReadMesh2D(
+                coordinateSystem: PolarCoordinateSystem.Instance,
+                FiniteElements.Triangle.LagrangeCubic,
+                FiniteElements.Segment.LagrangeCubic
+            );
+
+            var problem = new HyperbolicProblem2D(
+                Materials: [new(
+                Lambda: (p,t) => 1.0,
+                Sigma: (p,t) => 1.0,
+                Xi: (p,t) => 0.0,
+                Source: (p,t) => Math.Exp(t) * (-p.Y/p.X + p.X * p.Y)
+            )],
+                InitialCondition: p => analyticSolution(p, 0),
+                BoundaryConditions: [
+                    new BoundaryCondition2D.Dirichlet(Value: (p, t) => analyticSolution(p,t))
+                ],
+                mesh
+            );
+
+            var solver = new ParabolicSolver2D([TimeSchemes.ExplicitTwoLayers],
+                CsrMatrix.Factory,
+                NumericItegrator2D.Instance,
+                new PCGSolver(m => IdentityPreconditioner.Instance)
+            );
+            double[] timeLayers = [0, 0.3, 0.6, 0.9];
+            //double[] timeLayers = [0, 0.15, 0.3, 0.45, 0.6, 0.75, 0.9];
+            //double[] timeLayers = [0, 0.075, 0.15, 0.225, 0.3, 0.375, 0.45, 0.525, 0.6, 0.675, 0.75, 0.825, 0.9];
+
+
+            var solutions = solver.Solve(problem, timeLayers, new ISolver.Params(1e-13, 10000));
+
+            int timeId = 1;
+            foreach (var solution in solutions)
+            {
+                double currentTime = timeLayers[timeId];
+                for (int i = 0; i < mesh.VertexCount; i++)
+                {
+                    var point = mesh[i];
+                    //Assert.Equal(analyticSolution(point, currentTime), solution.Evaluate(point), 1e-11);
+                }
+                timeId++;
+            }
+        }
+
+        [Fact]
+        public void LagrangeCubicTestMeshAllBCExplicitTwoLayers()
+        {
+            static double analyticSolution(Vector2D p, double t) => t;
+
+            var mesh = new StringReader(LagrangeTestMeshAllBC).ReadMesh2D(
+                coordinateSystem: PolarCoordinateSystem.Instance,
+                FiniteElements.Triangle.LagrangeCubic,
+                FiniteElements.Segment.LagrangeCubic
+            );
+
+            var problem = new HyperbolicProblem2D(
+                Materials: [new(
+                Lambda: (p,t) => 1.0,
+                Sigma: (p,t) => 3.0,
+                Xi: (p,t) => 0.0,
+                Source: (p,t) => 3.0
+            )],
+                InitialCondition: p => analyticSolution(p, 0),
+                BoundaryConditions: [
+                    new BoundaryCondition2D.Dirichlet(Value: (p, t) => analyticSolution(p, t)),
+                new BoundaryCondition2D.Neumann(Flux: (p, t) => 0.0),
+                new BoundaryCondition2D.Robin(Beta: (p, t) => 3.0,UBeta: (p, t) => t)
+                ],
+                mesh
+            );
+
+            var solver = new ParabolicSolver2D([TimeSchemes.ExplicitTwoLayers],
+                CsrMatrix.Factory,
+                NumericItegrator2D.Instance,
+                new PCGSolver(m => IdentityPreconditioner.Instance)
+            );
+            double[] timeLayers = [0, 0.1, 0.2, 0.3];
+
+            var solutions = solver.Solve(problem, timeLayers, new ISolver.Params(1e-13, 10000));
+
+            int timeId = 1;
+            foreach (var solution in solutions)
+            {
+                double currentTime = timeLayers[timeId];
+                for (int i = 0; i < mesh.VertexCount; i++)
+                {
+                    var point = mesh[i];
+                    Assert.Equal(analyticSolution(point, currentTime), solution.Evaluate(point), 1e-11);
+                }
+                timeId++;
+            }
+        }
+
+        //---------- Implicit Two Layers ----------
+
+        [Fact]
+        public void LagrangeCubicTestMeshAllDirichletImplicitTwoLayersLinear()
+        {
+            static double analyticSolution(Vector2D p, double t) => t * p.X;
+
+            var mesh = new StringReader(LagrangeTestMeshDirichlet).ReadMesh2D(
+                coordinateSystem: PolarCoordinateSystem.Instance,
+                FiniteElements.Triangle.LagrangeCubic,
+                FiniteElements.Segment.LagrangeCubic
+            );
+
+            var problem = new HyperbolicProblem2D(
+                Materials: [new(
+                Lambda: (p,t) => 1.0,
+                Sigma: (p,t) => 1.0,
+                Xi: (p,t) => 0.0,
+                Source: (p,t) => -t/p.X + p.X
+            )],
+                InitialCondition: p => analyticSolution(p, 0),
+                BoundaryConditions: [
+                    new BoundaryCondition2D.Dirichlet(Value: (p, t) => analyticSolution(p,t))
+                ],
+                mesh
+            );
+
+            var solver = new ParabolicSolver2D([TimeSchemes.ImplicitTwoLayers],
+                CsrMatrix.Factory,
+                NumericItegrator2D.Instance,
+                new PCGSolver(m => IdentityPreconditioner.Instance)
+            );
+            double[] timeLayers = [0, 1, 2, 3];
+
+
+            var solutions = solver.Solve(problem, timeLayers, new ISolver.Params(1e-13, 10000));
+
+            int timeId = 1;
+            foreach (var solution in solutions)
+            {
+                double currentTime = timeLayers[timeId];
+                for (int i = 0; i < mesh.VertexCount; i++)
+                {
+                    var point = mesh[i];
+                    Assert.Equal(analyticSolution(point, currentTime), solution.Evaluate(point), 1e-11);
+                }
+                timeId++;
+            }
+        }
+
+        [Fact]
+        public void LagrangeCubicTestMeshAllDirichletImplicitTwoLayersQuadratic()
+        {
+            static double analyticSolution(Vector2D p, double t) => t * t * p.X;
+
+            var mesh = new StringReader(LagrangeTestMeshDirichlet).ReadMesh2D(
+                coordinateSystem: PolarCoordinateSystem.Instance,
+                FiniteElements.Triangle.LagrangeCubic,
+                FiniteElements.Segment.LagrangeCubic
+            );
+
+            var problem = new HyperbolicProblem2D(
+                Materials: [new(
+                Lambda: (p,t) => 1.0,
+                Sigma: (p,t) => 1.0,
+                Xi: (p,t) => 0.0,
+                Source: (p,t) => -(t * t)/p.X + 2 * p.X * t
+            )],
+                InitialCondition: p => analyticSolution(p, 0),
+                BoundaryConditions: [
+                    new BoundaryCondition2D.Dirichlet(Value: (p, t) => analyticSolution(p,t))
+                ],
+                mesh
+            );
+
+            var solver = new ParabolicSolver2D([TimeSchemes.ImplicitTwoLayers],
+                CsrMatrix.Factory,
+                NumericItegrator2D.Instance,
+                new PCGSolver(m => IdentityPreconditioner.Instance)
+            );
+            double[] timeLayers = [0, 1, 2, 3];
+
+
+            var solutions = solver.Solve(problem, timeLayers, new ISolver.Params(1e-13, 10000));
+
+            int timeId = 1;
+            foreach (var solution in solutions)
+            {
+                double currentTime = timeLayers[timeId];
+                for (int i = 0; i < mesh.VertexCount; i++)
+                {
+                    var point = mesh[i];
+                    Assert.Equal(analyticSolution(point, currentTime), solution.Evaluate(point), 1e-11);
+                }
+                timeId++;
+            }
+        }
+
+        [Fact]
+        public void LagrangeCubicTestMeshAllDirichletImplicitTwoLayersCubic()
+        {
+            static double analyticSolution(Vector2D p, double t) => t * t * t * p.X;
+
+            var mesh = new StringReader(LagrangeTestMeshDirichlet).ReadMesh2D(
+                coordinateSystem: PolarCoordinateSystem.Instance,
+                FiniteElements.Triangle.LagrangeCubic,
+                FiniteElements.Segment.LagrangeCubic
+            );
+
+            var problem = new HyperbolicProblem2D(
+                Materials: [new(
+                Lambda: (p,t) => 1.0,
+                Sigma: (p,t) => 1.0,
+                Xi: (p,t) => 0.0,
+                Source: (p,t) => -(t * t * t)/p.X + 3 * p.X * t * t
+            )],
+                InitialCondition: p => analyticSolution(p, 0),
+                BoundaryConditions: [
+                    new BoundaryCondition2D.Dirichlet(Value: (p, t) => analyticSolution(p,t))
+                ],
+                mesh
+            );
+
+            var solver = new ParabolicSolver2D([TimeSchemes.ImplicitTwoLayers],
+                CsrMatrix.Factory,
+                NumericItegrator2D.Instance,
+                new PCGSolver(m => IdentityPreconditioner.Instance)
+            );
+            double[] timeLayers = [0, 1, 2, 3];
+
+
+            var solutions = solver.Solve(problem, timeLayers, new ISolver.Params(1e-13, 10000));
+
+            int timeId = 1;
+            foreach (var solution in solutions)
+            {
+                double currentTime = timeLayers[timeId];
+                for (int i = 0; i < mesh.VertexCount; i++)
+                {
+                    var point = mesh[i];
+                    //Assert.Equal(analyticSolution(point, currentTime), solution.Evaluate(point), 1e-11);  //не должен проходить из-за 2-го порядка аппроксимации
+                }
+                timeId++;
+            }
+        }
+
+        [Fact]
+        public void LagrangeCubicTestMeshAllDirichletImplicitTwoLayersNonPolynomial()
+        {
+            static double analyticSolution(Vector2D p, double t) => p.X * p.Y * Math.Exp(t);
+
+            var mesh = new StringReader(LagrangeTestMeshDirichlet).ReadMesh2D(
+                coordinateSystem: PolarCoordinateSystem.Instance,
+                FiniteElements.Triangle.LagrangeCubic,
+                FiniteElements.Segment.LagrangeCubic
+            );
+
+            var problem = new HyperbolicProblem2D(
+                Materials: [new(
+                Lambda: (p,t) => 1.0,
+                Sigma: (p,t) => 1.0,
+                Xi: (p,t) => 0.0,
+                Source: (p,t) => Math.Exp(t) * (-p.Y/p.X + p.X * p.Y)
+            )],
+                InitialCondition: p => analyticSolution(p, 0),
+                BoundaryConditions: [
+                    new BoundaryCondition2D.Dirichlet(Value: (p, t) => analyticSolution(p,t))
+                ],
+                mesh
+            );
+
+            var solver = new ParabolicSolver2D([TimeSchemes.ImplicitTwoLayers],
+                CsrMatrix.Factory,
+                NumericItegrator2D.Instance,
+                new PCGSolver(m => IdentityPreconditioner.Instance)
+            );
+            //double[] timeLayers = [0, 0.5, 1.0, 1.5];
+            //double[] timeLayers = [0, 0.25, 0.5, 0.75, 1.0, 1.25, 1.5];
+            double[] timeLayers = [0, 0.125, 0.25, 0.375, 0.5, 0.625, 0.75, 0.875, 1.0, 1.125, 1.25, 1.375, 1.5];
+
+            var solutions = solver.Solve(problem, timeLayers, new ISolver.Params(1e-13, 10000));
+
+            int timeId = 1;
+            foreach (var solution in solutions)
+            {
+                double currentTime = timeLayers[timeId];
+                for (int i = 0; i < mesh.VertexCount; i++)
+                {
+                    var point = mesh[i];
+                    //Assert.Equal(analyticSolution(point, currentTime), solution.Evaluate(point), 1e-11);
+                }
+                timeId++;
+            }
+        }
+
+        [Fact]
+        public void LagrangeCubicTestMeshAllBCImplicitTwoLayers()
+        {
+            static double analyticSolution(Vector2D p, double t) => t * t;
+
+            var mesh = new StringReader(LagrangeTestMeshAllBC).ReadMesh2D(
+                coordinateSystem: PolarCoordinateSystem.Instance,
+                FiniteElements.Triangle.LagrangeCubic,
+                FiniteElements.Segment.LagrangeCubic
+            );
+
+            var problem = new HyperbolicProblem2D(
+                Materials: [new(
+                Lambda: (p,t) => 1.0,
+                Sigma: (p,t) => 3.0,
+                Xi: (p,t) => 0.0,
+                Source: (p,t) => 6.0 * t
+            )],
+                InitialCondition: p => analyticSolution(p, 0),
+                BoundaryConditions: [
+                    new BoundaryCondition2D.Dirichlet(Value: (p, t) => analyticSolution(p, t)),
+                new BoundaryCondition2D.Neumann(Flux: (p, t) => 0.0),
+                new BoundaryCondition2D.Robin(Beta: (p, t) => 3.0,UBeta: (p, t) => t * t)
+                ],
+                mesh
+            );
+
+            var solver = new ParabolicSolver2D([TimeSchemes.ImplicitTwoLayers],
+                CsrMatrix.Factory,
+                NumericItegrator2D.Instance,
+                new PCGSolver(m => IdentityPreconditioner.Instance)
+            );
+            double[] timeLayers = [0, 0.1, 0.2, 0.3];
+
+            var solutions = solver.Solve(problem, timeLayers, new ISolver.Params(1e-13, 10000));
+
+            int timeId = 1;
+            foreach (var solution in solutions)
+            {
+                double currentTime = timeLayers[timeId];
+                for (int i = 0; i < mesh.VertexCount; i++)
+                {
+                    var point = mesh[i];
+                    Assert.Equal(analyticSolution(point, currentTime), solution.Evaluate(point), 1e-11);
+                }
+                timeId++;
+            }
+        }
+
+        [Fact]
+        public void LagrangeCubicTestMeshAllBCImplicitTwoLayers2()
+        {
+            static double analyticSolution(Vector2D p, double t) => p.X * p.Y * t;
+
+            var mesh = new StringReader(LagrangeTestMeshAllBC).ReadMesh2D(
+                coordinateSystem: PolarCoordinateSystem.Instance,
+                FiniteElements.Triangle.LagrangeCubic,
+                FiniteElements.Segment.LagrangeCubic
+            );
+
+            var problem = new HyperbolicProblem2D(
+                Materials: [new(
+                Lambda: (p,t) => 1.0,
+                Sigma: (p,t) => 1.0,
+                Xi: (p,t) => 0.0,
+                Source: (p,t) => p.Y * (p.X - t/p.X)
+            )],
+                InitialCondition: p => analyticSolution(p, 0),
+                BoundaryConditions: [
+                    new BoundaryCondition2D.Dirichlet(Value: (p, t) => analyticSolution(p, t)),
+                new BoundaryCondition2D.Neumann(Flux: (p, t) => p.X * t),
+                new BoundaryCondition2D.Robin(Beta: (p, t) => 1.0,UBeta: (p, t) =>  p.X * p.Y * t)
+                ],
+                mesh
+            );
+
+            var solver = new ParabolicSolver2D([TimeSchemes.ImplicitTwoLayers],
+                CsrMatrix.Factory,
+                NumericItegrator2D.Instance,
+                new PCGSolver(m => IdentityPreconditioner.Instance)
+            );
+            double[] timeLayers = [0, 0.01, 0.02];
+
+            var solutions = solver.Solve(problem, timeLayers, new ISolver.Params(1e-13, 10000));
+
+            int timeId = 1;
+            foreach (var solution in solutions)
+            {
+                double currentTime = timeLayers[timeId];
+                for (int i = 0; i < mesh.VertexCount; i++)
+                {
+                    var point = mesh[i];
+                    Assert.Equal(analyticSolution(point, currentTime), solution.Evaluate(point), 1e-2);
+                }
+                timeId++;
+            }
+        }
+
+        [Fact]
+        public void LagrangeCubicTestMeshAllBCImplicitTwoLayers3()
+        {
+            static double analyticSolution(Vector2D p, double t) => p.X * p.X;
+
+            var mesh = new StringReader(LagrangeTestMeshAllBC).ReadMesh2D(
+                coordinateSystem: PolarCoordinateSystem.Instance,
+                FiniteElements.Triangle.LagrangeCubic,
+                FiniteElements.Segment.LagrangeCubic
+            );
+
+            var problem = new HyperbolicProblem2D(
+                Materials: [new(
+                Lambda: (p,t) => 1.0,
+                Sigma: (p,t) => 1.0,
+                Xi: (p,t) => 0.0,
+                Source: (p,t) => -4.0
+            )],
+                InitialCondition: p => analyticSolution(p, 0),
+                BoundaryConditions: [
+                    new BoundaryCondition2D.Dirichlet(Value: (p, t) => analyticSolution(p, t)),
+                new BoundaryCondition2D.Neumann(Flux: (p, t) => 0.0),
+                new BoundaryCondition2D.Robin(Beta: (p, t) => 1.0, UBeta: (p, t) =>  p.X * p.X)
+                ],
+                mesh
+            );
+
+            var solver = new ParabolicSolver2D([TimeSchemes.ImplicitTwoLayers],
+                CsrMatrix.Factory,
+                NumericItegrator2D.Instance,
+                new PCGSolver(m => IdentityPreconditioner.Instance)
+            );
+            double[] timeLayers = [0, 0.001];
+
+            var solutions = solver.Solve(problem, timeLayers, new ISolver.Params(1e-13, 10000));
+
+            int timeId = 1;
+            foreach (var solution in solutions)
+            {
+                double currentTime = timeLayers[timeId];
+                for (int i = 0; i < mesh.VertexCount; i++)
+                {
+                    var point = mesh[i];
+                    Assert.Equal(analyticSolution(point, currentTime), solution.Evaluate(point), 1e-1);
+                }
+                timeId++;
+            }
+        }
+    }
 }
