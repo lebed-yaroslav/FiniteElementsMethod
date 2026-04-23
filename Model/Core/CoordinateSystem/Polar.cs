@@ -45,7 +45,7 @@ public sealed class InversePolarJacobyMatrix : IJacobyMatrix<Vector2D, Vector2D>
             {
                 (0, 0) => Math.Cos(theta),
                 (0, 1) => Math.Sin(theta),
-                (1, 0) => Math.Sin(theta) / r,
+                (1, 0) => -Math.Sin(theta) / r,
                 (1, 1) => Math.Cos(theta) / r,
                 _ => throw new IndexOutOfRangeException()
             };
