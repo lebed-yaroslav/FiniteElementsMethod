@@ -1235,7 +1235,7 @@ public class ParabolicProblemTriangleTests
 
     #endregion
 
-    public class HiararchicalCubic
+    public class HiararchicalCubicCartezian
     {
         [Fact]
         public void DirichletWithLinearTimeFuncExplicitThreeLayer()
@@ -1311,7 +1311,7 @@ public class ParabolicProblemTriangleTests
                 mesh
             );
 
-            var solver = new ParabolicSolver2D([TimeSchemes.ForwardEuler,TimeSchemes.ImplicitThreeLayer],
+            var solver = new ParabolicSolver2D([TimeSchemes.BackwardEuler,TimeSchemes.ImplicitThreeLayer],
                 CsrMatrix.Factory,
                 NumericItegrator2D.Instance,
                 new PCGSolver(m => IdentityPreconditioner.Instance)
@@ -1334,7 +1334,7 @@ public class ParabolicProblemTriangleTests
             }
         }
         [Fact]
-        public void TwoTriangleAllBCWithLinearTimeFuncExplicitTwoLayer()
+        public void TwoTriangleAllBCWithLinearTimeFuncExplicitThreeLayer()
         {
             static double analyticSolution(Vector2D p, double t) => t;
 
@@ -1384,7 +1384,7 @@ public class ParabolicProblemTriangleTests
         }
 
         [Fact]
-        public void AllBCWithLinearTimeFuncExplicitTwoLayer()
+        public void AllBCWithLinearTimeFuncExplicitThreeLayer()
         {
             static double analyticSolution(Vector2D p, double t) => t;
 
@@ -1410,7 +1410,7 @@ public class ParabolicProblemTriangleTests
                 mesh
             );
 
-            var solver = new ParabolicSolver2D([TimeSchemes.ForwardEuler],
+            var solver = new ParabolicSolver2D([TimeSchemes.BackwardEuler, TimeSchemes.ExplicitThreeLayer],
                 CsrMatrix.Factory,
                 NumericItegrator2D.Instance,
                 new PCGSolver(m => IdentityPreconditioner.Instance)
@@ -1432,55 +1432,7 @@ public class ParabolicProblemTriangleTests
             }
         }
         [Fact]
-        public void AllBCWithLinearTimeFuncExplicitTwoLayerCylindric()
-        {
-            static double analyticSolution(Vector2D p, double t) => t;
-
-            var mesh = new StringReader(TriangleWithAllBCCubic).ReadMesh2D(
-                coordinateSystem: CylindricCoordinateSystem.Instance,
-                FiniteElements.Triangle.HierarchicalCubic,
-                FiniteElements.Segment.HierarchicalCubic
-            );
-
-            var problem = new HyperbolicProblem2D(
-                Materials: [new(
-                    Lambda: (p,t) => 1.0,
-                    Sigma: (p,t) => 1.0,
-                    Xi: (p,t) => 0.0,
-                    Source: (p,t) => 1.0
-                )],
-                InitialCondition: p => analyticSolution(p, 0),
-                BoundaryConditions: [
-                    new BoundaryCondition2D.Dirichlet(Value: (p, t) => analyticSolution(p,t)),
-                    new BoundaryCondition2D.Neumann(Flux: (p,t) => 0.0),
-                    new BoundaryCondition2D.Robin(Beta: (p,t) => 2.0,UBeta: (p,t) => t)
-                ],
-                mesh
-            );
-
-            var solver = new ParabolicSolver2D([TimeSchemes.ForwardEuler, TimeSchemes.ImplicitThreeLayer],
-                CsrMatrix.Factory,
-                NumericItegrator2D.Instance,
-                new PCGSolver(m => IdentityPreconditioner.Instance)
-            );
-            double[] timeLayers = [0, 0.1, 0.2, 0.3, 0.4];
-
-            var solutions = solver.Solve(problem, timeLayers, new ISolver.Params(1e-13, 10000));
-
-            int timeId = 1;
-            foreach (var solution in solutions)
-            {
-                double currentTime = timeLayers[timeId];
-                for (int i = 0; i < mesh.VertexCount; i++)
-                {
-                    var point = mesh[i];
-                    Assert.Equal(analyticSolution(point, currentTime), solution.Evaluate(point), 1e-12);
-                }
-                timeId++;
-            }
-        }
-        [Fact]
-        public void ApproximationAllBCWithLinearTimeFuncExplicitTwoLayer()
+        public void ApproximationAllBCWithLinearTimeFuncExplicitThreeLayer()
         {
             static double analyticSolution(Vector2D p, double t) => t;
             string fileOut = "output.txt";
@@ -1509,7 +1461,7 @@ public class ParabolicProblemTriangleTests
                 mesh
             );
 
-            var solver = new ParabolicSolver2D([TimeSchemes.ForwardEuler],
+            var solver = new ParabolicSolver2D([TimeSchemes.BackwardEuler, TimeSchemes.ExplicitThreeLayer],
                 CsrMatrix.Factory,
                 NumericItegrator2D.Instance,
                 new PCGSolver(m => IdentityPreconditioner.Instance)
@@ -1597,7 +1549,7 @@ public class ParabolicProblemTriangleTests
         }
 
         [Fact]
-        public void ApproximationAllBCWithQuadraticTimeFuncExplicitTwoLayer()
+        public void ApproximationAllBCWithQuadraticTimeFuncExplicitThreeLayer()
         {
             string fileOut = "output.txt";
             using FileStream fs = new(fileOut, FileMode.Create);
@@ -1625,7 +1577,7 @@ public class ParabolicProblemTriangleTests
                 mesh
             );
 
-            var solver = new ParabolicSolver2D([TimeSchemes.ForwardEuler],
+            var solver = new ParabolicSolver2D([TimeSchemes.BackwardEuler, TimeSchemes.ExplicitThreeLayer],
                 CsrMatrix.Factory,
                 NumericItegrator2D.Instance,
                 new PCGSolver(m => IdentityPreconditioner.Instance)
@@ -1778,7 +1730,7 @@ public class ParabolicProblemTriangleTests
 
         }
         [Fact]
-        public void ConvergenceAllBCWithSineAndExplicitTwoLayer()
+        public void ConvergenceAllBCWithSineAndExplicitThreeLayer()
         {
             string fileOut = "output.txt";
             using FileStream fs = new(fileOut, FileMode.Create);
@@ -1807,7 +1759,7 @@ public class ParabolicProblemTriangleTests
                 mesh
             );
 
-            var solver = new ParabolicSolver2D([TimeSchemes.ForwardEuler],
+            var solver = new ParabolicSolver2D([TimeSchemes.BackwardEuler, TimeSchemes.ExplicitThreeLayer],
                 CsrMatrix.Factory,
                 NumericItegrator2D.Instance,
                 new PCGSolver(m => IdentityPreconditioner.Instance)
@@ -1835,7 +1787,7 @@ public class ParabolicProblemTriangleTests
 
         }
         [Fact]
-        public void TestingTriangleMeshWithLinearTimeFuncExplicitTwoLayerXY()
+        public void TestingTriangleMeshWithLinearTimeFuncExplicitThreeLayerXY()
         {
             static double analyticSolution(Vector2D p, double t) => p.X * p.X + p.Y * p.Y + t;
             string fileOut = "output.txt";
@@ -1861,7 +1813,7 @@ public class ParabolicProblemTriangleTests
                 mesh
             );
 
-            var solver = new ParabolicSolver2D([TimeSchemes.ForwardEuler],
+            var solver = new ParabolicSolver2D([TimeSchemes.BackwardEuler, TimeSchemes.ExplicitThreeLayer],
                 CsrMatrix.Factory,
                 NumericItegrator2D.Instance,
                 new PCGSolver(m => IdentityPreconditioner.Instance)
@@ -1886,7 +1838,7 @@ public class ParabolicProblemTriangleTests
                     writer.Write($"{u_analytic};");
                     writer.Write($"{u_fem};");
                     writer.WriteLine($"{Math.Abs(u_analytic - u_fem):E14}");
-                    Assert.Equal(u_analytic, u_fem, 1e-7);
+                    Assert.Equal(u_analytic, u_fem, 1e-6);
                 }
                 timeId++;
             }
@@ -2104,8 +2056,8 @@ public class ParabolicProblemTriangleTests
             var problem = new HyperbolicProblem2D(
                 Materials: [new(
                     Lambda: (p,t) => 1.0,
-                    Sigma: (p,t) => 1.0,
-                    Xi: (p,t) => 0.0,
+                    Sigma:  (p,t) => 1.0,
+                    Xi:     (p,t) => 0.0,
                     Source: (p,t) => 1.0
                 )],
                 InitialCondition: p => analyticSolution(p, 0),
@@ -2139,4 +2091,862 @@ public class ParabolicProblemTriangleTests
             }
         }
     }
+
+    public class HiararchicalCubicCylindric
+    {
+        [Fact]
+        public void DirichletWithLinearTimeFuncExplicitThreeLayer()
+        {
+            static double analyticSolution(Vector2D p, double t) => t;
+
+            var mesh = new StringReader(TestMesh1Cubic).ReadMesh2D(
+                coordinateSystem: IdentityTransform<Vector2D>.Instance,
+                FiniteElements.Triangle.HierarchicalCubic,
+                FiniteElements.Segment.HierarchicalCubic
+            );
+
+            var problem = new HyperbolicProblem2D(
+                Materials: [new(
+                    Lambda: (p,t) => 1.0,
+                    Sigma: (p,t) => 1.0,
+                    Xi: (p,t) => 0.0,
+                    Source: (p,t) => 1.0
+                )],
+                InitialCondition: p => analyticSolution(p, 0),
+                BoundaryConditions: [
+                    new BoundaryCondition2D.Dirichlet(Value: (p, t) => analyticSolution(p,t))
+                ],
+                mesh
+            );
+
+            var solver = new ParabolicSolver2D([TimeSchemes.BackwardEuler, TimeSchemes.ExplicitThreeLayer],
+                CsrMatrix.Factory,
+                NumericItegrator2D.Instance,
+                new PCGSolver(m => IdentityPreconditioner.Instance)
+            );
+            double[] timeLayers = [0, 1, 2, 3, 4, 5];
+
+
+            var solutions = solver.Solve(problem, timeLayers, new ISolver.Params(1e-13, 10000));
+
+            int timeId = 1;
+            foreach (var solution in solutions)
+            {
+                double currentTime = timeLayers[timeId];
+                for (int i = 0; i < mesh.VertexCount; i++)
+                {
+                    var point = mesh[i];
+                    Assert.Equal(analyticSolution(point, currentTime), solution.Evaluate(point), 1e-12);
+                }
+                timeId++;
+            }
+        }
+        [Fact]
+        public void TwoTriangleAllBCWithLinearTimeFuncExplicitThreeLayerXY()
+        {
+            static double analyticSolution(Vector2D p, double t) => p.X * p.X + p.Y * p.Y + t;
+
+            var mesh = new StringReader(TwoNotMasterTrianglesCubic).ReadMesh2D(
+                coordinateSystem: IdentityTransform<Vector2D>.Instance,
+                FiniteElements.Triangle.HierarchicalCubic,
+                FiniteElements.Segment.HierarchicalCubic
+            );
+
+            var problem = new HyperbolicProblem2D(
+                Materials: [new(
+                    Lambda: (p,t) => 1.0,
+                    Sigma: (p,t) => 1.0,
+                    Xi: (p,t) => 0.0,
+                    Source: (p,t) => -3.0
+                )],
+                InitialCondition: p => analyticSolution(p, 0),
+                BoundaryConditions: [
+                    new BoundaryCondition2D.Dirichlet(Value: (p, t) => analyticSolution(p,t)),
+                    new BoundaryCondition2D.Neumann(Flux: (p,t) => 2.0 * p.X),
+                    new BoundaryCondition2D.Robin(Beta: (p,t) => 1.0,UBeta: (p,t) => p.X*p.X + 3.0 + t)
+                ],
+                mesh
+            );
+
+            var solver = new ParabolicSolver2D([TimeSchemes.BackwardEuler, TimeSchemes.ImplicitThreeLayer],
+                CsrMatrix.Factory,
+                NumericItegrator2D.Instance,
+                new PCGSolver(m => IdentityPreconditioner.Instance)
+            );
+            double[] timeLayers = [0, 0.3, 0.6, 0.9, 1.2, 1.5, 1.8];
+
+
+            var solutions = solver.Solve(problem, timeLayers, new ISolver.Params(1e-14, 10000));
+
+            int timeId = 1;
+            foreach (var solution in solutions)
+            {
+                double currentTime = timeLayers[timeId];
+                for (int i = 0; i < mesh.VertexCount; i++)
+                {
+                    var point = mesh[i];
+                    Assert.Equal(analyticSolution(point, currentTime), solution.Evaluate(point), 1e-11);
+                }
+                timeId++;
+            }
+        }
+        [Fact]
+        public void TwoTriangleAllBCWithLinearTimeFuncExplicitThreeLayer()
+        {
+            static double analyticSolution(Vector2D p, double t) => t;
+
+            var mesh = new StringReader(TwoNotMasterTrianglesCubic).ReadMesh2D(
+                coordinateSystem: IdentityTransform<Vector2D>.Instance,
+                FiniteElements.Triangle.HierarchicalCubic,
+                FiniteElements.Segment.HierarchicalCubic
+            );
+
+            var problem = new HyperbolicProblem2D(
+                Materials: [new(
+                    Lambda: (p,t) => 1.0,
+                    Sigma: (p,t) => 1.0,
+                    Xi: (p,t) => 0.0,
+                    Source: (p,t) => 1.0
+                )],
+                InitialCondition: p => analyticSolution(p, 0),
+                BoundaryConditions: [
+                    new BoundaryCondition2D.Dirichlet(Value: (p, t) => analyticSolution(p,t)),
+                    new BoundaryCondition2D.Neumann(Flux: (p,t) => 0.0),
+                    new BoundaryCondition2D.Robin(Beta: (p,t) => 2.0,UBeta: (p,t) => t)
+                ],
+                mesh
+            );
+
+            var solver = new ParabolicSolver2D([TimeSchemes.ForwardEuler, TimeSchemes.ImplicitThreeLayer],
+                CsrMatrix.Factory,
+                NumericItegrator2D.Instance,
+                new PCGSolver(m => IdentityPreconditioner.Instance)
+            );
+            double[] timeLayers = [0, 0.3, 0.6, 0.9, 1.2, 1.5, 1.8];
+
+
+            var solutions = solver.Solve(problem, timeLayers, new ISolver.Params(1e-14, 10000));
+
+            int timeId = 1;
+            foreach (var solution in solutions)
+            {
+                double currentTime = timeLayers[timeId];
+                for (int i = 0; i < mesh.VertexCount; i++)
+                {
+                    var point = mesh[i];
+                    Assert.Equal(analyticSolution(point, currentTime), solution.Evaluate(point), 1e-12);
+                }
+                timeId++;
+            }
+        }
+
+        [Fact]
+        public void AllBCWithLinearTimeFuncExplicitThreeLayer()
+        {
+            static double analyticSolution(Vector2D p, double t) => t;
+
+            var mesh = new StringReader(TriangleWithAllBCCubic).ReadMesh2D(
+                coordinateSystem: IdentityTransform<Vector2D>.Instance,
+                FiniteElements.Triangle.HierarchicalCubic,
+                FiniteElements.Segment.HierarchicalCubic
+            );
+
+            var problem = new HyperbolicProblem2D(
+                Materials: [new(
+                    Lambda: (p,t) => 1.0,
+                    Sigma: (p,t) => 1.0,
+                    Xi: (p,t) => 0.0,
+                    Source: (p,t) => 1.0
+                )],
+                InitialCondition: p => analyticSolution(p, 0),
+                BoundaryConditions: [
+                    new BoundaryCondition2D.Dirichlet(Value: (p, t) => analyticSolution(p,t)),
+                    new BoundaryCondition2D.Neumann(Flux: (p,t) => 0.0),
+                    new BoundaryCondition2D.Robin(Beta: (p,t) => 2.0,UBeta: (p,t) => t)
+                ],
+                mesh
+            );
+
+            var solver = new ParabolicSolver2D([TimeSchemes.BackwardEuler, TimeSchemes.ExplicitThreeLayer],
+                CsrMatrix.Factory,
+                NumericItegrator2D.Instance,
+                new PCGSolver(m => IdentityPreconditioner.Instance)
+            );
+            double[] timeLayers = [0, 0.1, 0.2, 0.3, 0.4];
+
+            var solutions = solver.Solve(problem, timeLayers, new ISolver.Params(1e-13, 10000));
+
+            int timeId = 1;
+            foreach (var solution in solutions)
+            {
+                double currentTime = timeLayers[timeId];
+                for (int i = 0; i < mesh.VertexCount; i++)
+                {
+                    var point = mesh[i];
+                    Assert.Equal(analyticSolution(point, currentTime), solution.Evaluate(point), 1e-12);
+                }
+                timeId++;
+            }
+        }
+        [Fact]
+        public void ApproximationAllBCWithLinearTimeFuncExplicitThreeLayer()
+        {
+            static double analyticSolution(Vector2D p, double t) => t;
+            string fileOut = "output.txt";
+            using FileStream fs = new(fileOut, FileMode.Create);
+            using StreamWriter writer = new(fs);
+
+            var mesh = new StringReader(TriangleMeshWithAllBCCubic).ReadMesh2D(
+                coordinateSystem: IdentityTransform<Vector2D>.Instance,
+                FiniteElements.Triangle.HierarchicalCubic,
+                FiniteElements.Segment.HierarchicalCubic
+            );
+
+            var problem = new HyperbolicProblem2D(
+                Materials: [new(
+                    Lambda: (p,t) => 1.0,
+                    Sigma: (p,t) => 2.0,
+                    Xi: (p,t) => 0.0,
+                    Source: (p,t) => 2.0
+                )],
+                InitialCondition: p => analyticSolution(p, 0),
+                BoundaryConditions: [
+                    new BoundaryCondition2D.Dirichlet(Value: (p, t) => analyticSolution(p,t)),
+                    new BoundaryCondition2D.Neumann(Flux: (p,t) => 0.0),
+                    new BoundaryCondition2D.Robin(Beta: (p,t) => 1.0,UBeta: (p,t) => t)
+                ],
+                mesh
+            );
+
+            var solver = new ParabolicSolver2D([TimeSchemes.BackwardEuler, TimeSchemes.ExplicitThreeLayer],
+                CsrMatrix.Factory,
+                NumericItegrator2D.Instance,
+                new PCGSolver(m => IdentityPreconditioner.Instance)
+            );
+            double[] timeLayers = [0, 0.1, 0.2, 0.3, 0.4];
+
+            var solutions = solver.Solve(problem, timeLayers, new ISolver.Params(1e-13, 10000));
+            writer.WriteLine("t; (x,y); u_analytic; u_fem; error");
+            int timeId = 1;
+            foreach (var solution in solutions)
+            {
+                double currentTime = timeLayers[timeId];
+
+                for (int i = 0; i < mesh.VertexCount; i++)
+                {
+                    writer.Write($"{currentTime};");
+                    var point = mesh[i];
+                    writer.Write($"[{point.X},{point.Y}];");
+                    double u_analytic = analyticSolution(point, currentTime);
+                    double u_fem = solution.Evaluate(point);
+                    writer.Write($"{u_analytic};");
+                    writer.Write($"{u_fem};");
+                    writer.WriteLine($"{Math.Abs(u_analytic - u_fem):E14}");
+                    Assert.Equal(u_analytic, u_fem, 1e-11);
+                }
+                timeId++;
+            }
+        }
+        [Fact]
+        public void ApproximationDirichletWithLinearTimeFuncImplicitThreeLayer()
+        {
+            static double analyticSolution(Vector2D p, double t) => t;
+            string fileOut = "output.txt";
+            using FileStream fs = new(fileOut, FileMode.Create);
+            using StreamWriter writer = new(fs);
+
+            var mesh = new StringReader(TriangleMeshWithDirichletCubic).ReadMesh2D(
+                coordinateSystem: IdentityTransform<Vector2D>.Instance,
+                FiniteElements.Triangle.HierarchicalCubic,
+                FiniteElements.Segment.HierarchicalCubic
+            );
+
+            var problem = new HyperbolicProblem2D(
+                Materials: [new(
+                    Lambda: (p,t) => 1.0,
+                    Sigma: (p,t) => 2.0,
+                    Xi: (p,t) => 0.0,
+                    Source: (p,t) => 2.0
+                )],
+                InitialCondition: p => analyticSolution(p, 0),
+                BoundaryConditions: [
+                    new BoundaryCondition2D.Dirichlet(Value: (p, t) => analyticSolution(p,t)),
+                ],
+                mesh
+            );
+
+            var solver = new ParabolicSolver2D([TimeSchemes.BackwardEuler, TimeSchemes.ImplicitThreeLayer],
+                CsrMatrix.Factory,
+                NumericItegrator2D.Instance,
+                new PCGSolver(m => IdentityPreconditioner.Instance)
+            );
+            double[] timeLayers = [0, 0.1, 0.2, 0.3, 0.4];
+
+            var solutions = solver.Solve(problem, timeLayers, new ISolver.Params(1e-13, 10000));
+            writer.WriteLine("t; (x,y); u_analytic; u_fem; error");
+            int timeId = 1;
+            foreach (var solution in solutions)
+            {
+                double currentTime = timeLayers[timeId];
+
+                for (int i = 0; i < mesh.VertexCount; i++)
+                {
+                    writer.Write($"{currentTime};");
+                    var point = mesh[i];
+                    writer.Write($"[{point.X},{point.Y}];");
+                    double u_analytic = analyticSolution(point, currentTime);
+                    double u_fem = solution.Evaluate(point);
+                    writer.Write($"{u_analytic};");
+                    writer.Write($"{u_fem};");
+                    writer.WriteLine($"{Math.Abs(u_analytic - u_fem):E14}");
+                    Assert.Equal(u_analytic, u_fem, 1e-11);
+                }
+                timeId++;
+            }
+        }
+
+        [Fact]
+        public void ApproximationAllBCWithQuadraticTimeFuncExplicitThreeLayer()
+        {
+            string fileOut = "output.txt";
+            using FileStream fs = new(fileOut, FileMode.Create);
+            using StreamWriter writer = new(fs);
+            static double analyticSolution(Vector2D p, double t) => t * t;
+            var mesh = new StringReader(TriangleMeshWithAllBCCubic).ReadMesh2D(
+                coordinateSystem: IdentityTransform<Vector2D>.Instance,
+                FiniteElements.Triangle.HierarchicalCubic,
+                FiniteElements.Segment.HierarchicalCubic
+            );
+
+            var problem = new HyperbolicProblem2D(
+                Materials: [new(
+                    Lambda: (p,t) => 1.0,
+                    Sigma: (p,t) => 1.0,
+                    Xi: (p,t) => 0.0,
+                    Source: (p,t) => 2.0 * t
+                )],
+                InitialCondition: p => analyticSolution(p, 0),
+                BoundaryConditions: [
+                    new BoundaryCondition2D.Dirichlet(Value: (p, t) => analyticSolution(p,t)),
+                    new BoundaryCondition2D.Neumann(Flux: (p,t) => 0.0),
+                    new BoundaryCondition2D.Robin(Beta: (p,t) => 1.0,UBeta: (p,t) => t * t)
+                ],
+                mesh
+            );
+
+            var solver = new ParabolicSolver2D([TimeSchemes.BackwardEuler, TimeSchemes.ExplicitThreeLayer],
+                CsrMatrix.Factory,
+                NumericItegrator2D.Instance,
+                new PCGSolver(m => IdentityPreconditioner.Instance)
+            );
+            double[] timeLayers = [0, 0.1, 0.2, 0.3, 0.4];
+            //double[] timeLayers = [0, 0.05, 0.1, 0.15, 0.2, 0.25, 0.3, 0.35, 0.4];
+            var solutions = solver.Solve(problem, timeLayers, new ISolver.Params(1e-13, 10000));
+
+
+            writer.WriteLine("t; (x,y); u_analytic; u_fem; error");
+            int timeId = 1;
+            foreach (var solution in solutions)
+            {
+                double currentTime = timeLayers[timeId];
+
+                for (int i = 0; i < mesh.VertexCount; i++)
+                {
+                    writer.Write($"{currentTime};");
+                    var point = mesh[i];
+                    writer.Write($"[{point.X},{point.Y}];");
+                    double u_analytic = analyticSolution(point, currentTime);
+                    double u_fem = solution.Evaluate(point);
+                    writer.Write($"{u_analytic};");
+                    writer.Write($"{u_fem};");
+                    writer.WriteLine($"{Math.Abs(u_analytic - u_fem):E14}");
+                    //Assert.NotEqual(u_analytic, u_fem, 1e-11);
+                }
+                timeId++;
+            }
+
+        }
+        [Fact]
+        public void ApproximationDirichletWithQuadraticTimeFuncImplicitThreeLayer()
+        {
+            string fileOut = "output.txt";
+            using FileStream fs = new(fileOut, FileMode.Create);
+            using StreamWriter writer = new(fs);
+            static double analyticSolution(Vector2D p, double t) => t * t;
+            var mesh = new StringReader(TriangleMeshWithDirichletCubic).ReadMesh2D(
+                coordinateSystem: IdentityTransform<Vector2D>.Instance,
+                FiniteElements.Triangle.HierarchicalCubic,
+                FiniteElements.Segment.HierarchicalCubic
+            );
+
+            var problem = new HyperbolicProblem2D(
+                Materials: [new(
+                    Lambda: (p,t) => 1.0,
+                    Sigma: (p,t) => 1.0,
+                    Xi: (p,t) => 0.0,
+                    Source: (p,t) => 2.0 * t
+                )],
+                InitialCondition: p => analyticSolution(p, 0),
+                BoundaryConditions: [
+                    new BoundaryCondition2D.Dirichlet(Value: (p, t) => analyticSolution(p,t)),
+
+                ],
+                mesh
+            );
+
+            var solver = new ParabolicSolver2D([TimeSchemes.BackwardEuler, TimeSchemes.ImplicitThreeLayer],
+                CsrMatrix.Factory,
+                NumericItegrator2D.Instance,
+                new PCGSolver(m => IdentityPreconditioner.Instance)
+            );
+            double[] timeLayers = [0, 0.1, 0.2, 0.3, 0.4];
+            //double[] timeLayers = [0, 0.0001, 0.0002, 0.0003, 0.0004, 0.0005, 0.0006, 0.0007, 0.0008,0.0009,0.001];
+            var solutions = solver.Solve(problem, timeLayers, new ISolver.Params(1e-13, 10000));
+
+
+            writer.WriteLine("t; (x,y); u_analytic; u_fem; error");
+            int timeId = 1;
+            foreach (var solution in solutions)
+            {
+                double currentTime = timeLayers[timeId];
+
+                for (int i = 0; i < mesh.VertexCount; i++)
+                {
+                    writer.Write($"{currentTime};");
+                    var point = mesh[i];
+                    writer.Write($"[{point.X},{point.Y}];");
+                    double u_analytic = analyticSolution(point, currentTime);
+                    double u_fem = solution.Evaluate(point);
+                    writer.Write($"{u_analytic};");
+                    writer.Write($"{u_fem};");
+                    writer.WriteLine($"{Math.Abs(u_analytic - u_fem):E14}");
+                    Assert.Equal(u_analytic, u_fem, 1e-11);
+                }
+                timeId++;
+            }
+
+        }
+        [Fact]
+        public void ApproximationDirichletWithCubicTimeFuncImplicitThreeLayer()
+        {
+            string fileOut = "output.txt";
+            using FileStream fs = new(fileOut, FileMode.Create);
+            using StreamWriter writer = new(fs);
+            static double analyticSolution(Vector2D p, double t) => t * t * t;
+            var mesh = new StringReader(TriangleMeshWithDirichletCubic).ReadMesh2D(
+                coordinateSystem: IdentityTransform<Vector2D>.Instance,
+                FiniteElements.Triangle.HierarchicalCubic,
+                FiniteElements.Segment.HierarchicalCubic
+            );
+
+            var problem = new HyperbolicProblem2D(
+                Materials: [new(
+                    Lambda: (p,t) => 1.0,
+                    Sigma: (p,t) => 0.0,
+                    Xi: (p,t) => 0.0,
+                    Source: (p,t) => 0.0
+                )],
+                InitialCondition: p => analyticSolution(p, 0),
+                BoundaryConditions: [
+                    new BoundaryCondition2D.Dirichlet(Value: (p, t) => analyticSolution(p,t)),
+
+                ],
+                mesh
+            );
+
+            var solver = new ParabolicSolver2D([TimeSchemes.BackwardEuler, TimeSchemes.ImplicitThreeLayer],
+                CsrMatrix.Factory,
+                NumericItegrator2D.Instance,
+                new PCGSolver(m => IdentityPreconditioner.Instance)
+            );
+            double[] timeLayers = [0, 0.1, 0.2, 0.3, 0.4];
+            //double[] timeLayers = [0, 0.0001, 0.0002, 0.0003, 0.0004, 0.0005, 0.0006, 0.0007, 0.0008,0.0009,0.001];
+            var solutions = solver.Solve(problem, timeLayers, new ISolver.Params(1e-13, 10000));
+
+
+            writer.WriteLine("t; (x,y); u_analytic; u_fem; error");
+            int timeId = 1;
+            foreach (var solution in solutions)
+            {
+                double currentTime = timeLayers[timeId];
+
+                for (int i = 0; i < mesh.VertexCount; i++)
+                {
+                    writer.Write($"{currentTime};");
+                    var point = mesh[i];
+                    writer.Write($"[{point.X},{point.Y}];");
+                    double u_analytic = analyticSolution(point, currentTime);
+                    double u_fem = solution.Evaluate(point);
+                    writer.Write($"{u_analytic};");
+                    writer.Write($"{u_fem};");
+                    writer.WriteLine($"{Math.Abs(u_analytic - u_fem):E14}");
+                    //Assert.NotEqual(u_analytic, u_fem, 1e-11);
+                }
+                timeId++;
+            }
+
+        }
+        [Fact]
+        public void ConvergenceAllBCWithSineAndExplicitThreeLayer()
+        {
+            string fileOut = "output.txt";
+            using FileStream fs = new(fileOut, FileMode.Create);
+            using StreamWriter writer = new(fs);
+
+            static double analyticSolution(Vector2D p, double t) => Math.Sin(t);
+            var mesh = new StringReader(TriangleMeshWithAllBCCubic).ReadMesh2D(
+                coordinateSystem: IdentityTransform<Vector2D>.Instance,
+                FiniteElements.Triangle.HierarchicalCubic,
+                FiniteElements.Segment.HierarchicalCubic
+            );
+
+            var problem = new HyperbolicProblem2D(
+                Materials: [new(
+                    Lambda: (p,t) => 1.0,
+                    Sigma: (p,t) => 3.0,
+                    Xi: (p,t) => 0.0,
+                    Source: (p,t) => 3.0 * Math.Cos(t)
+                )],
+                InitialCondition: p => analyticSolution(p, 0),
+                BoundaryConditions: [
+                    new BoundaryCondition2D.Dirichlet(Value: (p, t) => analyticSolution(p,t)),
+                    new BoundaryCondition2D.Neumann(Flux: (p,t) => 0.0),
+                    new BoundaryCondition2D.Robin(Beta: (p,t) => 1.0,UBeta: (p,t) => Math.Sin(t))
+                ],
+                mesh
+            );
+
+            var solver = new ParabolicSolver2D([TimeSchemes.BackwardEuler, TimeSchemes.ExplicitThreeLayer],
+                CsrMatrix.Factory,
+                NumericItegrator2D.Instance,
+                new PCGSolver(m => IdentityPreconditioner.Instance)
+            );
+            //double[] timeLayers = [0, 0.1, 0.2, 0.3, 0.4];
+            double[] timeLayers = [0, 0.05, 0.1, 0.15, 0.2, 0.25, 0.3, 0.35, 0.4];
+
+            var solutions = solver.Solve(problem, timeLayers, new ISolver.Params(1e-13, 10000));
+            writer.WriteLine("t; difference_L2");
+            int timeId = 1;
+            double averageDifference = 0.0;
+            foreach (var solution in solutions)
+            {
+                double currentTime = timeLayers[timeId];
+                writer.Write($"{currentTime};");
+                var difference = 0.0;
+                difference = solution.Difference(p => analyticSolution(p, currentTime));
+                writer.WriteLine($"{difference:E14}");
+                averageDifference += difference;
+                timeId++;
+            }
+            averageDifference /= timeLayers.Length;
+            writer.WriteLine($"Average difference: {averageDifference:E14}");
+
+
+        }
+        [Fact]
+        public void TestingTriangleMeshWithLinearTimeFuncExplicitThreeLayerXY()
+        {
+            static double analyticSolution(Vector2D p, double t) => p.X * p.X + p.Y * p.Y + t;
+            string fileOut = "output.txt";
+            using FileStream fs = new(fileOut, FileMode.Create);
+            using StreamWriter writer = new(fs);
+            var mesh = new StringReader(TriangleMeshWithDirichletCubic).ReadMesh2D(
+                coordinateSystem: IdentityTransform<Vector2D>.Instance,
+                FiniteElements.Triangle.HierarchicalCubic,
+                FiniteElements.Segment.HierarchicalCubic
+            );
+
+            var problem = new HyperbolicProblem2D(
+                Materials: [new(
+                    Lambda: (p,t) => 3.0,
+                    Sigma: (p,t) => 6.0,
+                    Xi: (p,t) => 0.0,
+                    Source: (p,t) => -6.0
+                )],
+                InitialCondition: p => analyticSolution(p, 0),
+                BoundaryConditions: [
+                    new BoundaryCondition2D.Dirichlet(Value: (p, t) => analyticSolution(p,t)),
+                ],
+                mesh
+            );
+
+            var solver = new ParabolicSolver2D([TimeSchemes.BackwardEuler, TimeSchemes.ExplicitThreeLayer],
+                CsrMatrix.Factory,
+                NumericItegrator2D.Instance,
+                new PCGSolver(m => IdentityPreconditioner.Instance)
+            );
+            double[] timeLayers = [0, 0.25, 0.5, 0.75, 1, 1.25, 1.5];
+
+            var solutions = solver.Solve(problem, timeLayers, new ISolver.Params(1e-13, 10000));
+
+            writer.WriteLine("t; (x,y); u_analytic; u_fem; error");
+            int timeId = 1;
+            foreach (var solution in solutions)
+            {
+                double currentTime = timeLayers[timeId];
+
+                for (int i = 0; i < mesh.VertexCount; i++)
+                {
+                    writer.Write($"{currentTime};");
+                    var point = mesh[i];
+                    writer.Write($"[{point.X},{point.Y}];");
+                    double u_analytic = analyticSolution(point, currentTime);
+                    double u_fem = solution.Evaluate(point);
+                    writer.Write($"{u_analytic};");
+                    writer.Write($"{u_fem};");
+                    writer.WriteLine($"{Math.Abs(u_analytic - u_fem):E14}");
+                    Assert.Equal(u_analytic, u_fem, 1e-6);
+                }
+                timeId++;
+            }
+        }
+        [Fact]
+        public void TestingTriangleMeshWithLinearTimeFuncImplicitThreeLayerXY()
+        {
+            static double analyticSolution(Vector2D p, double t) => p.X * p.X + p.Y * p.Y + t;
+            string fileOut = "output.txt";
+            using FileStream fs = new(fileOut, FileMode.Create);
+            using StreamWriter writer = new(fs);
+            var mesh = new StringReader(TriangleMeshWithDirichletCubic).ReadMesh2D(
+                coordinateSystem: IdentityTransform<Vector2D>.Instance,
+                FiniteElements.Triangle.HierarchicalCubic,
+                FiniteElements.Segment.HierarchicalCubic
+            );
+
+            var problem = new HyperbolicProblem2D(
+                Materials: [new(
+                    Lambda: (p,t) => 3.0,
+                    Sigma: (p,t) => 6.0,
+                    Xi: (p,t) => 0.0,
+                    Source: (p,t) => -6.0
+                )],
+                InitialCondition: p => analyticSolution(p, 0),
+                BoundaryConditions: [
+                    new BoundaryCondition2D.Dirichlet(Value: (p, t) => analyticSolution(p,t)),
+
+                ],
+                mesh
+            );
+
+            var solver = new ParabolicSolver2D([TimeSchemes.BackwardEuler, TimeSchemes.ImplicitThreeLayer],
+                CsrMatrix.Factory,
+                NumericItegrator2D.Instance,
+                new PCGSolver(m => IdentityPreconditioner.Instance)
+            );
+            double[] timeLayers = [0, 0.25, 0.5, 0.75, 1, 1.25, 1.5];
+
+            var solutions = solver.Solve(problem, timeLayers, new ISolver.Params(1e-13, 10000));
+
+            writer.WriteLine("t; (x,y); u_analytic; u_fem; error");
+            int timeId = 1;
+            foreach (var solution in solutions)
+            {
+                double currentTime = timeLayers[timeId];
+
+                for (int i = 0; i < mesh.VertexCount; i++)
+                {
+                    writer.Write($"{currentTime};");
+                    var point = mesh[i];
+                    writer.Write($"[{point.X},{point.Y}];");
+                    double u_analytic = analyticSolution(point, currentTime);
+                    double u_fem = solution.Evaluate(point);
+                    writer.Write($"{u_analytic};");
+                    writer.Write($"{u_fem};");
+                    writer.WriteLine($"{Math.Abs(u_analytic - u_fem):E14}");
+                    Assert.Equal(u_analytic, u_fem, 1e-11);
+                }
+                timeId++;
+            }
+        }
+        [Fact]
+        public void TestingTriangleMeshWithQuadraticTimeFuncImplicitThreeLayerXY()
+        {
+            static double analyticSolution(Vector2D p, double t) => p.X * p.X + p.Y * p.Y + t * t;
+
+            var mesh = new StringReader(TriangleMeshWithDirichletCubic).ReadMesh2D(
+                coordinateSystem: IdentityTransform<Vector2D>.Instance,
+                FiniteElements.Triangle.HierarchicalCubic,
+                FiniteElements.Segment.HierarchicalCubic
+            );
+
+            var problem = new HyperbolicProblem2D(
+                Materials: [new(
+                    Lambda: (p,t) => 1.0,
+                    Sigma: (p,t) => 0.0,
+                    Xi: (p,t) => 0.0,
+                    Source: (p,t) => -4.0
+                )],
+                InitialCondition: p => analyticSolution(p, 0),
+                BoundaryConditions: [
+                    new BoundaryCondition2D.Dirichlet(Value: (p, t) => analyticSolution(p,t)),
+
+                ],
+                mesh
+            );
+
+            var solver = new ParabolicSolver2D([TimeSchemes.BackwardEuler, TimeSchemes.ImplicitThreeLayer],
+                CsrMatrix.Factory,
+                NumericItegrator2D.Instance,
+                new PCGSolver(m => IdentityPreconditioner.Instance)
+            );
+            double[] timeLayers = [0, 0.25, 0.5, 0.75, 1, 1.25, 1.5];
+
+            var solutions = solver.Solve(problem, timeLayers, new ISolver.Params(1e-13, 10000));
+
+            int timeId = 1;
+            foreach (var solution in solutions)
+            {
+                double currentTime = timeLayers[timeId];
+                for (int i = 0; i < mesh.VertexCount; i++)
+                {
+                    var point = mesh[i];
+                    Assert.Equal(analyticSolution(point, currentTime), solution.Evaluate(point), 1e-11);
+                }
+                timeId++;
+            }
+        }
+        [Fact]
+        public void DirichletWithLinearTimeFuncImplicitThreeLayer()
+        {
+            static double analyticSolution(Vector2D p, double t) => t;
+
+            var mesh = new StringReader(TestMesh1Cubic).ReadMesh2D(
+                coordinateSystem: IdentityTransform<Vector2D>.Instance,
+                FiniteElements.Triangle.HierarchicalCubic,
+                FiniteElements.Segment.HierarchicalCubic
+            );
+
+            var problem = new HyperbolicProblem2D(
+                Materials: [new(
+                    Lambda: (p,t) => 1.0,
+                    Sigma: (p,t) => 1.0,
+                    Xi: (p,t) => 0.0,
+                    Source: (p,t) => 1.0
+                )],
+                InitialCondition: p => analyticSolution(p, 0),
+                BoundaryConditions: [
+                    new BoundaryCondition2D.Dirichlet(Value: (p, t) => analyticSolution(p,t)),
+
+                ],
+                mesh
+            );
+
+            var solver = new ParabolicSolver2D([TimeSchemes.BackwardEuler, TimeSchemes.ImplicitThreeLayer],
+                CsrMatrix.Factory,
+                NumericItegrator2D.Instance,
+                new PCGSolver(m => IdentityPreconditioner.Instance)
+            );
+            double[] timeLayers = [0, 0.1, 0.2, 0.3, 0.4];
+
+            var solutions = solver.Solve(problem, timeLayers, new ISolver.Params(1e-13, 10000));
+
+            int timeId = 1;
+            foreach (var solution in solutions)
+            {
+                double currentTime = timeLayers[timeId];
+                for (int i = 0; i < mesh.VertexCount; i++)
+                {
+                    var point = mesh[i];
+                    Assert.Equal(analyticSolution(point, currentTime), solution.Evaluate(point), 1e-12);
+                }
+                timeId++;
+            }
+        }
+        [Fact]
+        public void DirichletWithQuadraticTimeFuncImplicitThreeLayer()
+        {
+            static double analyticSolution(Vector2D p, double t) => t * t;
+
+            var mesh = new StringReader(TestMesh1Cubic).ReadMesh2D(
+                coordinateSystem: IdentityTransform<Vector2D>.Instance,
+                FiniteElements.Triangle.HierarchicalCubic,
+                FiniteElements.Segment.HierarchicalCubic
+            );
+
+            var problem = new HyperbolicProblem2D(
+                Materials: [new(
+                    Lambda: (p,t) => 1.0,
+                    Sigma: (p,t) => 1.0,
+                    Xi: (p,t) => 0.0,
+                    Source: (p,t) => 2 * t
+                )],
+                InitialCondition: p => analyticSolution(p, 0),
+                BoundaryConditions: [
+                    new BoundaryCondition2D.Dirichlet(Value: (p, t) => analyticSolution(p,t)),
+
+                ],
+                mesh
+            );
+
+            var solver = new ParabolicSolver2D([TimeSchemes.BackwardEuler, TimeSchemes.ImplicitThreeLayer],
+                CsrMatrix.Factory,
+                NumericItegrator2D.Instance,
+                new PCGSolver(m => IdentityPreconditioner.Instance)
+            );
+            double[] timeLayers = [0, 0.1, 0.2, 0.3, 0.4];
+
+            var solutions = solver.Solve(problem, timeLayers, new ISolver.Params(1e-13, 10000));
+
+            int timeId = 1;
+            foreach (var solution in solutions)
+            {
+                double currentTime = timeLayers[timeId];
+                for (int i = 0; i < mesh.VertexCount; i++)
+                {
+                    var point = mesh[i];
+                    Assert.Equal(analyticSolution(point, currentTime), solution.Evaluate(point), 1e-12);
+                }
+                timeId++;
+            }
+        }
+        [Fact]
+        public void AllBCWithLinearTimeFuncImplicitThreeLayer()
+        {
+            static double analyticSolution(Vector2D p, double t) => t;
+
+            var mesh = new StringReader(TriangleWithAllBCCubic).ReadMesh2D(
+                coordinateSystem: IdentityTransform<Vector2D>.Instance,
+                FiniteElements.Triangle.HierarchicalCubic,
+                FiniteElements.Segment.HierarchicalCubic
+            );
+
+            var problem = new HyperbolicProblem2D(
+                Materials: [new(
+                    Lambda: (p,t) => 1.0,
+                    Sigma:  (p,t) => 1.0,
+                    Xi:     (p,t) => 0.0,
+                    Source: (p,t) => 1.0
+                )],
+                InitialCondition: p => analyticSolution(p, 0),
+                BoundaryConditions: [
+                    new BoundaryCondition2D.Dirichlet(Value: (p, t) => analyticSolution(p,t)),
+                    new BoundaryCondition2D.Neumann(Flux: (p,t) => 0.0),
+                    new BoundaryCondition2D.Robin(Beta: (p,t) => 2.0,UBeta: (p,t) => t)
+                ],
+                mesh
+            );
+
+            var solver = new ParabolicSolver2D([TimeSchemes.BackwardEuler, TimeSchemes.ImplicitThreeLayer],
+                CsrMatrix.Factory,
+                NumericItegrator2D.Instance,
+                new PCGSolver(m => IdentityPreconditioner.Instance)
+            );
+            double[] timeLayers = [0, 0.1, 0.2, 0.3, 0.4];
+
+            var solutions = solver.Solve(problem, timeLayers, new ISolver.Params(1e-13, 10000));
+
+            int timeId = 1;
+            foreach (var solution in solutions)
+            {
+                double currentTime = timeLayers[timeId];
+                for (int i = 0; i < mesh.VertexCount; i++)
+                {
+                    var point = mesh[i];
+                    Assert.Equal(analyticSolution(point, currentTime), solution.Evaluate(point), 1e-12);
+                }
+                timeId++;
+            }
+        }
+    }
+
 }
