@@ -136,7 +136,7 @@ public sealed record Assembler<TSpace, TBoundary, TOps>(
             CalculateFixedElementMass(element, matrix);
             CalculateFixedElementLoad(element, boundaryValue: p => bc.Value(p, time), rhsVector);
         }
-
+        var ss = matrix.GetType().ToString();
         solver.Matrix = matrix;
         solver.Solve(rhsVector, outFixedSolution, solverParams);
     }

@@ -5,7 +5,7 @@ using Quasar.Native;
 namespace Model.Core.Solver;
 
 
-[Obsolete("This feature is incomplete and should not be used yet.")]
+//[Obsolete("This feature is incomplete and should not be used yet.")]
 public sealed class PardisoSolver : ISolver
 {
     private Pardiso<double>? _solver;
