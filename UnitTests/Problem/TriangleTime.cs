@@ -244,6 +244,38 @@ public class ParabolicProblemTriangleTests
         6 7 0
         7 8 0
         """;
+    private const string TriangleMeshWithDirichletCubicKurent = """
+        25
+        1 1
+        2 1
+        2 2 
+        3 1
+        1 3
+        3 3
+        5 1
+        5 3
+        1 5
+        3 5
+        5 5
+        8
+        0 1 2 0
+        1 2 3 0
+        1 4 3 0
+        3 4 5 0
+        2 3 6 0
+        3 6 7 0
+        3 5 7 0
+        5 7 8 0
+        8
+        0 2 0
+        2 6 0
+        4 5 0
+        5 8 0
+        0 1 0
+        1 4 0
+        6 7 0
+        7 8 0
+        """;
 
     #endregion
 
@@ -1880,8 +1912,8 @@ public class ParabolicProblemTriangleTests
             using FileStream fs = new(fileOut, FileMode.Create);
             using StreamWriter writer = new(fs);
 
-            static double analyticSolution(Vector2D p, double t) => Math.Cos(t);
-            var mesh = new StringReader(TriangleMeshWithAllBCCubic).ReadMesh2D(
+            static double analyticSolution(Vector2D p, double t) => Math.Cos(p.Y) * Math.Cos(t);
+            var mesh = new StringReader(TriangleMeshWithDirichletCubic).ReadMesh2D(
                 coordinateSystem: CylindricCoordinateSystem.Instance,
                 FiniteElements.Triangle.HierarchicalCubic,
                 FiniteElements.Segment.HierarchicalCubic
@@ -1892,45 +1924,177 @@ public class ParabolicProblemTriangleTests
                     Lambda: (p,t) => 1.0,
                     Sigma: (p,t) => 1.0,
                     Xi: (p,t) => 0.0,
-                    Source: (p,t) => -Math.Sin(t)
+                    Source: (p,t) => Math.Cos(p.Y)*(Math.Cos(t)-Math.Sin(t))
                 )],
                 InitialCondition: p => analyticSolution(p, 0),
                 BoundaryConditions: [
                     new BoundaryCondition2D.Dirichlet(Value: (p, t) => analyticSolution(p,t)),
-                    new BoundaryCondition2D.Neumann(Flux: (p,t) => 0.0),
-                    new BoundaryCondition2D.Robin(Beta: (p,t) => 1.0,UBeta: (p,t) => Math.Cos(t))
                 ],
                 mesh
             );
 
-            var solver = new ParabolicSolver2D(TimeSchemes.ImplicitThreeLayer,
+            var solver = new ParabolicSolver2D(TimeSchemes.ExplicitThreeLayer,
                 CsrMatrix.Factory,
                 NumericItegrator2D.Instance,
                 new PCGSolver(m => IdentityPreconditioner.Instance)
             );
 
             //double[] timeLayers = [0, 0.1, 0.2, 0.3, 0.4];
-            //double[] timeLayers = [0, 0.02, 0.04, 0.06, 0.08];
-            double[] timeLayers = [0, 0.01, 0.02, 0.03, 0.04, 0.05, 0.06, 0.07, 0.08];
-            //double[] timeLayers = [0, 0.05, 0.1, 0.15, 0.2, 0.25, 0.3, 0.35, 0.4];
+            double[] timeLayers = [0, 0.2, 0.4];
+            //double[] timeLayers =
+            //    [0,
+            //0.01,
+            //0.02,
+            //0.03,
+            //0.04,
+            //0.05,
+            //0.06,
+            //0.07,
+            //0.08,
+            //0.09,
+            //0.1 ,
+            //0.11,
+            //0.12,
+            //0.13,
+            //0.14,
+            //0.15,
+            //0.16,
+            //0.17,
+            //0.18,
+            //0.19,
+            //0.2 ,
+            //0.21,
+            //0.22,
+            //0.23,
+            //0.24,
+            //0.25,
+            //0.26,
+            //0.27,
+            //0.28,
+            //0.29,
+            //0.3 ,
+            //0.31,
+            //0.32,
+            //0.33,
+            //0.34,
+            //0.35,
+            //0.36,
+            //0.37,
+            //0.38,
+            //0.39,
+            //0.4 ,
+
+            //                ];
+
+            //            double[] timeLayers = 
+            //                [
+            //                0,
+            //0.005,
+            //0.01 ,
+            //0.015,
+            //0.02 ,
+            //0.025,
+            //0.03 ,
+            //0.035,
+            //0.04 ,
+            //0.045,
+            //0.05 ,
+            //0.055,
+            //0.06 ,
+            //0.065,
+            //0.07 ,
+            //0.075,
+            //0.08 ,
+            //0.085,
+            //0.09 ,
+            //0.095,
+            //0.1  ,
+            //0.105,
+            //0.11 ,
+            //0.115,
+            //0.12 ,
+            //0.125,
+            //0.13 ,
+            //0.135,
+            //0.14 ,
+            //0.145,
+            //0.15 ,
+            //0.155,
+            //0.16 ,
+            //0.165,
+            //0.17 ,
+            //0.175,
+            //0.18 ,
+            //0.185,
+            //0.19 ,
+            //0.195,
+            //0.2  ,
+            //0.205,
+            //0.21 ,
+            //0.215,
+            //0.22 ,
+            //0.225,
+            //0.23 ,
+            //0.235,
+            //0.24 ,
+            //0.245,
+            //0.25 ,
+            //0.255,
+            //0.26 ,
+            //0.265,
+            //0.27 ,
+            //0.275,
+            //0.28 ,
+            //0.285,
+            //0.29 ,
+            //0.295,
+            //0.3  ,
+            //0.305,
+            //0.31 ,
+            //0.315,
+            //0.32 ,
+            //0.325,
+            //0.33 ,
+            //0.335,
+            //0.34 ,
+            //0.345,
+            //0.35 ,
+            //0.355,
+            //0.36 ,
+            //0.365,
+            //0.37 ,
+            //0.375,
+            //0.38 ,
+            //0.385,
+            //0.39 ,
+            //0.395,
+            //0.4  ,
+
+
+
+            //                ];
 
             var solutions = solver.Solve(problem, timeLayers, new ISolver.Params(1e-13, 10000));
-            writer.WriteLine("t; NormL2");
+            writer.WriteLine("t; (x,y); u_analytic; u_fem; error");
             int timeId = 1;
-            double averageDifference = 0.0;
             foreach (var solution in solutions)
             {
                 double currentTime = timeLayers[timeId];
-                writer.Write($"{currentTime};");
-                var difference = 0.0;
-                difference = solution.Difference(p => analyticSolution(p, currentTime));
-                writer.WriteLine($"{difference:E14}");
-                averageDifference += difference;
+
+                for (int i = 0; i < mesh.VertexCount; i++)
+                {
+                    writer.Write($"{currentTime};");
+                    var point = mesh[i];
+                    writer.Write($"[{point.X},{point.Y}];");
+                    double u_analytic = analyticSolution(point, currentTime);
+                    double u_fem = solution.Evaluate(point);
+                    writer.Write($"{u_analytic};");
+                    writer.Write($"{u_fem};");
+                    writer.WriteLine($"{Math.Abs(u_analytic - u_fem):E14}");
+                    //Assert.NotEqual(u_analytic, u_fem, 1e-11);
+                }
                 timeId++;
             }
-            //averageDifference /= timeLayers.Length;
-            //writer.WriteLine($"Average difference: {averageDifference:E14}");
-
 
         }
         [Fact]
