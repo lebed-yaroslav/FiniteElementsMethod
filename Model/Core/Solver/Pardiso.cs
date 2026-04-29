@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using System.Text.Json;
 using Model.Core.Matrix;
 using Quasar.Native;
 
@@ -18,7 +19,8 @@ public sealed class PardisoSolver : ISolver
             _solver = new(pardisoMatrix);
             _solver.Analysis();
             _solver.Factorization();
-            value = field;
+            field = value;
+            //value = field;
         }
         private get;
     }

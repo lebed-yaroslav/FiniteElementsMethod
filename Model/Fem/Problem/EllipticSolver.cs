@@ -73,7 +73,9 @@ public sealed class EllipticSolver<TSpace, TBoundary, TOps>(
         assembler.CalculateBoundaryLoadContribution(problem.BoundaryConditions, time, rhsVector);
 
         // 3. Solve SLAE
-        _algebraicSolver.Matrix = globalMatrix;
+        
+        _algebraicSolver.Matrix = globalMatrix
+        ;
         _algebraicSolver.Solve(
             rhsVector,
             dofManager.AsFreeSpan(solution),

@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Diagnostics;
+using System.Diagnostics.Tracing;
 using Model.Core.Vector;
 using Quasar.Native;
 
@@ -38,22 +39,15 @@ public sealed class PardisoMatrix(PardisoMatrix.Portrait portrait) : IPardisoMat
         int m = indices.Length;
         ArgumentOutOfRangeException.ThrowIfNotEqual(matrix.Size, m);
 
-        for (int i = 0; i < m; i++)
+        for (int j = 0; j < m; j++)
         {
-            int gi = indices[i];
-            if (gi < 0) continue;
-            _a[gi] += matrix[i, i];
-        }
-
-        for (int i = 0; i < m; i++)
-        {
-            int gi = indices[i];
-            if (gi < 0) continue;
-            for (int j = 0; j < m; j++)
+            int gj = indices[j];
+            if (gj < 0) continue;
+            for (int i = 0; i < m; i++)
             {
-                int gj = indices[j];
-                if (gj < 0 || gi <= gj) continue;
-                int k = FindPosition(row: gi, col: gj);
+                int gi = indices[i];
+                if (gi < 0 || gi > gj) continue;
+                int k = FindPosition(row: gj, col: gi);
                 Debug.Assert(k >= 0, "Local matrix does not match the portrait");
                 _a[k] += matrix[i, j];
             }
@@ -80,28 +74,46 @@ public sealed class PardisoMatrixFactory : IMatrixFactory
 {
     public IGlobalMatrix Create(IList<HashSet<int>> adjacencyList)
     {
+        //foreach (var elem in adjacencyList) 
+        //{
+        //    elem.Add(elem.LastOrDefault()+1);
+        //}
 
         var NUknownws = adjacencyList.Count;
+        //int sum = 0;
+        //int[] ig = new int[NUknownws + 1];
+        //for (int i = 0; i < NUknownws; i++)
+        //{
+        //    ig[i] = sum;
+        //    sum += adjacencyList[i].Count;
+        //}
+        //ig[NUknownws] = sum;
         var ig = new int[NUknownws + 1];
         ig[0] = 0;
-        for (int i = 0; i < NUknownws; i++) 
+        for (int i = 0; i < NUknownws; i++)
         {
             ig[i + 1] = ig[i] + 1;
-            foreach (var l in adjacencyList[i]) 
+            foreach (var l in adjacencyList[i])
             {
                 if (l > i) ig[i + 1]++;
             }
         }
         var jg = new int[ig[NUknownws]];
-        for (int i = 0; i < NUknownws; i++) 
+        for (int i = 0; i < NUknownws; i++)
         {
             var jgaddr = ig[i];
             jg[jgaddr++] = i;
-            foreach (var j in adjacencyList[i]) 
+            foreach (var j in adjacencyList[i])
             {
                 if (j > i) jg[jgaddr++] = j;
             }
         }
+        //int[] jg = new int[ig[NUknownws]];
+        //int addr = 0;
+        ////jg[0] = 0;
+        //for (int i = 1; i < NUknownws; i++)
+        //    foreach (var k in adjacencyList[i].OrderBy(j => j))
+        //        jg[addr++] = k;
 
         return new PardisoMatrix(new PardisoMatrix.Portrait(ig, jg));
     }
