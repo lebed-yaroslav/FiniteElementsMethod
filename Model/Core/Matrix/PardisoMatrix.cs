@@ -39,24 +39,30 @@ public sealed class PardisoMatrix(PardisoMatrix.Portrait portrait) : IPardisoMat
         int m = indices.Length;
         ArgumentOutOfRangeException.ThrowIfNotEqual(matrix.Size, m);
 
-        for (int j = 0; j < m; j++)
+        for (int i = 0; i < m; i++)
         {
-            int gj = indices[j];
-            if (gj < 0) continue;
-            for (int i = 0; i < m; i++)
+            int gi = indices[i];
+            if (gi < 0) continue;
+            for (int j = 0; j < m; j++)
             {
-                int gi = indices[i];
-                if (gi < 0 || gi > gj) continue;
-                int k = FindPosition(row: gj, col: gi);
-                Debug.Assert(k >= 0, "Local matrix does not match the portrait");
-                _a[k] += matrix[i, j];
+                int gj = indices[j];
+                if (gi == gj) 
+                {
+                    _a[ia[gi]] += matrix[i, j];
+                }
+                else if (gj > gi)
+                {
+                    int k = FindPosition(i: gj, j: gi);
+                    _a[k] += matrix[i, j];
+                
+                }
             }
         }
     }
-    private int FindPosition(int row, int col)
+    private int FindPosition(int i, int j)
     {
-        if (row > col) (col, row) = (col, row);
-        return ja.Slice(ia[row], ia[row + 1] - ia[row]).BinarySearch(col) + ia[row];
+        //if (i > j) (i, j) = (j, i);
+        return ja.Slice(ia[i], ia[i + 1] - ia[i]).BinarySearch(j) + ia[i];
     }
 
     public void MulVec(ReadOnlySpan<double> vec, Span<double> res) => throw new NotImplementedException();
@@ -74,23 +80,12 @@ public sealed class PardisoMatrixFactory : IMatrixFactory
 {
     public IGlobalMatrix Create(IList<HashSet<int>> adjacencyList)
     {
-        //foreach (var elem in adjacencyList) 
-        //{
-        //    elem.Add(elem.LastOrDefault()+1);
-        //}
 
-        var NUknownws = adjacencyList.Count;
-        //int sum = 0;
-        //int[] ig = new int[NUknownws + 1];
-        //for (int i = 0; i < NUknownws; i++)
-        //{
-        //    ig[i] = sum;
-        //    sum += adjacencyList[i].Count;
-        //}
-        //ig[NUknownws] = sum;
-        var ig = new int[NUknownws + 1];
+        var N = adjacencyList.Count;
+
+        var ig = new int[N + 1];
         ig[0] = 0;
-        for (int i = 0; i < NUknownws; i++)
+        for (int i = 0; i < N; i++)
         {
             ig[i + 1] = ig[i] + 1;
             foreach (var l in adjacencyList[i])
@@ -98,22 +93,16 @@ public sealed class PardisoMatrixFactory : IMatrixFactory
                 if (l > i) ig[i + 1]++;
             }
         }
-        var jg = new int[ig[NUknownws]];
-        for (int i = 0; i < NUknownws; i++)
+        var jg = new int[ig[N]];
+        for (int i = 0; i < N; i++)
         {
-            var jgaddr = ig[i];
-            jg[jgaddr++] = i;
+            var jgnext = ig[i];
+            jg[jgnext++] = i;
             foreach (var j in adjacencyList[i])
             {
-                if (j > i) jg[jgaddr++] = j;
+                if (j > i) jg[jgnext++] = j;
             }
         }
-        //int[] jg = new int[ig[NUknownws]];
-        //int addr = 0;
-        ////jg[0] = 0;
-        //for (int i = 1; i < NUknownws; i++)
-        //    foreach (var k in adjacencyList[i].OrderBy(j => j))
-        //        jg[addr++] = k;
 
         return new PardisoMatrix(new PardisoMatrix.Portrait(ig, jg));
     }
