@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Diagnostics;
 using System.Diagnostics.Tracing;
+using System.Text.Json.Serialization;
 using Model.Core.Vector;
 using Quasar.Native;
 
@@ -46,22 +47,31 @@ public sealed class PardisoMatrix(PardisoMatrix.Portrait portrait) : IPardisoMat
             for (int j = 0; j < m; j++)
             {
                 int gj = indices[j];
-                if (gj < gi) continue;
-                else if (gj > gi) 
-                {
-                    int k = FindPosition(i: gj, j: gi);
-                    _a[k] += matrix[i, j];
-                }
-                else
+                if (gj < gi || gj < 0 ) continue;
+                if (gi == gj)
                 {
                     _a[ia[gi]] += matrix[i, j];
                 }
+                else 
+                {
+                    int k = FindPosition(i: gi, j: gj);
+                    _a[k] += matrix[i, j];
+                }
+                //else if (gj > gi) 
+                //{
+                //    int k = FindPosition(i: gj, j: gi);
+                //    _a[k] += matrix[i, j];
+                //}
+                //else
+                //{
+                //    _a[ia[gi]] += matrix[i, j];
+                //}
             }
         }
     }
     private int FindPosition(int i, int j)
     {
-        //if (i > j) (i, j) = (j, i);
+        if (i > j) (i, j) = (j, i);
         return ja.Slice(ia[i], ia[i + 1] - ia[i]).BinarySearch(j) + ia[i];
     }
 
@@ -98,7 +108,7 @@ public sealed class PardisoMatrixFactory : IMatrixFactory
         {
             var jgnext = ig[i];
             jg[jgnext++] = i;
-            foreach (var j in adjacencyList[i])
+            foreach (var j in adjacencyList[i].OrderBy(j=>j))
             {
                 if (j > i) jg[jgnext++] = j;
             }
