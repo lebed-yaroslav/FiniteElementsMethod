@@ -46,15 +46,15 @@ public sealed class PardisoMatrix(PardisoMatrix.Portrait portrait) : IPardisoMat
             for (int j = 0; j < m; j++)
             {
                 int gj = indices[j];
-                if (gi == gj) 
-                {
-                    _a[ia[gi]] += matrix[i, j];
-                }
-                else if (gj > gi)
+                if (gj < gi) continue;
+                else if (gj > gi) 
                 {
                     int k = FindPosition(i: gj, j: gi);
                     _a[k] += matrix[i, j];
-                
+                }
+                else
+                {
+                    _a[ia[gi]] += matrix[i, j];
                 }
             }
         }
