@@ -1,21 +1,18 @@
 <Window xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        xmlns:compilerservices="using:System.Runtime.CompilerServices"
-        xmlns:local="using:App"
         xmlns:viewmodels="using:App.ViewModels"
-        x:DataType="viewmodels:MainWindowViewModel"
         x:Class="App.MainWindow"
-        Title="App"
-        Width="1200" Height="800"
-        MinWidth="1000" MaxHeight="600">
-    
-    <DockPanel> <!--Панелька сверху-->
+        x:DataType="viewmodels:MainWindowViewModel"
+        Title="Finite Elements Method"
+        Width="1320" Height="860"
+        MinWidth="1100" MinHeight="680"
+        CanResize="True">
+
+    <DockPanel Background="{StaticResource AppBaseBackground}">
         <Menu DockPanel.Dock="Top">
-            <MenuItem Header ="Файл">
-                <MenuItem Header="Новая задача" Command="{Binding NewProjectCommand}"/>
-                <MenuItem Header="Загрузить проект..." Command="{Binding LoadProjectCommand}"/>
-                <MenuItem Header="Сохранить проект..." Command="{Binding SaveProjectCommand}"/>
-                <Separator />
+            <MenuItem Header="Файл">
+                <MenuItem Header="Новый проект" Command="{Binding NewProjectCommand}"/>
+                <Separator/>
                 <MenuItem Header="Выход" Command="{Binding ExitCommand}"/>
             </MenuItem>
             <MenuItem Header="Справка">
@@ -23,192 +20,189 @@
             </MenuItem>
         </Menu>
 
-        <!--Статус задачи-->
-        <Border DockPanel.Dock="Bottom"
-                Background="#f0f0f0"
-                Height="25"
-                Padding="10,0"
-                >
-			<Grid>
-				<TextBlock Text="{Binding StatusMessage}" VerticalAlignment="Center" FontSize="12"/>
-            </Grid>
+        <Border DockPanel.Dock="Bottom" Background="{StaticResource AppAccentBackground}" Height="28" Padding="10,0">
+            <TextBlock Text="{Binding StatusMessage}" VerticalAlignment="Center" FontSize="12" Foreground="{StaticResource AppLightTextColor}"/>
         </Border>
 
-        <Grid> 
-            <TabControl Grid.Column="1"
-                        Padding="10">
+        <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+            <TabControl Padding="10">
                 <TabItem Header="Геометрия и сетка">
-                    <StackPanel Margin="10">
-                        <Border BorderBrush="LightGray" BorderThickness="1" CornerRadius="5" Margin="0,5,0,5">
-                            <StackPanel>
-                                <TextBlock Text="Область расчёта" FontWeight="Bold" Margin="5"/>
-                                <StackPanel Orientation="Horizontal" Margin="5">
-                                    <StackPanel Margin="5">
-                                        <Label Content="X Min"/>
-                                        <TextBox Width="50" Text="{Binding XMin, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
-                                    </StackPanel>
-                                    <StackPanel Margin="5">
-                                        <Label Content="X Max"/>
-                                        <TextBox Width="50" Text="{Binding XMax, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
-                                    </StackPanel>
-                                    <StackPanel Margin="5">
-                                        <Label Content="Y Min"/>
-                                        <TextBox Width="50" Text="{Binding YMin, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
-                                    </StackPanel>
-                                    <StackPanel Margin="5">
-                                        <Label Content="Y Max"/>
-                                        <TextBox Width="50" Text="{Binding YMax, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
-                                    </StackPanel>
+                    <StackPanel Margin="10" Spacing="8">
+                        <Border BorderBrush="{StaticResource AppWarmAccentBackground}" BorderThickness="1" CornerRadius="4" Padding="8" Background="{StaticResource AppSurfaceBackground}">
+                            <StackPanel Spacing="8">
+                                <TextBlock Text="Тип элемента" FontWeight="Bold"/>
+                                <ComboBox ItemsSource="{Binding ElementTypes}"
+                                          SelectedItem="{Binding SelectedElementType}"
+                                          Width="360"
+                                          HorizontalAlignment="Left"/>
+
+                                <TextBlock Text="Путь к файлу сетки"/>
+                                <DockPanel LastChildFill="True">
+                                    <Button DockPanel.Dock="Right"
+                                            Content="Выбор файла"
+                                            Margin="8,0,0,0"
+                                            Click="OnPickMeshFileClick"/>
+                                    <TextBox Text="{Binding MeshFilePath, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
+                                </DockPanel>
+
+                                <TextBlock Text="Текст сетки"/>
+                                <TextBox Text="{Binding MeshText, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                         AcceptsReturn="True"
+                                         Height="210"
+                                         TextWrapping="NoWrap"
+                                         ScrollViewer.HorizontalScrollBarVisibility="Auto"
+                                         ScrollViewer.VerticalScrollBarVisibility="Auto"/>
+
+                                <StackPanel Orientation="Horizontal" Spacing="8">
+                                    <Button Content="Сохранить текст" Command="{Binding SaveMeshTextCommand}"/>
+                                    <Button Content="Очистить текст" Command="{Binding ClearMeshTextCommand}"/>
+                                    <Button Content="Шаблон" Command="{Binding LoadMeshTemplateCommand}"/>
+                                    <Button Content="Проверить сетку" Command="{Binding ValidateMeshCommand}"/>
+                                </StackPanel>
+
+                                <TextBlock Text="{Binding MeshStatus}"/>
+                                <TextBlock Text="Диагностика сетки" FontWeight="Bold"/>
+                                <TextBox Text="{Binding MeshDiagnosticsText}"
+                                         AcceptsReturn="True"
+                                         Height="120"
+                                         IsReadOnly="True"
+                                         TextWrapping="Wrap"
+                                         ScrollViewer.VerticalScrollBarVisibility="Auto"/>
+
+                                <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Spacing="8">
+                                    <Button Content="Сохранить" Command="{Binding SaveGeometryCommand}"/>
+                                    <Button Content="Загрузить" Command="{Binding LoadGeometryCommand}"/>
+                                    <Button Content="Сбросить" Command="{Binding ResetGeometryCommand}"/>
                                 </StackPanel>
                             </StackPanel>
                         </Border>
-
-                        <Border BorderBrush="LightGray" BorderThickness="1" CornerRadius="5" Margin="0,5,0,5">
-                            <StackPanel>
-                                <TextBlock Text="Разбиение на элементы" FontWeight="Bold" Margin="5"/>
-                                <StackPanel Orientation="Horizontal" Margin="5">
-                                    <StackPanel Margin="5">
-                                        <Label Content="Nx"/>
-                                        <TextBox Width="50" Text="{Binding Nx, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
-                                    </StackPanel>
-                                    <StackPanel Margin="5">
-                                        <Label Content="Ny"/>
-                                        <TextBox Width="50" Text="{Binding Ny, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
-                                    </StackPanel>
-                                </StackPanel>
-                            </StackPanel>
-                        </Border>
-
-                        <Border BorderBrush="LightGray" BorderThickness="1" CornerRadius="5" Margin="0,5,0,5">
-                            <StackPanel>
-                                <TextBlock Text="Тип элементов" FontWeight="Bold" Margin="5"/>
-                                <ComboBox ItemsSource="{Binding ElementTypes}" SelectedItem="{Binding SelectedElementType}" Margin="5" Width="200" HorizontalAlignment="Left"/>
-                            </StackPanel>
-                        </Border>
-
-                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="5">
-                            <Button Content="Сохранить" Command="{Binding SaveGeometryCommand}"/>
-                            <Button Content="Загрузить" Command="{Binding LoadGeometryCommand}"/>
-                            <Button Content="Сбросить" Command="{Binding ResetGeometryCommand}"/>
-                        </StackPanel>
                     </StackPanel>
                 </TabItem>
+
                 <TabItem Header="Параметры задачи">
-                    <StackPanel Margin="10">
-                        <Border BorderBrush="LightGray" BorderThickness="1" CornerRadius="5" Margin="0,5,0,5">
-                            <StackPanel>
-                                <TextBlock Text="Коэффициент диффузии" FontWeight="Bold" Margin="5"/>
-                                <ComboBox ItemsSource="{Binding DiffusionCoefficients}" SelectedItem="{Binding SelectedDiffusionCoefficient}" Margin="5"/>
-                            </StackPanel>
-                        </Border>
+                    <StackPanel Margin="10" Spacing="8">
+                        <Border BorderBrush="{StaticResource AppWarmAccentBackground}" 
+                                BorderThickness="1" 
+                                CornerRadius="4" 
+                                Padding="8" 
+                                Background="{StaticResource AppSurfaceBackground}">
+                            <StackPanel Spacing="10">
 
-                        <Border BorderBrush="LightGray" BorderThickness="1" CornerRadius="5" Margin="0,5,0,5">
-                            <StackPanel>
-                                <TextBlock Text="Функция правой части" FontWeight="Bold" Margin="5"/>
-                                <ComboBox ItemsSource="{Binding SourceFunctions}" SelectedItem="{Binding SelectedSourceFunction}" Margin="5"/>
-                            </StackPanel>
-                        </Border>
+                                <TextBlock Text="Коэффициенты и функции" FontWeight="Bold" Margin="0,0,0,8"/>
 
-                        <Border BorderBrush="LightGray" BorderThickness="1" CornerRadius="5" Margin="0,5,0,5">
-                            <StackPanel>
-                                <TextBlock Text="Метод решения СЛАУ" FontWeight="Bold" Margin="5"/>
-                                <ComboBox ItemsSource="{Binding SolverMethods}" SelectedItem="{Binding SelectedSolverMethod}" Margin="5"/>
-                            </StackPanel>
-                        </Border>
+                                <Grid ColumnDefinitions="*,*" RowDefinitions="Auto,Auto,Auto,Auto,Auto,Auto,Auto">
+                    
+                                    <StackPanel Grid.Row="0" Grid.Column="0" Margin="0,0,12,10">
+                                        <TextBlock Text="Lambda"/>
+                                        <TextBox Text="{Binding SelectedDiffusionCoefficient, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
+                                    </StackPanel>
+                    
+                                    <StackPanel Grid.Row="0" Grid.Column="1" Margin="0,0,0,10">
+                                        <TextBlock Text="Sigma"/>
+                                        <TextBox Text="{Binding SelectedSigmaCoefficient, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
+                                    </StackPanel>
 
-                        <Border BorderBrush="LightGray" BorderThickness="1" CornerRadius="5" Margin="0,5,0,5">
-                            <StackPanel>
-                                <TextBlock Text="Точность расчёта" FontWeight="Bold" Margin="5"/>
-                                <StackPanel Orientation="Horizontal" Margin="5">
-                                    <Label Content="Допустимая ошибка"/>
-                                    <TextBox Width="100" Text="{Binding Tolerance, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
+                                    <StackPanel Grid.Row="1" Grid.Column="0" Margin="0,0,12,10">
+                                        <TextBlock Text="f(x,y,t)"/>
+                                        <TextBox Text="{Binding SelectedSourceFunction, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
+                                    </StackPanel>
+
+                                    <StackPanel Grid.Row="1" Grid.Column="1" Margin="0,0,0,10">
+                                        <TextBlock Text="u(x,y,t)"/>
+                                        <TextBox Text="{Binding SelectedBoundaryFunction, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
+                                    </StackPanel>
+
+                                    <StackPanel Grid.Row="2" Grid.Column="0" Margin="0,0,12,10">
+                                        <TextBlock Text="Метод СЛАУ"/>
+                                        <ComboBox ItemsSource="{Binding SolverMethods}" 
+                                                  SelectedItem="{Binding SelectedSolverMethod}"/>
+                                    </StackPanel>
+
+                                    <StackPanel Grid.Row="2" Grid.Column="1" Margin="0,0,0,10">
+                                        <TextBlock Text="Схема по времени"/>
+                                        <ComboBox ItemsSource="{Binding TimeSchemes}" 
+                                                  SelectedItem="{Binding SelectedTimeScheme}"/>
+                                    </StackPanel>
+
+                                    <StackPanel Grid.Row="3" Grid.Column="0" Margin="0,0,12,10">
+                                        <TextBlock Text="Начальное время (t0)"/>
+                                        <TextBox Text="{Binding TimeStart, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
+                                    </StackPanel>
+                                    <StackPanel Grid.Row="3" Grid.Column="1" Margin="0,0,0,10">
+                                        <TextBlock Text="Шаг по времени (dt)"/>
+                                        <TextBox Text="{Binding TimeStep, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
+                                    </StackPanel>
+
+                                    <StackPanel Grid.Row="4" Grid.Column="0" Margin="0,0,12,10">
+                                        <TextBlock Text="Количество слоёв"/>
+                                        <TextBox Text="{Binding TimeLayerCount, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
+                                    </StackPanel>
+                                    <StackPanel Grid.Row="4" Grid.Column="1" Margin="0,0,0,10">
+                                        <TextBlock Text="Точность"/>
+                                        <TextBox Text="{Binding Tolerance, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
+                                    </StackPanel>
+                                </Grid>
+
+                                <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Spacing="8" Margin="0,12,0,0">
+                                    <Button Content="Сбросить параметры" Command="{Binding ResetParametersCommand}"/>
                                 </StackPanel>
+
                             </StackPanel>
                         </Border>
-
-                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="5">
-                            <Button Content="Сохранить" Command="{Binding SaveParametersCommand}"/>
-                            <Button Content="Загрузить" Command="{Binding LoadParametersCommand}"/>
-                            <Button Content="Сбросить" Command="{Binding ResetParametersCommand}"/>
-                        </StackPanel>
                     </StackPanel>
                 </TabItem>
-                <TabItem Header="Граничные условия">
-                    <StackPanel Margin="10">
-                        <Border BorderBrush="LightGray" BorderThickness="1" CornerRadius="5" Margin="0,5,0,5">
-                            <StackPanel>
-                                <TextBlock Text="Тип граничных условий" FontWeight="Bold" Margin="5"/>
-                                <ComboBox ItemsSource="{Binding BoundaryConditionTypes}" SelectedItem="{Binding SelectedBoundaryConditionType}" Margin="5"/>
-                            </StackPanel>
-                        </Border>
 
-                        <Border BorderBrush="LightGray" BorderThickness="1" CornerRadius="5" Margin="0,5,0,5">
-                            <StackPanel>
-                                <TextBlock Text="Значения граничных условий" FontWeight="Bold" Margin="5"/>
-                                <StackPanel Orientation="Horizontal" Margin="5">
-                                    <Label Content="Значение"/>
-                                    <TextBox Width="100" Text="{Binding BoundaryConditionValue, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
-                                </StackPanel>
-                            </StackPanel>
-                        </Border>
-
-                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="5">
-                            <Button Content="Сохранить" Command="{Binding SaveBoundaryConditionsCommand}"/>
-                            <Button Content="Загрузить" Command="{Binding LoadBoundaryConditionsCommand}"/>
-                            <Button Content="Сбросить" Command="{Binding ResetBoundaryConditionsCommand}"/>
-                        </StackPanel>
-                    </StackPanel>
-                </TabItem>
                 <TabItem Header="Решение">
-                    <StackPanel Margin="10">
-                        <Border BorderBrush="LightGray" BorderThickness="1" CornerRadius="5" Margin="0,5,0,5">
-                            <StackPanel>
-                                <TextBlock Text="Управление расчётом" FontWeight="Bold" Margin="5"/>
-                                <StackPanel Orientation="Horizontal" Margin="5">
-                                    <Button Content="Запустить расчёт" Command="{Binding CalculateCommand}"/>
-                                    <Button Content="Остановить расчёт" Command="{Binding StopCalculationCommand}"/>
+                    <StackPanel Margin="10" Spacing="8">
+                        <Border BorderBrush="{StaticResource AppWarmAccentBackground}" BorderThickness="1" CornerRadius="4" Padding="8" Background="{StaticResource AppSurfaceBackground}">
+                            <StackPanel Spacing="8">
+                                <TextBlock Text="Управление расчетом" FontWeight="Bold"/>
+                                <StackPanel Orientation="Horizontal" Spacing="8">
+                                    <Button Content="Запустить расчет" Command="{Binding CalculateCommand}"/>
+                                    <Button Content="Остановить" Command="{Binding StopCalculationCommand}"/>
                                     <Button Content="Сбросить результаты" Command="{Binding ResetResultsCommand}"/>
                                 </StackPanel>
-                            </StackPanel>
-                        </Border>
-
-                        <Border BorderBrush="LightGray" BorderThickness="1" CornerRadius="5" Margin="0,5,0,5">
-                            <StackPanel>
-                                <TextBlock Text="Состояние расчёта" FontWeight="Bold" Margin="5"/>
-                                <ProgressBar Value="{Binding CalculationProgress}" Margin="5"/>
-                                <TextBlock Text="{Binding CalculationStatus}" Margin="5"/>
+                                <ProgressBar Value="{Binding CalculationProgress}" Height="14"/>
+                                <TextBlock Text="{Binding CalculationStatus}"/>
                             </StackPanel>
                         </Border>
                     </StackPanel>
                 </TabItem>
-                <TabItem Header="Результаты">
-                    <StackPanel Margin="10">
-                        <Border BorderBrush="LightGray" BorderThickness="1" CornerRadius="5" Margin="0,5,0,5">
-                            <StackPanel>
-                                <TextBlock Text="График решения" FontWeight="Bold" Margin="5"/>
-                                <TextBlock Text="[Место для графика решения]" HorizontalAlignment="Center" VerticalAlignment="Center" Height="200"/>
-                            </StackPanel>
-                        </Border>
 
-                        <Border BorderBrush="LightGray" BorderThickness="1" CornerRadius="5" Margin="0,5,0,5">
-                            <StackPanel>
-                                <TextBlock Text="Таблица значений" FontWeight="Bold" Margin="5"/>
-                                <TextBlock Text="[Место для таблицы значений]" HorizontalAlignment="Center" VerticalAlignment="Center" Height="100"/>
-                            </StackPanel>
-                        </Border>
-
-                        <Border BorderBrush="LightGray" BorderThickness="1" CornerRadius="5" Margin="0,5,0,5">
-                            <StackPanel>
-                                <TextBlock Text="Экспорт результатов" FontWeight="Bold" Margin="5"/>
-                                <StackPanel Orientation="Horizontal" Margin="5">
-                                    <Button Content="Экспорт в CSV" Command="{Binding ExportToCsvCommand}"/>
-                                    <Button Content="Экспорт в PNG" Command="{Binding ExportToPngCommand}"/>
+                <TabItem Header="Результаты и логи">
+                    <StackPanel Margin="10" Spacing="8">
+                        <Border BorderBrush="{StaticResource AppWarmAccentBackground}" BorderThickness="1" CornerRadius="4" Padding="8" Background="{StaticResource AppSurfaceBackground}">
+                            <StackPanel Spacing="8">
+                                <TextBlock Text="Экспорт" FontWeight="Bold"/>
+                                <StackPanel Orientation="Horizontal" Spacing="8">
+                                    <Button Content="Экспорт CSV" Command="{Binding ExportToCsvCommand}"/>
+                                    <Button Content="Экспорт сводки" Command="{Binding ExportToPngCommand}"/>
+                                </StackPanel>
+                                <TextBlock Text="Поле отрисовки" FontWeight="Bold"/>
+                                <Border BorderBrush="{StaticResource AppWarmAccentBackground}" BorderThickness="1" CornerRadius="4" Height="220" Padding="8">
+                                    <TextBlock Text="[Место для графика решения]" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                </Border>
+                                <TextBlock Text="Сводка расчета" FontWeight="Bold"/>
+                                <TextBox Text="{Binding ValidationSummary}"
+                                          Height="80"
+                                          IsReadOnly="True"
+                                         AcceptsReturn="True"
+                                         TextWrapping="Wrap"/>
+                                <TextBlock Text="Журнал" FontWeight="Bold"/>
+                                <TextBox Text="{Binding ExecutionLog}"
+                                         Height="260"
+                                         IsReadOnly="True"
+                                         AcceptsReturn="True"
+                                         TextWrapping="Wrap"
+                                         ScrollViewer.VerticalScrollBarVisibility="Auto"/>
+                                <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                                    <Button Content="Очистить лог" Command="{Binding ClearLogCommand}"/>
                                 </StackPanel>
                             </StackPanel>
                         </Border>
                     </StackPanel>
                 </TabItem>
             </TabControl>
-        </Grid>
+        </ScrollViewer>
     </DockPanel>
 </Window>

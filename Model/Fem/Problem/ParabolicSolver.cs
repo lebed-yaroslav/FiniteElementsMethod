@@ -10,6 +10,13 @@ using Telma.Extensions;
 
 namespace Model.Fem.Problem;
 
+public readonly record struct TimeStepSolveInfo(
+    double Time,
+    double Residual,
+    int Iterations,
+    double StepSeconds
+);
+
 
 public sealed class ParabolicSolver<TSpace, TBoundary, TOps>(
     ITimeScheme[] timeSchemes,
@@ -29,7 +36,8 @@ public sealed class ParabolicSolver<TSpace, TBoundary, TOps>(
     public IEnumerable<StationarySolution<TSpace, TBoundary>> Solve(
         HyperbolicProblem<TSpace> problem,
         double[] timePoints,
-        ISolver.Params solverParams = new()
+        ISolver.Params solverParams = new(),
+        ICollection<TimeStepSolveInfo>? outSolveStats = null
     )
     {
         DebugAssertSchemesAreCorrectTypes(_timeSchemes);
@@ -140,11 +148,14 @@ public sealed class ParabolicSolver<TSpace, TBoundary, TOps>(
 
             // 5. Solve system
             _algebraicSolver.Matrix = globalMatrix;
-            _algebraicSolver.Solve(
+            var sw = Stopwatch.StartNew();
+            var (residual, iterations) = _algebraicSolver.Solve(
                 rhsVector,
                 dofManager.AsFreeSpan(solutions.Last),
                 solverParams
             );
+            sw.Stop();
+            outSolveStats?.Add(new TimeStepSolveInfo(time, residual, iterations, sw.Elapsed.TotalSeconds));
 
             yield return new(mesh, [.. solutions.Last]);
         }

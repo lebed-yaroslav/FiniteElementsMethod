@@ -25,15 +25,10 @@
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
+    <PackageReference Include="Tmds.DBus.Protocol" Version="0.21.3" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\ViewModel\ViewModel.csproj" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Compile Update="MessageBox.axaml.cs">
-      <DependentUpon>MessageBox.axaml</DependentUpon>
-    </Compile>
   </ItemGroup>
 </Project>

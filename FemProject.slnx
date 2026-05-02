@@ -10,5 +10,6 @@
   <Project Path="Model/Model.csproj" />
   <Project Path="Telma/Telma.csproj" />
   <Project Path="UnitTests/UnitTests.csproj" />
+  <Project Path="View/View.csproj" />
   <Project Path="ViewModel/ViewModel.csproj" />
 </Solution>
