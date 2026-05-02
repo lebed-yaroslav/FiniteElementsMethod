@@ -1,5 +1,6 @@
 using System.Diagnostics;
 using Model.Fem.Basis;
+using Model.Fem.Integrator;
 using Telma;
 
 namespace Model.Fem.Elements.Triangle;
@@ -20,7 +21,7 @@ public sealed class LinearTriangleFactory : IFiniteElementFactory2D
         TriangleBasis.L1,
         TriangleBasis.L2
    );
-
+   
     public sealed class Dof() : ElementDof(dofCount: 3)
     {
         public override int NumberOfDofOnVertex => 1;

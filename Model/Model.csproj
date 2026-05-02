@@ -14,4 +14,8 @@
   <ItemGroup>
     <ProjectReference Include="..\Telma\Telma.csproj" />
   </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Model\" />
+  </ItemGroup>
 </Project>

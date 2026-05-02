@@ -1,3 +1,4 @@
+using Model.Fem.Integrator;
 using Hermite1D = Model.Fem.Basis.SegmentBasis.Hermite1D;
 using Lagrange1D = Model.Fem.Basis.SegmentBasis.Lagrange1D;
 
@@ -107,4 +108,5 @@ public static class QuadrangleBasis
 
         return basis;
     }
+   
 }

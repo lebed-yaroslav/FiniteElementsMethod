@@ -1,5 +1,6 @@
 using System.Diagnostics;
 using Model.Fem.Basis;
+using Model.Fem.Integrator;
 using Telma;
 
 namespace Model.Fem.Elements.Triangle;
@@ -31,6 +32,7 @@ public sealed class HierarchicalCubicTriangleFactory : IFiniteElementFactory2D
         new OrientedBasisFunction2D(TriangleBasis.L2L3L2SubL3),
         TriangleBasis.L1L2L3
     );
+     
 
     public sealed class Dof(IBasisSet2D basis) : ElementDof(dofCount: 10)
     {
