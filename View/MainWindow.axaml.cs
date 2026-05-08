@@ -21,6 +21,12 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
     {
         InitializeComponent();
 
+        _dockFactory.HostWindowLocator = new Dictionary<string, Func<IHostWindow?>>
+        {
+            [nameof(IDockWindow)] = () => new HostWindow()
+        };
+        _dockFactory.DefaultHostWindowLocator = () => new HostWindow();
+
         if (DataContext is MainWindowViewModel vm)
             ViewModel = vm;
 
