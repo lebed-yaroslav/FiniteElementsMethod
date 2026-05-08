@@ -7,7 +7,7 @@ namespace Model.Fem.Integrator;
 public interface IPolynomial : IBasisFunction2D
 {
     int Degree { get; }
-    Dictionary<(int p, int q), double> Summands { get; set; } //p - х degree, q - у degree
+    Dictionary<(int p, int q), double> Summands { get; } //p - х degree, q - у degree
     void Add(IPolynomial poly); //adds to the polynomial
     void Mult(IPolynomial poly); //multiplies the polynomial
     void Delete_Nulls(); //removes summands with 0 value;
@@ -24,15 +24,8 @@ public interface IAnalyticalIntegrator
 
 public class Polynomial : IPolynomial
 {
-    public Dictionary<(int p, int q), double> Summands { get; set; } = [];
-    public int Degree
-    {
-        get
-        {
-            int d = Summands.Max(i => i.Key.p + i.Key.q);
-            return d;
-        }
-    }
+    public Dictionary<(int p, int q), double> Summands { get; } = [];
+    public int Degree => Summands.Count == 0 ? 0 : Summands.Max(i => i.Key.p + i.Key.q);
 
     public static IPolynomial Sum(IPolynomial poly1, IPolynomial poly2)
     {
@@ -81,7 +74,13 @@ public class Polynomial : IPolynomial
             }
         }
 
-        Summands = res;
+        Summands.Clear();
+
+        foreach (var item in res)
+        {
+            Summands.Add(item.Key, item.Value);
+        }
+
         Delete_Nulls();
     }
 
@@ -123,7 +122,7 @@ public class Polynomial : IPolynomial
 
         foreach (var i in Summands)
         {
-            if (i.Value == 0) summ_list.Add((i.Key.p, i.Key.q));
+            if (i.Value == 0.0) summ_list.Add((i.Key.p, i.Key.q));
         }
 
         foreach (var i in summ_list)
@@ -165,12 +164,13 @@ public static class AnalyticalIntegration
 
     public static double IntegrateTriangle(IPolynomial poly, IPolynomial jacobian)
     {
-        double res = 0.0, tmp = 0.0;
+        double res = 0.0;
         var polyJ = Polynomial.Mult(jacobian, poly);
         if (!polyJ.IsPolynomial()) throw new NotImplementedException();
 
         foreach (var i in polyJ.Summands)
         {
+            double tmp = 0.0;
             for (int k = 0; k <= i.Key.q + 1; k++)
             {
                 tmp += Math.Pow(-1.0, k) * C[i.Key.q + 1, k] * 1.0 / ((i.Key.q + 1) * (k + i.Key.p + 1));
@@ -199,7 +199,7 @@ public static class AnalyticalIntegration
 
     public static double IntegrateBoundary(IPolynomial poly, IPolynomial jacobian, Vector2D startPoint, Vector2D endPoint)
     {
-        double res = 0.0, tmp = 0.0;
+        double res = 0.0;
         var polyJ = Polynomial.Mult(jacobian, poly);
         if (!polyJ.IsPolynomial()) throw new NotImplementedException();
 
@@ -209,6 +209,7 @@ public static class AnalyticalIntegration
 
         foreach (var item in polyJ.Summands)
         {
+            double tmp = 0.0;
             for (int i = 0; i <= item.Key.p; i++)
             {
                 for (int j = 0; j <= item.Key.q; j++)
@@ -221,7 +222,6 @@ public static class AnalyticalIntegration
             }
 
             res += tmp * root * item.Value;
-            tmp = 0.0;
         }
 
         return res;

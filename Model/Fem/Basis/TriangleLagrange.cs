@@ -29,7 +29,7 @@ public static partial class TriangleBasis
         public static readonly IBasisFunction2D L1L2L3 = TriangleLagrangeL1L2L3;
     }
 
-    private static Polynomial TriangleLagrangeL1L1L1 = new Polynomial()
+    private static readonly Polynomial TriangleLagrangeL1L1L1 = new()
     {
         Summands = {
             [(3, 0)] = 4.5,
@@ -38,7 +38,7 @@ public static partial class TriangleBasis
         }
     };
 
-    private static Polynomial TriangleLagrangeL2L2L2 = new Polynomial()
+    private static readonly Polynomial TriangleLagrangeL2L2L2 = new()
     {
         Summands = {
             [(0, 3)] = 4.5,
@@ -47,7 +47,7 @@ public static partial class TriangleBasis
         }
     };
 
-    private static Polynomial TriangleLagrangeL3L3L3 = new Polynomial()
+    private static readonly Polynomial TriangleLagrangeL3L3L3 = new()
     {
         Summands = {
             [(0, 0)] = 1.0,
@@ -66,7 +66,7 @@ public static partial class TriangleBasis
         }
     };
 
-    private static Polynomial TriangleLagrangeL1L2L1 = new Polynomial()
+    private static readonly Polynomial TriangleLagrangeL1L2L1 = new()
     {
         Summands = {
             [(2, 1)] = 13.5,
@@ -74,7 +74,7 @@ public static partial class TriangleBasis
         }
     };
 
-    private static Polynomial TriangleLagrangeL1L2L2 = new Polynomial()
+    private static readonly Polynomial TriangleLagrangeL1L2L2 = new()
     {
         Summands = {
             [(1, 2)] = 13.5,
@@ -82,7 +82,7 @@ public static partial class TriangleBasis
         }
     };
 
-    public static Polynomial TriangleLagrangeL2L3L2 = new Polynomial()
+    public static readonly Polynomial TriangleLagrangeL2L3L2 = new()
     {
         Summands = {
             [(0, 2)] = 18.0,
@@ -94,7 +94,7 @@ public static partial class TriangleBasis
         }
     };
 
-    public static Polynomial TriangleLagrangeL2L3L3 = new Polynomial()
+    public static readonly Polynomial TriangleLagrangeL2L3L3 = new()
     {
         Summands = {
             [(0, 1)] = 9.0,
@@ -107,7 +107,7 @@ public static partial class TriangleBasis
         }
     };
 
-    public static Polynomial TriangleLagrangeL3L1L3 = new Polynomial()
+    public static readonly Polynomial TriangleLagrangeL3L1L3 = new()
     {
         Summands = {
             [(1, 0)] = 9.0,
@@ -120,7 +120,7 @@ public static partial class TriangleBasis
         }
     };
 
-    public static Polynomial TriangleLagrangeL3L1L1 = new Polynomial()
+    public static readonly Polynomial TriangleLagrangeL3L1L1 = new()
     {
         Summands = {
             [(2, 0)] = 18.0,
@@ -131,7 +131,7 @@ public static partial class TriangleBasis
         }
     };
 
-    public static Polynomial TriangleLagrangeL1L2L3 = new Polynomial()
+    public static readonly Polynomial TriangleLagrangeL1L2L3 = new()
     {
         Summands = {
             [(1, 1)] = 27.0,
