@@ -41,7 +41,7 @@ public class MainWindowViewModel : ViewModelBase
     private List<TimeLayerSolution> _lastTimeLayers = [];
     private List<LayerErrorMetrics> _lastLayerMetrics = [];
     private List<SolverStepMetrics> _lastSolverSteps = [];
-    private static readonly JsonSerializerOptions JsonOptions = new() { WriteIndented = true };
+    
 
     private static readonly IReadOnlyDictionary<string, (IFiniteElementFactory2D Volume, IBoundaryElementFactory2D Boundary)> ElementFactoryMap
         = new Dictionary<string, (IFiniteElementFactory2D, IBoundaryElementFactory2D)>(StringComparer.Ordinal)
@@ -263,6 +263,13 @@ public class MainWindowViewModel : ViewModelBase
         set => this.RaiseAndSetIfChanged(ref _isCalculationRunning, value);
     }
 
+    private int _resultRevision;
+    public int ResultRevision
+    {
+        get => _resultRevision;
+        private set => this.RaiseAndSetIfChanged(ref _resultRevision, value);
+    }
+
     public ReactiveCommand<Unit, Unit> NewProjectCommand { get; private set; } = null!;
     public ReactiveCommand<Unit, Unit> LoadProjectCommand { get; private set; } = null!;
     public ReactiveCommand<Unit, Unit> SaveProjectCommand { get; private set; } = null!;
@@ -284,6 +291,11 @@ public class MainWindowViewModel : ViewModelBase
     public ReactiveCommand<Unit, Unit> ExportToCsvCommand { get; private set; } = null!;
     public ReactiveCommand<Unit, Unit> ExportToPngCommand { get; private set; } = null!;
     public ReactiveCommand<Unit, Unit> ClearLogCommand { get; private set; } = null!;
+    public ReactiveCommand<Unit, Unit> PickMeshFileCommand { get; private set; } = null!;
+    public ReactiveCommand<Unit, Unit> ResetWorkspaceCommand { get; private set; } = null!;
+
+    public Interaction<Unit, string?> PickMeshFileInteraction { get; } = new();
+    public Interaction<Unit, Unit> ResetWorkspaceInteraction { get; } = new();
 
     public MainWindowViewModel()
     {
@@ -311,6 +323,8 @@ public class MainWindowViewModel : ViewModelBase
         ResetResultsCommand = ReactiveCommand.Create(ResetResults);
         ExportToCsvCommand = ReactiveCommand.Create(ExportToCsv);
         ExportToPngCommand = ReactiveCommand.Create(() => { StatusMessage = "Экспорт PNG пока не реализован"; });
+        PickMeshFileCommand = ReactiveCommand.CreateFromTask(PickMeshFileAsync);
+        ResetWorkspaceCommand = ReactiveCommand.CreateFromTask(ResetWorkspaceAsync);
         ApplyImplementedHandlers();
         AppendLog("Готово к работе.");
     }
@@ -323,6 +337,33 @@ public class MainWindowViewModel : ViewModelBase
         LoadMeshTemplateCommand = ReactiveCommand.Create(LoadMeshTemplate);
         ExportToPngCommand = ReactiveCommand.Create(ExportToPng);
         ClearLogCommand = ReactiveCommand.Create(() => { ExecutionLog = string.Empty; });
+    }
+
+    private async Task PickMeshFileAsync(CancellationToken token)
+    {
+        try
+        {
+            var path = await PickMeshFileInteraction.Handle(Unit.Default);
+            if (string.IsNullOrWhiteSpace(path))
+                return;
+
+            token.ThrowIfCancellationRequested();
+            MeshFilePath = path;
+            LoadGeometry();
+        }
+        
+        catch (Exception ex)
+        {
+            MeshStatus = $"Ошибка выбора файла: {ex.Message}";
+            StatusMessage = "Ошибка выбора файла";
+            AppendLog(StatusMessage);
+        }
+    }
+
+    private async Task ResetWorkspaceAsync(CancellationToken token)
+    {
+        token.ThrowIfCancellationRequested();
+        await ResetWorkspaceInteraction.Handle(Unit.Default);
     }
 
     private void NewProject()
@@ -461,6 +502,7 @@ public class MainWindowViewModel : ViewModelBase
         CalculationProgress = 0;
         ValidationSummary = string.Empty;
         CalculationStatus = "Ожидание";
+        BumpResultRevision();
         StatusMessage = "Результаты сброшены";
     }
 
@@ -491,6 +533,7 @@ public class MainWindowViewModel : ViewModelBase
             _lastTime = result.Time;
             _lastTimeLayers = [.. result.TimeLayers];
             SolutionPointsText = BuildSolutionPointsText(_lastSolution, _lastTime);
+            BumpResultRevision();
 
             CalculationProgress = 100;
             CalculationStatus = $"Готово: t={result.Time:F4}, u(center)={result.CenterValue:F6}";
@@ -852,32 +895,6 @@ public class MainWindowViewModel : ViewModelBase
         }
     }
 
-    private static double[] ParseTimePoints(string timePointsText, double timeStart)
-    {
-        if (string.IsNullOrWhiteSpace(timePointsText))
-            return [];
-
-        var separators = new[] { ',', ';', ' ', '\t', '\r', '\n' };
-        var tokens = timePointsText.Split(separators, StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
-        if (tokens.Length == 0)
-            return [];
-
-        var points = new double[tokens.Length];
-        for (int i = 0; i < tokens.Length; i++)
-            points[i] = ParseDouble(tokens[i], nameof(TimePointsText));
-
-        if (points[0] > timeStart)
-            throw new ArgumentException("Первый момент времени не должен быть больше t0");
-
-        for (int i = 1; i < points.Length; i++)
-        {
-            if (points[i] <= points[i - 1])
-                throw new ArgumentException("Моменты времени должны строго возрастать");
-        }
-
-        return points;
-    }
-
     private static Mesh2D ReadMeshFromText(string meshText, string elementType)
     {
         if (string.IsNullOrWhiteSpace(meshText))
@@ -960,6 +977,93 @@ public class MainWindowViewModel : ViewModelBase
         }
 
         return sb.ToString();
+    }
+
+    public bool TryGetResultVisualizationSnapshot(
+        int requestedLayerIndex,
+        int requestedVertexIndex,
+        out ResultVisualizationSnapshot snapshot,
+        out string message)
+    {
+        if (_lastTimeLayers.Count == 0)
+        {
+            snapshot = default;
+            message = "Нет данных для визуализации. Сначала выполните расчет.";
+            return false;
+        }
+
+        var layerIndex = Math.Clamp(requestedLayerIndex, 0, _lastTimeLayers.Count - 1);
+        var layer = _lastTimeLayers[layerIndex];
+        var solution = layer.Solution;
+        var mesh = solution.Mesh;
+
+        if (mesh.VertexCount == 0)
+        {
+            snapshot = default;
+            message = "Сетка пуста, отрисовать нечего.";
+            return false;
+        }
+
+        var vertexIndex = Math.Clamp(requestedVertexIndex, 0, mesh.VertexCount - 1);
+
+        var x = new double[mesh.VertexCount];
+        var y = new double[mesh.VertexCount];
+        var values = new double[mesh.VertexCount];
+        double minValue = double.PositiveInfinity;
+        double maxValue = double.NegativeInfinity;
+
+        for (int i = 0; i < mesh.VertexCount; i++)
+        {
+            var p = mesh[i];
+            var u = solution.Evaluate(p);
+            x[i] = p.X;
+            y[i] = p.Y;
+            values[i] = u;
+            if (u < minValue)
+                minValue = u;
+            if (u > maxValue)
+                maxValue = u;
+        }
+
+        var times = _lastTimeLayers.Select(l => l.Time).ToArray();
+        var selectedVertexPoint = mesh[vertexIndex];
+        var selectedVertexSeries = new double[_lastTimeLayers.Count];
+        for (int i = 0; i < _lastTimeLayers.Count; i++)
+            selectedVertexSeries[i] = _lastTimeLayers[i].Solution.Evaluate(selectedVertexPoint);
+
+        var elements = mesh.FiniteElements
+            .Select(e => e.Geometry.Vertices.ToArray())
+            .ToArray();
+        var boundaries = mesh.BoundaryElements
+            .Select(b => b.Vertices.ToArray())
+            .ToArray();
+        var boundaryIndices = mesh.BoundaryElements
+            .Select(b => b.BoundaryIndex)
+            .ToArray();
+
+        snapshot = new ResultVisualizationSnapshot(
+            LayerIndex: layerIndex,
+            LayerTime: layer.Time,
+            LayerTimes: times,
+            X: x,
+            Y: y,
+            Values: values,
+            MinValue: minValue,
+            MaxValue: maxValue,
+            Elements: elements,
+            Boundaries: boundaries,
+            BoundaryIndices: boundaryIndices,
+            SelectedVertexIndex: vertexIndex,
+            SelectedVertexSeries: selectedVertexSeries
+        );
+
+        message = $"Слой {layerIndex + 1}/{_lastTimeLayers.Count}, t={layer.Time.ToString(CultureInfo.InvariantCulture)}";
+        return true;
+    }
+
+    private void BumpResultRevision()
+    {
+        ResultRevision++;
     }
 
     private void AppendLog(string message)
@@ -1200,6 +1304,7 @@ public class MainWindowViewModel : ViewModelBase
             _lastLayerMetrics = ComputeLayerMetrics(request.BoundaryFunction, result.TimeLayers);
             _lastSolverSteps = [.. result.SolverSteps];
             SolutionPointsText = BuildSolutionPointsText(_lastSolution, _lastTime);
+            BumpResultRevision();
 
             CalculationProgress = 100;
             CalculationStatus = $"Готово: t={result.Time:F4}";
@@ -1218,14 +1323,6 @@ public class MainWindowViewModel : ViewModelBase
             _calculationCts?.Dispose();
             _calculationCts = null;
         }
-    }
-
-    private static void WriteSolverCsv(string path, IReadOnlyList<SolverStepMetrics> steps)
-    {
-        using var writer = new StreamWriter(path, false, Encoding.UTF8);
-        writer.WriteLine("t;iterations;residual;seconds");
-        foreach (var s in steps)
-            writer.WriteLine($"{s.Time.ToString(CultureInfo.InvariantCulture)};{s.Iterations};{s.Residual.ToString(CultureInfo.InvariantCulture)};{s.StepSeconds.ToString(CultureInfo.InvariantCulture)}");
     }
 
     private static void WriteLayersCsv(
@@ -1303,44 +1400,6 @@ public class MainWindowViewModel : ViewModelBase
         return metrics;
     }
 
-    private static string BuildValidationSummary(IReadOnlyList<BatchSummaryRow> rows, double tolerance, string manufacturedCase)
-    {
-        if (rows.Count == 0)
-            return "Нет результатов";
-
-        var best = rows.OrderBy(x => x.FinalL2).First();
-        var worst = rows.OrderByDescending(x => x.FinalL2).First();
-        var sb = new StringBuilder();
-        sb.Append($"Лучший запуск: {best.RunName}, L2={best.FinalL2:E4}; худший запуск: {worst.RunName}, L2={worst.FinalL2:E4}.");
-        if (!string.Equals(manufacturedCase, "Manual", StringComparison.Ordinal))
-        {
-            var pass = best.FinalLInf <= Math.Max(1e-12, tolerance * 20);
-            sb.Append(pass
-                ? " Автопроверка manufactured-case: PASS."
-                : " Автопроверка manufactured-case: FAIL.");
-        }
-
-        return sb.ToString();
-    }
-
-    private static double[] ParseDoubleList(string text, string fieldName)
-    {
-        if (string.IsNullOrWhiteSpace(text))
-            return [];
-        var tokens = text.Split([',', ';', ' ', '\t', '\r', '\n'], StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
-        return [.. tokens.Select(x => ParseDouble(x, fieldName)).Distinct()];
-    }
-
-    private static string[] ParseStringList(string text, string fieldName)
-    {
-        if (string.IsNullOrWhiteSpace(text))
-            return [];
-        var tokens = text.Split([',', ';', '\r', '\n'], StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
-        if (tokens.Length == 0)
-            throw new ArgumentException($"Пустое поле списка: {fieldName}");
-        return tokens;
-    }
-
     private static string NormalizeSolverMethod(string solverMethod)
 {
     if (string.IsNullOrWhiteSpace(solverMethod))
@@ -1354,20 +1413,6 @@ public class MainWindowViewModel : ViewModelBase
         _ => "PCG"   // всё остальное = обычный PCG
     };
 }
-
-    private static string NormalizePreconditioner(string preconditioner)
-    {
-        if (string.IsNullOrWhiteSpace(preconditioner))
-            return "Identity";
-
-        var normalized = Regex.Replace(preconditioner.Trim(), @"\s+", string.Empty).ToUpperInvariant();
-        return normalized switch
-        {
-            "IDENTITY" or "ЕДИНИЧНЫЙ" => "Identity",
-            "ILU" => "ILU",
-            _ => throw new ArgumentException($"Неизвестный предобуславливатель: {preconditioner}. Допустимо: Identity, ILU.")
-        };
-    }
 
     private static string NormalizeTimeScheme(string timeScheme)
     {
@@ -1386,27 +1431,6 @@ public class MainWindowViewModel : ViewModelBase
                 $"Допустимо: {TsExplicitTwoLayer}, {TsImplicitTwoLayer}, {TsExplicitThreeLayer}, {TsImplicitThreeLayer}."
             )
         };
-    }
-
-    private void ApplyManufacturedCase(string caseName)
-    {
-        switch (caseName)
-        {
-            case "Case: u=t*x; f=x":
-                SelectedBoundaryFunction = "t*x";
-                SelectedSourceFunction = "x";
-                break;
-            case "Case: u=t*(x^2+y^2); f=x^2+y^2-4*t":
-                SelectedBoundaryFunction = "t*(x^2+y^2)";
-                SelectedSourceFunction = "x^2+y^2-4*t";
-                break;
-            case "Case: u=(1+t)*(x+y); f=(x+y)":
-                SelectedBoundaryFunction = "(1+t)*(x+y)";
-                SelectedSourceFunction = "(x+y)";
-                break;
-            default:
-                break;
-        }
     }
 
     private static double ParseDouble(string value, string fieldName)
@@ -1444,6 +1468,22 @@ public class MainWindowViewModel : ViewModelBase
         string TimeScheme,
         double[] TimePoints,
         string CustomMeshText
+    );
+
+    public readonly record struct ResultVisualizationSnapshot(
+        int LayerIndex,
+        double LayerTime,
+        double[] LayerTimes,
+        double[] X,
+        double[] Y,
+        double[] Values,
+        double MinValue,
+        double MaxValue,
+        int[][] Elements,
+        int[][] Boundaries,
+        int[] BoundaryIndices,
+        int SelectedVertexIndex,
+        double[] SelectedVertexSeries
     );
 
     private readonly record struct CalculationResult(

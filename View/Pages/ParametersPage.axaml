@@ -1,0 +1,74 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:viewmodels="using:App.ViewModels"
+             x:Class="App.Pages.ParametersPage"
+             x:DataType="viewmodels:MainWindowViewModel">
+
+    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+        <StackPanel Margin="10" Spacing="8">
+            <Border BorderThickness="1" CornerRadius="4" Padding="8">
+                <StackPanel Spacing="10">
+                    <TextBlock Text="Коэффициенты и функции" FontWeight="Bold" Margin="0,0,0,8"/>
+
+                    <Grid ColumnDefinitions="*,*" RowDefinitions="Auto,Auto,Auto,Auto,Auto,Auto,Auto">
+                        <StackPanel Grid.Row="0" Grid.Column="0" Margin="0,0,12,10">
+                            <TextBlock Text="Lambda"/>
+                            <TextBox Text="{Binding SelectedDiffusionCoefficient, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
+                        </StackPanel>
+
+                        <StackPanel Grid.Row="0" Grid.Column="1" Margin="0,0,0,10">
+                            <TextBlock Text="Sigma"/>
+                            <TextBox Text="{Binding SelectedSigmaCoefficient, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
+                        </StackPanel>
+
+                        <StackPanel Grid.Row="1" Grid.Column="0" Margin="0,0,12,10">
+                            <TextBlock Text="f(x,y,t)"/>
+                            <TextBox Text="{Binding SelectedSourceFunction, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
+                        </StackPanel>
+
+                        <StackPanel Grid.Row="1" Grid.Column="1" Margin="0,0,0,10">
+                            <TextBlock Text="u(x,y,t)"/>
+                            <TextBox Text="{Binding SelectedBoundaryFunction, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
+                        </StackPanel>
+
+                        <StackPanel Grid.Row="2" Grid.Column="0" Margin="0,0,12,10">
+                            <TextBlock Text="Метод СЛАУ"/>
+                            <ComboBox ItemsSource="{Binding SolverMethods}"
+                                      SelectedItem="{Binding SelectedSolverMethod}"/>
+                        </StackPanel>
+
+                        <StackPanel Grid.Row="2" Grid.Column="1" Margin="0,0,0,10">
+                            <TextBlock Text="Схема по времени"/>
+                            <ComboBox ItemsSource="{Binding TimeSchemes}"
+                                      SelectedItem="{Binding SelectedTimeScheme}"/>
+                        </StackPanel>
+
+                        <StackPanel Grid.Row="3" Grid.Column="0" Margin="0,0,12,10">
+                            <TextBlock Text="Начальное время (t0)"/>
+                            <TextBox Text="{Binding TimeStart, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
+                        </StackPanel>
+
+                        <StackPanel Grid.Row="3" Grid.Column="1" Margin="0,0,0,10">
+                            <TextBlock Text="Шаг по времени (dt)"/>
+                            <TextBox Text="{Binding TimeStep, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
+                        </StackPanel>
+
+                        <StackPanel Grid.Row="4" Grid.Column="0" Margin="0,0,12,10">
+                            <TextBlock Text="Количество слоёв"/>
+                            <TextBox Text="{Binding TimeLayerCount, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
+                        </StackPanel>
+
+                        <StackPanel Grid.Row="4" Grid.Column="1" Margin="0,0,0,10">
+                            <TextBlock Text="Точность"/>
+                            <TextBox Text="{Binding Tolerance, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
+                        </StackPanel>
+                    </Grid>
+
+                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Spacing="8" Margin="0,12,0,0">
+                        <Button Content="Сбросить параметры" Command="{Binding ResetParametersCommand}"/>
+                    </StackPanel>
+                </StackPanel>
+            </Border>
+        </StackPanel>
+    </ScrollViewer>
+</UserControl>

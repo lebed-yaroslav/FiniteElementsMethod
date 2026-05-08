@@ -1,80 +1,122 @@
-using System.Globalization;
-using System.Linq;
+using System.Threading.Tasks;
+using System.Reactive;
+using App.Pages;
 using App.ViewModels;
-using Avalonia;
 using Avalonia.Controls;
-using Avalonia.Interactivity;
-using Avalonia.Markup.Xaml;
-using Avalonia.Media;
-using Avalonia.Platform.Storage;
+using Dock.Avalonia.Controls;
+using Dock.Model.Avalonia;
+using Dock.Model.Avalonia.Controls;
+using Dock.Model.Controls;
+using Dock.Model.Core;
+using ReactiveUI;
+using ReactiveUI.Avalonia;
 
-namespace App
+namespace App;
+
+public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
 {
-    public partial class MainWindow : Window
+    private readonly Factory _dockFactory = new();
+
+    public MainWindow()
     {
-        public MainWindow()
+        InitializeComponent();
+
+        if (DataContext is MainWindowViewModel vm)
+            ViewModel = vm;
+
+        this.WhenActivated(disposables =>
         {
-            InitializeComponent();
-            DataContext = new MainWindowViewModel();
-        }
-
-        private async void OnPickMeshFileClick(object? sender, RoutedEventArgs e)
-        {
-            if (DataContext is not MainWindowViewModel vm)
-                return;
-
-            var files = await StorageProvider.OpenFilePickerAsync(
-                new FilePickerOpenOptions
-                {
-                    Title = "Выбор файла сетки",
-                    AllowMultiple = false
-                }
-            );
-
-            var file = files.FirstOrDefault();
-            if (file is null)
-                return;
-
-            vm.MeshFilePath = file.Path.LocalPath;
-            vm.LoadGeometryCommand.Execute().Subscribe();
-        }
-        public static FormattedText ConvertToAvaloniaText(string text)
-        {
-            return new FormattedText(
-                text,
-                CultureInfo.CurrentCulture, FlowDirection.LeftToRight,
-                new Typeface("Times"), 20,
-                null)
+            if (ViewModel is null)
             {
-                TextAlignment = TextAlignment.Left,                
-            };
-        }
+                ViewModel = new MainWindowViewModel();
+                DataContext = ViewModel;
+            }
 
-        private void Button_Click(object? sender, RoutedEventArgs e)
-        {
-            var gdrawing = new DrawingGroup();
+            InitializeWorkspace();
 
-
-            gdrawing.Children.Add(new GeometryDrawing()
+            var registration = ViewModel.ResetWorkspaceInteraction.RegisterHandler(context =>
             {
-                Brush = Brushes.Red,
-                Pen = new Pen(Colors.Blue.ToUInt32()),
-                Geometry = new EllipseGeometry(new Rect(100, 100, 300, 200))
-                
-            });
-            var text = ConvertToAvaloniaText("Hello from Avalonia");
-            text.SetForegroundBrush(Brushes.Green);
-            gdrawing.Children.Add(new GeometryDrawing()
-            {
-                Brush = Brushes.Black,
-                Pen = new Pen(Colors.Blue.ToUInt32()),
-                Geometry = text.BuildGeometry(new Point(200,200))                        
+                WorkspaceDock.Layout = CreateWorkspaceLayout();
+                context.SetOutput(Unit.Default);
+                return Task.CompletedTask;
             });
 
+            disposables.Add(registration);
+        });
+    }
 
+    private void InitializeWorkspace()
+    {
+        WorkspaceDock.Factory = _dockFactory;
+        WorkspaceDock.Layout = CreateWorkspaceLayout();
+    }
 
-            DrawHost.Source = new DrawingImage(gdrawing);
+    private object CreatePageContent<T>() where T : Control, new()
+    {
+        return new Func<IServiceProvider, object>(_ =>
+        {
+            var page = new T();
+            if (page is IViewFor<MainWindowViewModel> viewFor)
+                viewFor.ViewModel = ViewModel;
+            else
+                page.DataContext = ViewModel;
+            return page;
+        });
+    }
 
-        }
+    private IRootDock CreateWorkspaceLayout()
+    {
+        var geometryDocument = new Document
+        {
+            Id = "GeometryMesh",
+            Title = "Геометрия и сетка",
+            Content = CreatePageContent<GeometryMeshPage>(),
+            CanFloat = true
+        };
+        var parametersDocument = new Document
+        {
+            Id = "Parameters",
+            Title = "Параметры задачи",
+            Content = CreatePageContent<ParametersPage>(),
+            CanFloat = true
+        };
+        var solutionDocument = new Document
+        {
+            Id = "Solution",
+            Title = "Решение",
+            Content = CreatePageContent<SolutionPage>(),
+            CanFloat = true
+        };
+        var resultsDocument = new Document
+        {
+            Id = "ResultsLogs",
+            Title = "Результаты и логи",
+            Content = CreatePageContent<ResultsPage>(),
+            CanFloat = true
+        };
+
+        var documentDock = new DocumentDock
+        {
+            Id = "Documents",
+            Title = "Рабочая область",
+            VisibleDockables = _dockFactory.CreateList<IDockable>(
+                geometryDocument,
+                parametersDocument,
+                solutionDocument,
+                resultsDocument),
+            ActiveDockable = geometryDocument,
+            DefaultDockable = geometryDocument,
+            CanCloseLastDockable = false
+        };
+
+        var root = _dockFactory.CreateRootDock();
+        root.Id = "Root";
+        root.VisibleDockables = _dockFactory.CreateList<IDockable>(documentDock);
+        root.ActiveDockable = documentDock;
+        root.DefaultDockable = documentDock;
+        root.FloatingWindowHostMode = DockFloatingWindowHostMode.Native;
+
+        _dockFactory.InitLayout(root);
+        return root;
     }
 }

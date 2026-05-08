@@ -1,29 +1,29 @@
+using App.ViewModels;
 using Avalonia;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Markup.Xaml;
-using App.ViewModels;
-    
-namespace App
+
+namespace App;
+
+public partial class App : Application
 {
-    public partial class App : Application
+    public override void Initialize()
     {
-        public override void Initialize()
-        {
-            AvaloniaXamlLoader.Load(this);
-        }
+        AvaloniaXamlLoader.Load(this);
+    }
 
-        public override void OnFrameworkInitializationCompleted()
+    public override void OnFrameworkInitializationCompleted()
+    {
+        if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
         {
-            if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
+            var viewModel = new MainWindowViewModel();
+            desktop.MainWindow = new MainWindow
             {
-                // Устанавливаем DataContext
-                desktop.MainWindow = new MainWindow
-                {
-                    DataContext = new MainWindowViewModel()
-                };
-            }
-
-            base.OnFrameworkInitializationCompleted();
+                ViewModel = viewModel,
+                DataContext = viewModel
+            };
         }
+
+        base.OnFrameworkInitializationCompleted();
     }
 }
