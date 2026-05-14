@@ -1,8 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
-using System.Net.WebSockets;
-using System.Text;
 using Model.Fem.Elements;
 using Telma;
 
@@ -133,8 +128,7 @@ public sealed class HermiteSplineEvaluator2D
             for(int j = 0; j <= subdivision; j++)
             {
                 double ξ = (double)j / subdivision;
-                var sample = EvaluateSample(ξ, η, solution, element);
-                samples.Add(sample);
+                samples.Add(EvaluateSample(ξ, η, solution, element));
             }
         }
         return samples;
