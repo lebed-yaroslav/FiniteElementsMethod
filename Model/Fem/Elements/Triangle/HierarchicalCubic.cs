@@ -1,5 +1,6 @@
 using System.Diagnostics;
 using Model.Fem.Basis;
+using Model.Fem.Integrator;
 using Telma;
 
 namespace Model.Fem.Elements.Triangle;
@@ -18,7 +19,7 @@ public sealed class HierarchicalCubicTriangleFactory : IFiniteElementFactory2D
         );
     }
 
-    public static IBasisSet2D DefaultBasis() => new BasisSet2D(
+    public static MutableBasisSet<Vector2D> DefaultBasis() => new(
         Quadratures.TriangleOrder6,
         TriangleBasis.L3,
         TriangleBasis.L1,
@@ -26,15 +27,15 @@ public sealed class HierarchicalCubicTriangleFactory : IFiniteElementFactory2D
         TriangleBasis.L3L1,
         TriangleBasis.L1L2,
         TriangleBasis.L2L3,
-        new OrientedBasisFunction2D(TriangleBasis.L1L3L1SubL3),
-        new OrientedBasisFunction2D(TriangleBasis.L1L2L2SubL1),
-        new OrientedBasisFunction2D(TriangleBasis.L2L3L2SubL3),
+        TriangleBasis.L1L3L1SubL3,
+        TriangleBasis.L1L2L2SubL1,
+        TriangleBasis.L2L3L2SubL3,
         TriangleBasis.L1L2L3
     );
 
-    public sealed class Dof(IBasisSet2D basis) : ElementDof(dofCount: 10)
+    public sealed class Dof(MutableBasisSet<Vector2D> basis) : ElementDof(dofCount: 10)
     {
-        private readonly IBasisSet2D _basis = basis;
+        private readonly MutableBasisSet<Vector2D> _basis = basis;
 
         public override int NumberOfDofOnVertex => 1;
         public override int NumberOfDofOnEdge => 2;
@@ -55,7 +56,16 @@ public sealed class HierarchicalCubicTriangleFactory : IFiniteElementFactory2D
             int basisIndex = 3 + 3 * n + localEdgeIndex;
             _dof[basisIndex] = dofIndex;
             if (n == 1)
-                ((OrientedBasisFunction2D)_basis.Basis[basisIndex]).IsOrientationFlipped = isOrientationFlipped;
+            {
+                Polynomial2D basis_func = localEdgeIndex switch
+                {
+                    0 => TriangleBasis.L1L3L1SubL3,
+                    1 => TriangleBasis.L1L2L2SubL1,
+                    2 => TriangleBasis.L2L3L2SubL3,
+                    _ => throw new UnreachableException()
+                };
+                _basis.MutableBasis[basisIndex] = isOrientationFlipped ? Polynomial2D.ScalMult(basis_func, -1.0) : basis_func;
+            }
         }
 
         public override void SetElementDof(int n, int dofIndex)

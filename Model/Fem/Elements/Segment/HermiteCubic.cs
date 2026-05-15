@@ -3,29 +3,32 @@ using Model.Core.CoordinateSystem;
 using Model.Fem.Basis;
 using Model.Fem.Elements;
 using Model.Fem.Elements.Segment;
+using Model.Fem.Integrator;
 using Telma;
 
 namespace Model.Fem.Elements.Segment;
 
-public sealed class PhysicalHermiteBasis1D(
-    IBasisFunction1D[] refBasis,
-    double[] coefficients
-) : IBasisFunction1D
+public sealed class PhysicalHermiteBasis1D
 {
-    public double Value(Vector1D p)
+    public static Polynomial1D CreatePoly(
+    Polynomial1D[] refBasis, 
+    double[] coefficients)   
     {
-        double sum = 0;
-        for (int i = 0; i < 4; i++)
-            sum += coefficients[i] * refBasis[i].Value(p);
-        return sum;
-    }
+        var poly = new Polynomial1D();
 
-    public Vector1D Derivatives(Vector1D p)
-    {
-        double sum = 0;
         for (int i = 0; i < 4; i++)
-            sum += coefficients[i] * refBasis[i].Derivatives(p).X;
-        return new Vector1D(sum);
+        {
+            var term = refBasis[i];
+
+            foreach (var j in term.Summands)
+            {
+                var value = j.Value * coefficients[i];
+                if (!poly.Summands.TryAdd(j.Key, value)) poly.Summands[j.Key] += value;
+            }
+        }
+
+        poly.Delete_Nulls();
+        return poly;
     }
 }
 public sealed class HermiteSegmentFactory : IBoundaryElementFactory2D
@@ -47,13 +50,13 @@ public sealed class HermiteSegmentFactory : IBoundaryElementFactory2D
 
         var mode = DetectMode(v);
 
-        var refBasis = new IBasisFunction1D[]
+        var refBasis = new Polynomial1D[]
         {
-            new SegmentBasis.Hermite1D(0), new SegmentBasis.Hermite1D(1),
-            new SegmentBasis.Hermite1D(2), new SegmentBasis.Hermite1D(3)
+            SegmentBasis.Hermite1D.CreatePoly(0), SegmentBasis.Hermite1D.CreatePoly(1),
+            SegmentBasis.Hermite1D.CreatePoly(2), SegmentBasis.Hermite1D.CreatePoly(3)
         };
 
-        IBasisFunction1D[] physicalBasis = mode switch
+        IPolynomial1D[] physicalBasis = mode switch
         {
             BoundaryMode.Horizontal => CreateHorizontalBasis(refBasis, v.X),
             BoundaryMode.Vertical => CreateVerticalBasis(refBasis, v.Y),
@@ -79,56 +82,56 @@ public sealed class HermiteSegmentFactory : IBoundaryElementFactory2D
         return BoundaryMode.Oblique;
     }
 
-    private static IBasisFunction1D[] CreateHorizontalBasis(IBasisFunction1D[] H, double dx)
+    private static IPolynomial1D[] CreateHorizontalBasis(Polynomial1D[] H, double dx)
     {
-        var basis = new IBasisFunction1D[4];
+        var basis = new IPolynomial1D[4];
 
         // vertex 0: u
         var u0 = new double[4];
         u0[0] = 1.0;
-        basis[0] = new PhysicalHermiteBasis1D(H, u0);
+        basis[0] = PhysicalHermiteBasis1D.CreatePoly(H, u0);
 
         // vertex 0: ux
         var ux0 = new double[4];
         ux0[1] = dx;
-        basis[1] = new PhysicalHermiteBasis1D(H, ux0);
+        basis[1] = PhysicalHermiteBasis1D.CreatePoly(H, ux0);
 
         // vertex 1: u
         var u1 = new double[4];
         u1[2] = 1.0;
-        basis[2] = new PhysicalHermiteBasis1D(H, u1);
+        basis[2] = PhysicalHermiteBasis1D.CreatePoly(H, u1);
 
         // vertex 1: ux
         var ux1 = new double[4];
         ux1[3] = dx;
-        basis[3] = new PhysicalHermiteBasis1D(H, ux1);
+        basis[3] = PhysicalHermiteBasis1D.CreatePoly(H, ux1);
 
         return basis;
     }
 
-    private static IBasisFunction1D[] CreateVerticalBasis(IBasisFunction1D[] H, double dy)
+    private static IPolynomial1D[] CreateVerticalBasis(Polynomial1D[] H, double dy)
     {
-        var basis = new IBasisFunction1D[4];
+        var basis = new IPolynomial1D[4];
 
         // vertex 0: u
         var u0 = new double[4];
         u0[0] = 1.0;
-        basis[0] = new PhysicalHermiteBasis1D(H, u0);
+        basis[0] = PhysicalHermiteBasis1D.CreatePoly(H, u0);
 
         // vertex 0: uy
         var uy0 = new double[4];
         uy0[1] = dy;
-        basis[1] = new PhysicalHermiteBasis1D(H, uy0);
+        basis[1] = PhysicalHermiteBasis1D.CreatePoly(H, uy0);
 
         // vertex 1: u
         var u1 = new double[4];
         u1[2] = 1.0;
-        basis[2] = new PhysicalHermiteBasis1D(H, u1);
+        basis[2] = PhysicalHermiteBasis1D.CreatePoly(H, u1);
 
         // vertex 1: uy
         var c3 = new double[4];
         c3[3] = dy;
-        basis[3] = new PhysicalHermiteBasis1D(H, c3);
+        basis[3] = PhysicalHermiteBasis1D.CreatePoly(H, c3);
 
         return basis;
     }

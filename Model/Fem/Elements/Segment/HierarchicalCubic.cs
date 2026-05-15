@@ -1,5 +1,6 @@
 using System.Diagnostics;
 using Model.Fem.Basis;
+using Model.Fem.Integrator;
 using Telma;
 
 namespace Model.Fem.Elements.Segment;
@@ -18,17 +19,17 @@ public sealed class HierarchicalCubicSegmentFactory : IBoundaryElementFactory2D
         );
     }
 
-    public static IBasisSet1D DefaultBasis() => new BasisSet1D(
+    public static MutableBasisSet<Vector1D> DefaultBasis() => new(
         Quadratures.SegmentGaussOrder5,
         SegmentBasis.N0,
         SegmentBasis.N1,
         SegmentBasis.N0N1,
-        new OrientedBasisFunction1D(SegmentBasis.N0N1N0SubN1)
+        SegmentBasis.N0N1N0SubN1
     );
 
-    public sealed class Dof(IBasisSet1D basis) : ElementDof(dofCount: 4)
+    public sealed class Dof(MutableBasisSet<Vector1D> basis) : ElementDof(dofCount: 4)
     {
-        private readonly IBasisSet1D _basis = basis;
+        private readonly MutableBasisSet<Vector1D> _basis = basis;
         public override int NumberOfDofOnVertex => 1;
         public override int NumberOfDofOnEdge => 2;
         public override int NumberOfDofOnElement => 0;
@@ -47,7 +48,11 @@ public sealed class HierarchicalCubicSegmentFactory : IBoundaryElementFactory2D
             int basisIndex = 2 + n;
             _dof[basisIndex] = dofIndex;
             if (n == 1)
-                ((OrientedBasisFunction1D)_basis.Basis[basisIndex]).IsOrientationFlipped = isOrientationFlipped;
+            {
+                _basis.MutableBasis[basisIndex] = isOrientationFlipped
+                    ? Polynomial1D.ScalMult(SegmentBasis.N0N1N0SubN1, -1.0)
+                    : SegmentBasis.N0N1N0SubN1;
+            }
         }
 
         public override void SetElementDof(int n, int dofIndex)

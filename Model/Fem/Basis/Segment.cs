@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using Model.Fem.Integrator;
 using Telma;
 
 namespace Model.Fem.Basis;
@@ -7,41 +8,41 @@ namespace Model.Fem.Basis;
 public static class SegmentBasis
 {
     /// <summary>N0(ξ) = 1 - ξ</summary>
-    public static readonly IBasisFunction1D N0 = new SegmentN0();
+    public static readonly Polynomial1D N0 = new()
+    {
+        Summands = {
+            [0] = 1.0,
+            [1] = -1.0
+        }
+    };
     /// <summary>N1(ξ) = ξ</summary>
-    public static readonly IBasisFunction1D N1 = new SegmentN1();
+    public static readonly Polynomial1D N1 = new()
+    {
+        Summands = {
+            [1] = 1.0
+        }
+    };
     /// <summary>N0N1(ξ) = ξ (1 - ξ)</summary>
-    public static readonly IBasisFunction1D N0N1 = new SegmentN0N1();
+    public static readonly Polynomial1D N0N1 = new()
+    {
+        Summands = {
+            [1] = 1.0,
+            [2] = -1.0
+        }
+    };
     /// <summary>N0N1N0SubN1(ξ) = ξ (1 - ξ)(2ξ - 1)</summary>
-    public static readonly IBasisFunction1D N0N1N0SubN1 = new SegmentN0N1N0SubN1();
-
-    private readonly struct SegmentN0 : IBasisFunction1D
+    public static readonly Polynomial1D N0N1N0SubN1 = new()
     {
-        public double Value(Vector1D point) => 1 - point;
-        public Vector1D Derivatives(Vector1D _) => -1;
-    }
+        Summands = {
+            [3] = -2.0,
+            [2] = 3.0,
+            [1] = -1.0
+        }
+    };
 
-    private readonly struct SegmentN1 : IBasisFunction1D
+    public static class Lagrange1D
     {
-        public double Value(Vector1D point) => point;
-        public Vector1D Derivatives(Vector1D _) => 1;
-    }
-
-    private readonly struct SegmentN0N1 : IBasisFunction1D
-    {
-        public double Value(Vector1D point) => point * (1 - point);
-        public Vector1D Derivatives(Vector1D point) => 1 - 2 * point;
-    }
-
-    private readonly struct SegmentN0N1N0SubN1 : IBasisFunction1D
-    {
-        public double Value(Vector1D point) => point * (1 - point) * (2 * point - 1);
-        public Vector1D Derivatives(Vector1D point) => -6 * point * (point - 1) - 1;
-    }
-
-    public readonly struct Lagrange1D(double[] nodes, int index) : IBasisFunction1D
-    {
-        public static Lagrange1D Create(int order, int index)
+        public static Polynomial1D Create(int order, int index)
         {
             Debug.Assert(0 < order);
             Debug.Assert(0 <= index && index <= order);
@@ -52,81 +53,69 @@ public static class SegmentBasis
             for (int i = 0; i < order; i++)
                 nodes[i] = i * h;
             nodes[order] = 1;
-
-            return new(nodes, index);
+            return CreatePoly(nodes, index);
         }
 
-        public double Value(Vector1D point)
+        public static Polynomial1D CreatePoly(double[] nodes, int index)
         {
-            double x = point;
             double xi = nodes[index];
-            double res = 1.0;
+            var res = new Polynomial1D();
+            res.Summands.Add(0, 1.0);
 
             for (int j = 0; j < nodes.Length; j++)
             {
                 if (j == index) continue;
                 double xj = nodes[j];
-                res *= (x - xj) / (xi - xj);
+
+                var fraction = new Polynomial1D();
+                fraction.Summands.Add(1, 1.0 / (xi - xj));
+                fraction.Summands.Add(0, -xj / (xi - xj));
+                res.Mult(fraction);
             }
 
+            res.Delete_Nulls();
             return res;
-        }
-
-        public Vector1D Derivatives(Vector1D point)
-        {
-            double x = point;
-            double xi = nodes[index];
-            double sum = 0.0;
-
-            for (int j = 0; j < nodes.Length; j++)
-            {
-                if (j == index) continue;
-
-                double xj = nodes[j];
-                double product = 1.0 / (xi - xj);
-
-                for (int k = 0; k < nodes.Length; k++)
-                {
-                    if (k == index || k == j) continue;
-                    double xk = nodes[k];
-                    product *= (x - xk) / (xi - xk);
-                }
-
-                sum += product;
-            }
-            return sum;
         }
     }
 
     /// <summary>
     /// Эрмитовы базисные функции для одномерного интервала, определенные по 4 функциям: H00, H10, H01, H11.
     /// </summary>
-    public readonly struct Hermite1D(int index) : IBasisFunction1D
+    public static class Hermite1D
     {
-        public double Value(Vector1D point)
+        public static Polynomial1D CreatePoly(int index)
         {
-            double x = point;
-            return index switch
-            {
-                0 => 1 - 3 * x * x + 2 * x * x * x, // H00
-                1 => x - 2 * x * x + x * x * x,     // H10
-                2 => 3 * x * x - 2 * x * x * x,     // H01
-                3 => -x * x + x * x * x,            // H11
-                _ => throw new ArgumentOutOfRangeException(nameof(index), "Only indices 0 to 3 supported")
-            };
-        }
+            var poly = new Polynomial1D();
 
-        public Vector1D Derivatives(Vector1D point)
-        {
-            double x = point;
-            return index switch
+            switch (index)
             {
-                0 => -6 * x + 6 * x * x,
-                1 => 1 - 4 * x + 3 * x * x,
-                2 => 6 * x - 6 * x * x,
-                3 => -2 * x + 3 * x * x,
-                _ => throw new ArgumentOutOfRangeException(nameof(index), "Only indices 0 to 3 supported")
-            };
+                case 0: // H00 = 1 - 3x² + 2x³
+                    poly.Summands.Add(0, 1.0);
+                    poly.Summands.Add(2, -3.0);
+                    poly.Summands.Add(3, 2.0);
+                    break;
+
+                case 1: // H10 = x - 2x² + x³
+                    poly.Summands.Add(1, 1.0);
+                    poly.Summands.Add(2, -2.0);
+                    poly.Summands.Add(3, 1.0);
+                    break;
+
+                case 2: // H01 = 3x² - 2x³
+                    poly.Summands.Add(2, 3.0);
+                    poly.Summands.Add(3, -2.0);
+                    break;
+
+                case 3: // H11 = -x² + x³
+                    poly.Summands.Add(2, -1.0);
+                    poly.Summands.Add(3, 1.0);
+                    break;
+
+                default:
+                    throw new ArgumentOutOfRangeException(nameof(index), "Only indices 0 to 3 supported");
+            }
+
+            return poly;
         }
     }
 }

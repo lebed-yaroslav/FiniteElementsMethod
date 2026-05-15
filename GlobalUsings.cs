@@ -83,6 +83,8 @@ global using IItegrator3D = Model.Fem.Integrator.IIntegrator<Telma.Vector3D, Tel
 global using NumericItegrator2D = Model.Fem.Integrator.NumericIntegrator<Telma.Vector2D, Telma.Vector1D, Model.Core.CoordinateSystem.MatrixOperations.Ops2X2>;
 global using NumbericItegrator3D = Model.Fem.Integrator.NumericIntegrator<Telma.Vector3D, Telma.Vector2D, Model.Core.CoordinateSystem.MatrixOperations.Ops3X3>;
 
+global using AnalyticIntegrator2D = Model.Fem.Integrator.AnalyticIntegrator<Telma.Vector2D, Telma.Vector1D, Model.Core.CoordinateSystem.MatrixOperations.Ops2X2>;
+
 // Problem-Related
 
 global using BoundaryCondition1D = Model.Fem.Problem.BoundaryCondition<Telma.Vector1D>;
