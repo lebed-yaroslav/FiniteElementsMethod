@@ -565,23 +565,20 @@ public class MainWindowViewModel : ViewModelBase
         var sigma = ParseDouble(SelectedSigmaCoefficient, nameof(SelectedSigmaCoefficient));
         var solverMethod = NormalizeSolverMethod(SelectedSolverMethod);
         var timeScheme = NormalizeTimeScheme(SelectedTimeScheme);
-        var timeStart = ParseDouble(TimeStart, nameof(TimeStart));
-        var timeStep = ParseDouble(TimeStep, nameof(TimeStep));
-        var timeLayerCount = ParseInt(TimeLayerCount, nameof(TimeLayerCount));
-        var timePoints = Array.Empty<double>();
+        var timeStep = ParseDouble(TimeStep, nameof(TimeStep)); //
+        var timeLayerCount = ParseInt(TimeLayerCount, nameof(TimeLayerCount)); //
         EnsureCustomMeshIsValid();
         if (!ElementFactoryMap.ContainsKey(SelectedElementType))
             throw new ArgumentException($"Неизвестный тип элемента: {SelectedElementType}");
 
         if (tolerance <= 0)
             throw new ArgumentException("Точность должна быть > 0");
-        if (timeStep <= 0)
-            throw new ArgumentException("dt должно быть > 0");
-        if (timeLayerCount < 2)
-            throw new ArgumentException("Количество временных слоев должно быть не меньше 2");
 
         if (ValidationSummary.Contains("внутренних", StringComparison.OrdinalIgnoreCase))
             AppendLog("Предупреждение: сетка без внутренних DOF.");
+
+        double[] timePoints = BuildTimePoints(TimePointsText);
+        double timeStart = timePoints[0];
 
         return new CalculationRequest(
             tolerance,
@@ -592,6 +589,27 @@ public class MainWindowViewModel : ViewModelBase
         );
     }
 
+    private static double[] BuildTimePoints(string InputTimeMesh)
+    {
+        var TimeLays = InputTimeMesh.Split(new[] { ' ', '\t', '\n', '\r' }, StringSplitOptions.RemoveEmptyEntries);
+        int timeLayerCount = TimeLays.Length;
+
+        if (timeLayerCount < 2)
+            throw new ArgumentException("Количество временных слоев должно быть не меньше 2");
+
+        var timePoints = new double[timeLayerCount];
+        
+        for (int i = 0; i < timeLayerCount; i++)
+        {
+            if (!double.TryParse(TimeLays[i], NumberStyles.Float, CultureInfo.InvariantCulture, out var value))
+            {
+                throw new ArgumentException("в схеме по времени необходимо ввести только числа");
+            }
+            timePoints[i] = value;
+        }
+
+        return timePoints;
+    }
     private static CalculationResult SolveParabolicProblem(CalculationRequest request, CancellationToken token)
     {
         token.ThrowIfCancellationRequested();
@@ -634,9 +652,7 @@ public class MainWindowViewModel : ViewModelBase
             CreateAlgebraicSolver(request)
         );
 
-        var timePoints = request.TimePoints.Length >= 2
-            ? request.TimePoints
-            : BuildTimePoints(request.TimeStart, request.TimeStep, request.TimeLayerCount);
+        var timePoints = request.TimePoints;
 
         var timeLayers = new List<TimeLayerSolution>(timePoints.Length);
         var initialValues = new double[mesh.VertexCount];
@@ -713,15 +729,6 @@ public class MainWindowViewModel : ViewModelBase
             //Обычный PCG
             _ => new PCGSolver(_ => IdentityPreconditioner.Instance)
         };
-    }
-
-    private static double[] BuildTimePoints(double start, double step, int count)
-    {
-        var points = new double[count];
-        points[0] = start;
-        for (int i = 1; i < count; i++)
-            points[i] = points[i - 1] + step;
-        return points;
     }
 
     private static double EvaluateBoundary(string boundaryFunction, Vector2D p, double t)

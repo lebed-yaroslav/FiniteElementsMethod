@@ -43,25 +43,16 @@
                                       SelectedItem="{Binding SelectedTimeScheme}"/>
                         </StackPanel>
 
-                        <StackPanel Grid.Row="3" Grid.Column="0" Margin="0,0,12,10">
-                            <TextBlock Text="Начальное время (t0)"/>
-                            <TextBox Text="{Binding TimeStart, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
-                        </StackPanel>
-
-                        <StackPanel Grid.Row="3" Grid.Column="1" Margin="0,0,0,10">
-                            <TextBlock Text="Шаг по времени (dt)"/>
-                            <TextBox Text="{Binding TimeStep, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
-                        </StackPanel>
-
-                        <StackPanel Grid.Row="4" Grid.Column="0" Margin="0,0,12,10">
-                            <TextBlock Text="Количество слоёв"/>
-                            <TextBox Text="{Binding TimeLayerCount, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
-                        </StackPanel>
-
-                        <StackPanel Grid.Row="4" Grid.Column="1" Margin="0,0,0,10">
+                        <StackPanel Grid.Row="3" Grid.Column="0" Margin="0,0,0,10">
                             <TextBlock Text="Точность"/>
                             <TextBox Text="{Binding Tolerance, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
                         </StackPanel>
+
+                        <StackPanel Grid.Row="4" Grid.Column="0" Grid.ColumnSpan="2" Margin="0,0,0,10">
+                            <TextBlock Text="Сетка по времени"/>
+                            <TextBox  Text="{Binding TimePointsText, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
+                        </StackPanel>
+                      
                     </Grid>
 
                     <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Spacing="8" Margin="0,12,0,0">
