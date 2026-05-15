@@ -193,7 +193,7 @@ public class MainWindowViewModel : ViewModelBase
         set => this.RaiseAndSetIfChanged(ref _timeLayerCount, value);
     }
 
-    private string _timePointsText = "0.0, 0.25, 0.5, 0.75, 1.0";
+    private string _timePointsText = "0.0 0.25 0.5 0.75 1.0";
     public string TimePointsText
     {
         get => _timePointsText;
