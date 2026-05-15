@@ -9,8 +9,7 @@ public interface IPolynomial1D : IPolynomial<Vector1D>
     Dictionary<int, double> Summands { get; } //p - х degree
     void Add(IPolynomial1D poly); //adds to the Polynomial1D
     void Mult(IPolynomial1D poly); //multiplies the Polynomial1D
-    void Delete_Nulls(); //removes summands with 0 value;
-    IPolynomial1D Gradient(); //calculates polynomail's gradient
+    IPolynomial1D Gradient(); //calculates polynomial's gradient
 }
 
 public class Polynomial1D : IPolynomial1D
@@ -89,6 +88,8 @@ public class Polynomial1D : IPolynomial1D
         res_poly.Delete_Nulls();
         return res_poly;
     }
+
+    public IPolynomial<Vector1D> Scale(double scal) => ScalMult(this, scal);
 
     public double Value(Vector1D point)
     {

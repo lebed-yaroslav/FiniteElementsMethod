@@ -8,7 +8,9 @@ namespace Model.Fem.Integrator;
 public interface IPolynomial<TSpace> : IBasisFunction<TSpace>
     where TSpace : IVectorBase<TSpace>
 {
-    int Degree { get; }
+    int Degree { get; }  //polynomial degree
+    void Delete_Nulls(); //removes summands with 0 value
+    IPolynomial<TSpace> Scale(double scal); //multiplies the Polynomial by scal
 }
 
 public interface IPolynomial2D : IPolynomial<Vector2D>
@@ -16,8 +18,7 @@ public interface IPolynomial2D : IPolynomial<Vector2D>
     Dictionary<(int p, int q), double> Summands { get; } //p - х degree, q - у degree
     void Add(IPolynomial2D poly); //adds to the Polynomial2D
     void Mult(IPolynomial2D poly); //multiplies the Polynomial2D
-    void Delete_Nulls(); //removes summands with 0 value;
-    ReadOnlySpan<IPolynomial2D> Gradient(); //calculates polynomail's gradient
+    ReadOnlySpan<IPolynomial2D> Gradient(); //calculates polynomial's gradient
 }
 
 public class Polynomial2D : IPolynomial2D
@@ -125,6 +126,8 @@ public class Polynomial2D : IPolynomial2D
 
         res_poly.Delete_Nulls();
     }
+
+    public IPolynomial<Vector2D> Scale(double scal) => ScalMult(this, scal);
 
     public double Value(Vector2D point)
     {

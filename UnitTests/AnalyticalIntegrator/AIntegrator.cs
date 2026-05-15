@@ -482,6 +482,44 @@ public class AnalyticIntegratorOnTriangleEllipticProblemTests
             Assert.Equal(u(point), solution.Evaluate(point), 1e-12);
         }
     }
+
+    [Fact]
+    public void CSRHierarhicalCubicMeshWithAllBCWithQuadraticFunc()
+    {
+        var mesh = new StringReader(TwoNotMasterTriangles).ReadMesh2D(
+            coordinateSystem: IdentityTransform<Vector2D>.Instance,
+            FiniteElements.Triangle.HierarchicalCubic,
+            FiniteElements.Segment.HierarchicalCubic
+        );
+        static double u(Vector2D p) => p.X * p.X;
+        var problem = new EllipticProblem2D(
+            Materials: [new(
+                Lambda: _ => 1.0,
+                Gamma: _ => 1.0,
+                Source: p => -2 + p.X*p.X
+            )],
+            BoundaryConditions: [
+                new BoundaryCondition2D.Dirichlet(Value: (p,_) => u(p)),
+                new BoundaryCondition2D.Neumann(Flux: (p,_) => 2.0 * p.X),
+                new BoundaryCondition2D.Robin(Beta: (p,_) => 1.0,UBeta: (p,_) => p.X*p.X),
+            ],
+            mesh
+        );
+
+        var solver = new EllipticSolver2D(
+            CsrMatrix.Factory,
+            AnalyticIntegrator2D.Instance,
+            new PCGSolver(m => IdentityPreconditioner.Instance)
+        );
+
+        var solution = solver.Solve(problem, new ISolver.Params(1e-13, 10000));
+        for (int i = 0; i < mesh.VertexCount; i++)
+        {
+            var point = mesh[i];
+            Console.WriteLine(point);
+            Assert.Equal(u(point), solution.Evaluate(point), 1e-12);
+        }
+    }
 }
 
 //--------------------------------------------------------------------------------------------------------------------//

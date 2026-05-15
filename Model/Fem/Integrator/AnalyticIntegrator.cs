@@ -241,12 +241,14 @@ public class AnalyticIntegrator<TSpace, TBoundary, TOps> : IIntegrator<TSpace, T
     private static IPolynomial2D AsPoly2D(object b)
     {
         if (b is IPolynomial2D p) return p;
+        if (b is OrientedPolynomialBasisFunction2D oriented_p) return (IPolynomial2D)oriented_p.Poly;
         throw new NotSupportedException($"AnalyticIntegrator requires IPolynomial2D basis functions, got {b.GetType().Name}");
     }
     /// <summary> Проверяет, что пришел 1D полином </summary>
     private static IPolynomial1D AsPoly1D(object b)
     {
         if (b is IPolynomial1D p) return p;
+        if (b is OrientedPolynomialBasisFunction1D oriented_p) return (IPolynomial1D)oriented_p.Poly;
         throw new NotSupportedException($"AnalyticIntegrator requires IPolynomial1D basis functions, got {b.GetType().Name}");
     }
 }

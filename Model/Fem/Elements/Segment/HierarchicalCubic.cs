@@ -19,17 +19,17 @@ public sealed class HierarchicalCubicSegmentFactory : IBoundaryElementFactory2D
         );
     }
 
-    public static MutableBasisSet<Vector1D> DefaultBasis() => new(
+    public static IBasisSet1D DefaultBasis() => new BasisSet1D(
         Quadratures.SegmentGaussOrder5,
         SegmentBasis.N0,
         SegmentBasis.N1,
         SegmentBasis.N0N1,
-        SegmentBasis.N0N1N0SubN1
+        new OrientedPolynomialBasisFunction1D(SegmentBasis.N0N1N0SubN1)
     );
 
-    public sealed class Dof(MutableBasisSet<Vector1D> basis) : ElementDof(dofCount: 4)
+    public sealed class Dof(IBasisSet1D basis) : ElementDof(dofCount: 4)
     {
-        private readonly MutableBasisSet<Vector1D> _basis = basis;
+        private readonly IBasisSet1D _basis = basis;
         public override int NumberOfDofOnVertex => 1;
         public override int NumberOfDofOnEdge => 2;
         public override int NumberOfDofOnElement => 0;
@@ -49,9 +49,7 @@ public sealed class HierarchicalCubicSegmentFactory : IBoundaryElementFactory2D
             _dof[basisIndex] = dofIndex;
             if (n == 1)
             {
-                _basis.MutableBasis[basisIndex] = isOrientationFlipped
-                    ? Polynomial1D.ScalMult(SegmentBasis.N0N1N0SubN1, -1.0)
-                    : SegmentBasis.N0N1N0SubN1;
+                ((OrientedPolynomialBasisFunction1D)_basis.Basis[basisIndex]).IsOrientationFlipped = isOrientationFlipped;
             }
         }
 
