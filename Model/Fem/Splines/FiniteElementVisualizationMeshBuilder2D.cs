@@ -22,14 +22,14 @@ namespace Model.Fem.Splines;
 /// 
 /// строит треугольную сетку для визуализации сплайна
 /// </summary> 
-public sealed class HermiteSplineVisualizationMeshBuilder
+public sealed class FiniteElementVisualizationMeshBuilder2D
 {
-    private readonly HermiteSplineEvaluator2D _evaluator;
+    private readonly FiniteElementFieldEvaluator2D _evaluator;
 
     /// <summary>
     /// builder со стандартным вычислителем сплайна
     /// </summary>
-    public HermiteSplineVisualizationMeshBuilder() : this(new HermiteSplineEvaluator2D())
+    public FiniteElementVisualizationMeshBuilder2D() : this(new FiniteElementFieldEvaluator2D())
     {
     }
 
@@ -37,7 +37,7 @@ public sealed class HermiteSplineVisualizationMeshBuilder
     /// builder с переданным вычислителем сплайна
     /// </summary>
     /// <param name="evaluator"> Объект, который считает значение поля в локальной точке конечного элемента. </param>
-    public HermiteSplineVisualizationMeshBuilder(HermiteSplineEvaluator2D evaluator)
+    public FiniteElementVisualizationMeshBuilder2D(FiniteElementFieldEvaluator2D evaluator)
     {
         _evaluator = evaluator ?? throw new ArgumentNullException(nameof(evaluator));
     }

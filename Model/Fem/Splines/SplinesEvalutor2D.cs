@@ -1,3 +1,4 @@
+using System.Xml.Linq;
 using Model.Fem.Elements;
 using Telma;
 
@@ -22,7 +23,7 @@ public readonly record struct SplineSample2D
 /// Вычисление значений сплайна в локальных точках элемента и соответствующих точках сетки
 /// с помощью эрмитовых элементов на четырехугольных конечных элементах.
 /// </summary>
-public sealed class HermiteSplineEvaluator2D
+public sealed class FiniteElementFieldEvaluator2D
 {
     /// <summary>
     /// Вычисляем значение u^h(ξ, η) внутри элемента
@@ -36,7 +37,12 @@ public sealed class HermiteSplineEvaluator2D
     /// <exception cref="ArgumentOutOfRangeException"></exception>
     public double Evaluate(double ξ, double η, ReadOnlySpan<double> solution, IFiniteElement<Vector2D> element)
     {
-        ValidateLocalPoint(ξ, η);
+        if (element is null)
+        {
+            throw new ArgumentNullException(nameof(element));
+        }
+
+        ValidateLocalPoint(ξ, η, element);
 
         var localPoint = new Vector2D(ξ, η);
         var basis = element.BasisSet.Basis;
@@ -83,7 +89,7 @@ public sealed class HermiteSplineEvaluator2D
     /// </returns>
     public SplineSample2D EvaluateSample(double ξ, double η, ReadOnlySpan<double> solution, IFiniteElement<Vector2D> element)
     {
-        ValidateLocalPoint(ξ, η); // он вызывается еще Evaluate, но пусть будет, от ошибок в globalPoint.
+        ValidateLocalPoint(ξ, η, element); // он вызывается еще Evaluate, но пусть будет, от ошибок в globalPoint.
         var localPoint = new Vector2D(ξ, η);
         var globalPoint = element.Geometry.MasterElementCoordinateSystem.InverseTransform(localPoint);
         double value = Evaluate(ξ, η, solution, element);
@@ -97,7 +103,7 @@ public sealed class HermiteSplineEvaluator2D
         );
             
     }
-    
+
     /// <summary>
     /// Вычисляет значения двумерной сплайн-функции на равномерной сетке внутри конечного элемента.
     /// </summary>
@@ -115,22 +121,60 @@ public sealed class HermiteSplineEvaluator2D
     /// <exception cref="ArgumentOutOfRangeException">Выбрасывается, если значение параметра subdivision меньше или равно нулю.</exception>
     public List<SplineSample2D> EvaluateGrid(ReadOnlySpan<double> solution, IFiniteElement<Vector2D> element, int subdivision)
     {
+        if (element is null)
+        {
+            throw new ArgumentNullException(nameof(element));
+        }
+
         if (subdivision <= 0)
         {
             throw new ArgumentOutOfRangeException(nameof(subdivision), "Деление должно быть положительным целым числом.");
         }
 
+        int vertexCount = element.Geometry.Vertices.Length;
+
+        return vertexCount switch
+        {
+            3 => EvaluateTriangleGrid(solution, element, subdivision),
+            4 => EvaluateQuadrangleGrid(solution, element, subdivision),
+            _ => throw new NotSupportedException($"Поддерживаются только треугольные и четырехугольные элементы. Количество вершин: {vertexCount}.")
+        };
+    }
+
+    private List<SplineSample2D> EvaluateQuadrangleGrid(ReadOnlySpan<double> solution, IFiniteElement<Vector2D> element, int subdivision)
+    {
         var samples = new List<SplineSample2D>((subdivision + 1) * (subdivision + 1));
 
-        for(int i = 0; i <= subdivision; i++)
+        for (int j = 0; j <= subdivision; j++)
         {
-            double η = (double)i / subdivision;
-            for(int j = 0; j <= subdivision; j++)
+            double η = (double)j / subdivision;
+
+            for (int i = 0; i <= subdivision; i++)
             {
-                double ξ = (double)j / subdivision;
+                double ξ = (double)i / subdivision;
                 samples.Add(EvaluateSample(ξ, η, solution, element));
             }
         }
+
+        return samples;
+    }
+
+    private List<SplineSample2D> EvaluateTriangleGrid(ReadOnlySpan<double> solution, IFiniteElement<Vector2D> element, int subdivision)
+    {
+        int pointCount = (subdivision + 1) * (subdivision + 2) / 2;
+        var samples = new List<SplineSample2D>(pointCount);
+
+        for (int j = 0; j <= subdivision; j++)
+        {
+            double η = (double)j / subdivision;
+
+            for (int i = 0; i <= subdivision - j; i++)
+            {
+                double ξ = (double)i / subdivision;
+                samples.Add(EvaluateSample(ξ, η, solution, element));
+            }
+        }
+
         return samples;
     }
 
@@ -140,17 +184,37 @@ public sealed class HermiteSplineEvaluator2D
     /// <param name="ξ">Локальная координата ξ в пределах элемента.</param>
     /// <param name="η">Локальная координата η в пределах элемента.</param>
     /// <exception cref="ArgumentOutOfRangeException">Выбрасывается, если локальная точка находится за пределами [0; 1] x [0; 1].</exception>
-    private static void ValidateLocalPoint(double ξ, double η)
+    private static void ValidateLocalPoint(double ξ, double η, IFiniteElement<Vector2D> element)
     {
         const double eps = 1e-12;
 
-        if (double.IsNaN(ξ) || double.IsNaN(η) ||
-            ξ < -eps || ξ > 1.0 + eps ||
-            η < -eps || η > 1.0 + eps)
+        if (double.IsNaN(ξ) || double.IsNaN(η))
         {
-            throw new ArgumentOutOfRangeException(
-                $"Локальная точка ({ξ}, {η}) должна принадлежать [0; 1] x [0; 1]." 
-            );
+            throw new ArgumentOutOfRangeException($"Локальная точка ({ξ}, {η}) содержит NaN.");
         }
+
+        int vertexCount = element.Geometry.Vertices.Length;
+
+        if (vertexCount == 3)
+        {
+            if (ξ < -eps || η < -eps || ξ + η > 1.0 + eps)
+            {
+                throw new ArgumentOutOfRangeException($"Локальная точка ({ξ}, {η}) должна принадлежать шаблонному треугольнику.");
+            }
+
+            return;
+        }
+
+        if (vertexCount == 4)
+        {
+            if (ξ < -eps || ξ > 1.0 + eps || η < -eps || η > 1.0 + eps)
+            {
+                throw new ArgumentOutOfRangeException($"Локальная точка ({ξ}, {η}) должна принадлежать [0; 1] x [0; 1].");
+            }
+
+            return;
+        }
+
+        throw new NotSupportedException($"Поддерживаются только треугольные и четырехугольные элементы. Количество вершин: {vertexCount}.");
     }
 }

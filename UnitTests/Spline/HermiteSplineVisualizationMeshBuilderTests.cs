@@ -35,7 +35,7 @@ public sealed class HermiteSplineVisualizationMeshBuilderTests
             new Vector2D(0.0, 1.0));
 
         double[] solution = CreateSolutionFor(element);
-        var builder = new HermiteSplineVisualizationMeshBuilder();
+        var builder = new FiniteElementVisualizationMeshBuilder2D();
 
         VisualizationMesh2D mesh = builder.BuildMesh([element], solution, subdivision: 1);
 
@@ -65,7 +65,7 @@ public sealed class HermiteSplineVisualizationMeshBuilderTests
             new Vector2D(0.0, 1.0));
 
         double[] solution = CreateSolutionFor(element);
-        var builder = new HermiteSplineVisualizationMeshBuilder();
+        var builder = new FiniteElementVisualizationMeshBuilder2D();
 
         VisualizationMesh2D mesh = builder.BuildMesh([element], solution, subdivision: 2);
 
@@ -99,7 +99,7 @@ public sealed class HermiteSplineVisualizationMeshBuilderTests
             new Vector2D(0.0, 1.0));
 
         double[] solution = CreateSolutionFor(element);
-        var builder = new HermiteSplineVisualizationMeshBuilder();
+        var builder = new FiniteElementVisualizationMeshBuilder2D();
 
         VisualizationMesh2D mesh = builder.BuildMesh([element], solution, subdivision: 1);
 
@@ -127,7 +127,7 @@ public sealed class HermiteSplineVisualizationMeshBuilderTests
             new Vector2D(0.0, 1.0));
 
         double[] solution = CreateSolutionFor(element);
-        var builder = new HermiteSplineVisualizationMeshBuilder();
+        var builder = new FiniteElementVisualizationMeshBuilder2D();
 
         VisualizationMesh2D mesh = builder.BuildMesh([element], solution, subdivision: 1);
 
@@ -149,7 +149,7 @@ public sealed class HermiteSplineVisualizationMeshBuilderTests
             new Vector2D(0.0, 1.0));
 
         double[] solution = CreateSolutionFor(element);
-        var builder = new HermiteSplineVisualizationMeshBuilder();
+        var builder = new FiniteElementVisualizationMeshBuilder2D();
 
         VisualizationMesh2D mesh = builder.BuildMesh([element], solution, subdivision: 2);
 
@@ -177,7 +177,7 @@ public sealed class HermiteSplineVisualizationMeshBuilderTests
             new Vector2D(2.0, 1.0));
 
         double[] solution = CreateSolutionFor(firstElement);
-        var builder = new HermiteSplineVisualizationMeshBuilder();
+        var builder = new FiniteElementVisualizationMeshBuilder2D();
 
         VisualizationMesh2D mesh = builder.BuildMesh([firstElement, secondElement], solution, subdivision: 1);
 
@@ -201,7 +201,7 @@ public sealed class HermiteSplineVisualizationMeshBuilderTests
             new Vector2D(0.0, 1.0));
 
         double[] solution = CreateSolutionFor(element);
-        var builder = new HermiteSplineVisualizationMeshBuilder();
+        var builder = new FiniteElementVisualizationMeshBuilder2D();
 
         Assert.Throws<ArgumentOutOfRangeException>(
             () => builder.BuildMesh([element], solution, subdivision: 0));

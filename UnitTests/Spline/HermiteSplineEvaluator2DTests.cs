@@ -21,7 +21,7 @@ public sealed class HermiteSplineEvaluator2DTests
             new Vector2D(0.0, 1.0));
 
         double[] solution = CreateSolutionFor(element, Function, DerivativeX, DerivativeY, MixedDerivativeXY);
-        var evaluator = new HermiteSplineEvaluator2D();
+        var evaluator = new FiniteElementFieldEvaluator2D();
 
         double ξ = 0.35;
         double η = 0.70;
@@ -42,7 +42,7 @@ public sealed class HermiteSplineEvaluator2DTests
             new Vector2D(2.0, 7.0));
 
         double[] solution = CreateSolutionFor(element, Function, DerivativeX, DerivativeY, MixedDerivativeXY);
-        var evaluator = new HermiteSplineEvaluator2D();
+        var evaluator = new FiniteElementFieldEvaluator2D();
 
         double ξ = 0.25;
         double η = 0.75;
@@ -70,7 +70,7 @@ public sealed class HermiteSplineEvaluator2DTests
             new Vector2D(0.0, 1.0));
 
         double[] solution = CreateSolutionFor(element, Function, DerivativeX, DerivativeY, MixedDerivativeXY);
-        var evaluator = new HermiteSplineEvaluator2D();
+        var evaluator = new FiniteElementFieldEvaluator2D();
 
         const int subdivision = 2;
 
@@ -120,7 +120,7 @@ public sealed class HermiteSplineEvaluator2DTests
             new Vector2D(0.0, 1.0));
 
         double[] solution = new double[16];
-        var evaluator = new HermiteSplineEvaluator2D();
+        var evaluator = new FiniteElementFieldEvaluator2D();
         
         Assert.Throws<ArgumentOutOfRangeException>(() => evaluator.Evaluate(ξ, η, solution, element));
     }
@@ -135,7 +135,7 @@ public sealed class HermiteSplineEvaluator2DTests
             new Vector2D(0.0, 1.0));
 
         double[] tooShortSolution = new double[15];
-        var evaluator = new HermiteSplineEvaluator2D();
+        var evaluator = new FiniteElementFieldEvaluator2D();
 
         Assert.Throws<ArgumentOutOfRangeException>(() => evaluator.Evaluate(0.5, 0.5, tooShortSolution, element));
     }
@@ -150,7 +150,7 @@ public sealed class HermiteSplineEvaluator2DTests
             new Vector2D(0.0, 1.0));
 
         double[] solution = new double[16];
-        var evaluator = new HermiteSplineEvaluator2D();
+        var evaluator = new FiniteElementFieldEvaluator2D();
 
         Assert.Throws<ArgumentOutOfRangeException>(() => evaluator.EvaluateGrid(solution, element, 0));
     }
